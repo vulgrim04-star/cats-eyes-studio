@@ -2,7 +2,7 @@ const STATUS_MAP = {
   confirmed: { label: 'Confirmé', bg: 'var(--color-success-bg)', color: 'var(--status-confirmed)' },
   pending: { label: 'En attente', bg: 'var(--color-warning-bg)', color: 'var(--status-pending)' },
   completed: { label: 'Terminé', bg: 'var(--color-info-bg)', color: 'var(--status-completed)' },
-  cancelled: { label: 'Annulé', bg: '#F1EAEA', color: 'var(--status-cancelled)' },
+  cancelled: { label: 'Annulé', bg: 'var(--color-neutral-bg)', color: 'var(--status-cancelled)' },
   'no-show': { label: 'No-show', bg: 'var(--color-danger-bg)', color: 'var(--status-noshow)' },
 };
 

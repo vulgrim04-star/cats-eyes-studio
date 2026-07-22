@@ -13,6 +13,7 @@ export function useSettings() {
   const updateDayHours = useSettingsStore((s) => s.updateDayHours);
   const toggleNotification = useSettingsStore((s) => s.toggleNotification);
   const setThemeColorRaw = useSettingsStore((s) => s.setThemeColor);
+  const toggleDarkMode = useSettingsStore((s) => s.toggleDarkMode);
   const showToast = useUIStore((s) => s.showToast);
 
   const updateSalon = (patch) => {
@@ -25,7 +26,16 @@ export function useSettings() {
     showToast('Couleur de l\'interface mise à jour', 'success');
   };
 
-  return { salon, notifications, appearance, updateSalon, updateDayHours, toggleNotification, setThemeColor };
+  return {
+    salon,
+    notifications,
+    appearance,
+    updateSalon,
+    updateDayHours,
+    toggleNotification,
+    setThemeColor,
+    toggleDarkMode,
+  };
 }
 
 export { WEEK_DAYS };

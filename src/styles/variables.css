@@ -22,6 +22,7 @@
   --color-danger-bg: #FBE9EC;
   --color-info: #7C93C8;
   --color-info-bg: #EAEEF9;
+  --color-neutral-bg: #F1EAEA;
 
   /* Status colors */
   --status-confirmed: #6FA98A;
@@ -69,4 +70,27 @@
   --transition-fast: 150ms var(--ease);
   --transition-base: 220ms var(--ease);
   --transition-slow: 360ms var(--ease);
+}
+
+/* Mode sombre : uniquement les tokens neutres. Les 3 variables --color-rose*
+   sont recalculées en JS (ThemeEffect) en fonction du mode, ne pas les redéfinir ici. */
+:root[data-theme='dark'] {
+  --color-cream: #1E1519;
+  --color-sand: #4A372E;
+  --color-white: #2A1F24;
+  --color-text: #F3E9EC;
+  --color-text-soft: #C9B8BE;
+  --color-text-muted: #8F7A81;
+  --color-border: #3D2E33;
+
+  --color-success-bg: #1E3128;
+  --color-warning-bg: #332711;
+  --color-danger-bg: #331B21;
+  --color-info-bg: #1D2333;
+  --color-neutral-bg: #332830;
+
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.45);
+  --shadow-inset: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }

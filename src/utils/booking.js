@@ -15,6 +15,7 @@ export function availableSlots(appointments, date, duration, salon = {}) {
 
   const openMinutes = timeToMinutes(schedule.open ?? '09:00');
   const closeMinutes = timeToMinutes(schedule.close ?? '18:30');
+  const buffer = salon.bufferMinutes ?? 0;
   const slots = [];
   for (let m = openMinutes; m + duration <= closeMinutes; m += STEP_MINUTES) {
     const time = minutesToTime(m);
@@ -24,7 +25,7 @@ export function availableSlots(appointments, date, duration, salon = {}) {
           a.staffId === s.id &&
           a.date === date &&
           a.status !== 'cancelled' &&
-          rangesOverlap(a.time, a.duration, time, duration)
+          rangesOverlap(a.time, a.duration, time, duration, buffer)
       )
     );
     if (freeStaff) {

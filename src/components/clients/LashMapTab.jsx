@@ -12,6 +12,7 @@ export default function LashMapTab({ client }) {
   const { removeLashMap } = useClients();
   const [modalOpen, setModalOpen] = useState(false);
   const [consentOpen, setConsentOpen] = useState(false);
+  const [editingMap, setEditingMap] = useState(null);
   const maps = client.lashMaps ?? [];
 
   const handleDelete = (mapId) => {
@@ -21,11 +22,17 @@ export default function LashMapTab({ client }) {
   };
 
   const handleNewClick = () => {
+    setEditingMap(null);
     if (client.lashMapConsentSigned) {
       setModalOpen(true);
     } else {
       setConsentOpen(true);
     }
+  };
+
+  const handleEditClick = (map) => {
+    setEditingMap(map);
+    setModalOpen(true);
   };
 
   return (
@@ -60,9 +67,14 @@ export default function LashMapTab({ client }) {
                 <div className={styles.cardTitle}>{map.poseType || 'Séance'}</div>
                 <div className={styles.cardDate}>{formatDateLong(map.date)}</div>
               </div>
-              <button type="button" className={styles.deleteBtn} onClick={() => handleDelete(map.id)} aria-label="Supprimer">
-                <Icon name="trash" size={14} />
-              </button>
+              <div style={{ display: 'flex', gap: 6 }}>
+                <button type="button" className={styles.deleteBtn} onClick={() => handleEditClick(map)} aria-label="Modifier">
+                  <Icon name="edit" size={14} />
+                </button>
+                <button type="button" className={styles.deleteBtn} onClick={() => handleDelete(map.id)} aria-label="Supprimer">
+                  <Icon name="trash" size={14} />
+                </button>
+              </div>
             </div>
 
             <div className={styles.tagRow}>
@@ -109,7 +121,7 @@ export default function LashMapTab({ client }) {
         ))
       )}
 
-      <LashMapModal open={modalOpen} onClose={() => setModalOpen(false)} client={client} />
+      <LashMapModal open={modalOpen} onClose={() => { setModalOpen(false); setEditingMap(null); }} client={client} editingMap={editingMap} />
       <LashMapConsentModal open={consentOpen} onClose={() => setConsentOpen(false)} client={client} />
     </>
   );

@@ -44,8 +44,17 @@ function clamp01(v) {
 }
 
 /** Dérive les teintes rose/rose-dark/rose-clair à partir d'une couleur de base. */
-export function deriveThemeShades(baseHex) {
+export function deriveThemeShades(baseHex, dark = false) {
   const { h, s } = hexToHsl(baseHex);
+  if (dark) {
+    return {
+      base: baseHex,
+      // En mode sombre, "rose-dark" sert de couleur de texte/accent : il doit être clair pour rester lisible.
+      dark: hslToHex(h, clamp01(s * 0.7), clamp01(0.72)),
+      // "rose-light" sert de fond de badge/chip : une teinte sombre et discrète plutôt que du rose pastel.
+      light: hslToHex(h, clamp01(s * 0.5), clamp01(0.22)),
+    };
+  }
   return {
     base: baseHex,
     dark: hslToHex(h, clamp01(s), clamp01(0.32)),

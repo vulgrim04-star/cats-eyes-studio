@@ -13,7 +13,10 @@ export function useClients() {
   const signLashMapConsent = useClientsStore((s) => s.signLashMapConsent);
   const addNote = useClientsStore((s) => s.addNote);
   const addPhotoSession = useClientsStore((s) => s.addPhotoSession);
+  const updatePhotoSession = useClientsStore((s) => s.updatePhotoSession);
+  const removePhotoSession = useClientsStore((s) => s.removePhotoSession);
   const addLashMap = useClientsStore((s) => s.addLashMap);
+  const updateLashMap = useClientsStore((s) => s.updateLashMap);
   const removeLashMap = useClientsStore((s) => s.removeLashMap);
 
   return {
@@ -24,7 +27,10 @@ export function useClients() {
     signLashMapConsent,
     addNote,
     addPhotoSession,
+    updatePhotoSession,
+    removePhotoSession,
     addLashMap,
+    updateLashMap,
     removeLashMap,
   };
 }

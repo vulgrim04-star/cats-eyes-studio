@@ -9,9 +9,14 @@ import AppointmentCard from '../components/agenda/AppointmentCard';
 import WeekView from '../components/agenda/WeekView';
 import NewAppointmentModal from '../components/agenda/NewAppointmentModal';
 import PaymentModal from '../components/agenda/PaymentModal';
+import DayPlanningPrint from '../components/agenda/DayPlanningPrint';
+import InvoicePrint from '../components/common/InvoicePrint';
 import { useAppointments, enrich, getAppointmentsByDate } from '../hooks/useAppointments';
 import { useStaff } from '../hooks/useStaff';
+import { useSettings } from '../hooks/useSettings';
 import { addDaysISO, todayISO, formatDateLong, getWeekDays, getWeekStart } from '../utils/date';
+import { generateICS, downloadICS } from '../utils/ical';
+import { useToast } from '../hooks/useToast';
 import styles from './Agenda.module.css';
 
 export default function Agenda() {
@@ -19,6 +24,8 @@ export default function Agenda() {
   const navigate = useNavigate();
   const { appointments, setStatus } = useAppointments();
   const { staff } = useStaff();
+  const { salon } = useSettings();
+  const { showToast } = useToast();
 
   const [selectedDate, setSelectedDate] = useState(todayISO());
   const [staffFilter, setStaffFilter] = useState('all');
@@ -27,6 +34,8 @@ export default function Agenda() {
   const [prefill, setPrefill] = useState(null);
   const [editingAppointment, setEditingAppointment] = useState(null);
   const [completingAppointment, setCompletingAppointment] = useState(null);
+  const [printInvoice, setPrintInvoice] = useState(null);
+  const [printPlanning, setPrintPlanning] = useState(false);
 
   const days = useMemo(() => getWeekDays(addDaysISO(todayISO(), -3), 21), []);
 
@@ -57,6 +66,30 @@ export default function Agenda() {
     setEditingAppointment(null);
   };
 
+  const handleExportICS = () => {
+    const upcoming = appointments.filter((a) => a.status !== 'cancelled').map(enrich);
+    if (upcoming.length === 0) {
+      showToast('Aucun rendez-vous à exporter', 'warning');
+      return;
+    }
+    downloadICS(`${salon.name.replace(/\s+/g, '-').toLowerCase()}-agenda.ics`, generateICS(upcoming, salon.name));
+    showToast('Fichier iCal téléchargé — importez-le dans Google Calendar ou Outlook', 'success');
+  };
+
+  useEffect(() => {
+    if (printInvoice) {
+      window.print();
+      setPrintInvoice(null);
+    }
+  }, [printInvoice]);
+
+  useEffect(() => {
+    if (printPlanning) {
+      window.print();
+      setPrintPlanning(false);
+    }
+  }, [printPlanning]);
+
   return (
     <>
       <PageHeader
@@ -72,6 +105,12 @@ export default function Agenda() {
                 Semaine
               </button>
             </div>
+            <button type="button" className="btn btn-ghost" onClick={() => setPrintPlanning(true)}>
+              <Icon name="printer" size={16} /> Imprimer
+            </button>
+            <button type="button" className="btn btn-ghost" onClick={handleExportICS}>
+              <Icon name="download" size={16} /> iCal
+            </button>
             <button type="button" className="btn btn-primary" onClick={() => { setPrefill({ date: selectedDate }); setModalOpen(true); }}>
               <Icon name="plus" size={16} /> Nouveau RDV
             </button>
@@ -107,6 +146,7 @@ export default function Agenda() {
                   onStatusChange={setStatus}
                   onEdit={(a) => { setEditingAppointment(a); setModalOpen(true); }}
                   onRequestComplete={setCompletingAppointment}
+                  onPrint={setPrintInvoice}
                 />
               ))}
             </div>
@@ -125,6 +165,9 @@ export default function Agenda() {
       />
 
       <PaymentModal appointment={completingAppointment} onClose={() => setCompletingAppointment(null)} />
+
+      <InvoicePrint appointment={printInvoice} salon={salon} />
+      <DayPlanningPrint date={printPlanning ? selectedDate : null} appointments={dayAppointments} salon={salon} />
     </>
   );
 }

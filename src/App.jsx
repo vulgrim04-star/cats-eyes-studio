@@ -1,6 +1,8 @@
 import { Routes, Route } from 'react-router-dom';
 import Layout from './components/layout/Layout';
 import ThemeEffect from './components/common/ThemeEffect';
+import AuthGate from './components/common/AuthGate';
+import RequireAuth from './components/common/RequireAuth';
 import Dashboard from './pages/Dashboard';
 import Agenda from './pages/Agenda';
 import Clients from './pages/Clients';
@@ -13,21 +15,23 @@ import Booking from './pages/Booking';
 
 export default function App() {
   return (
-    <>
+    <AuthGate>
       <ThemeEffect />
       <Routes>
         <Route path="/reservation" element={<Booking />} />
-        <Route element={<Layout />}>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/agenda" element={<Agenda />} />
-          <Route path="/clientes" element={<Clients />} />
-          <Route path="/clientes/:id" element={<ClientDetail />} />
-          <Route path="/stock" element={<Stock />} />
-          <Route path="/finances" element={<Finances />} />
-          <Route path="/catalogue" element={<Catalogue />} />
-          <Route path="/parametres" element={<Settings />} />
+        <Route element={<RequireAuth />}>
+          <Route element={<Layout />}>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/agenda" element={<Agenda />} />
+            <Route path="/clientes" element={<Clients />} />
+            <Route path="/clientes/:id" element={<ClientDetail />} />
+            <Route path="/stock" element={<Stock />} />
+            <Route path="/finances" element={<Finances />} />
+            <Route path="/catalogue" element={<Catalogue />} />
+            <Route path="/parametres" element={<Settings />} />
+          </Route>
         </Route>
       </Routes>
-    </>
+    </AuthGate>
   );
 }

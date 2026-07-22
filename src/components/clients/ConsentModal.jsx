@@ -1,22 +1,22 @@
 import { useState } from 'react';
 import Modal from '../common/Modal';
+import SignaturePad from '../common/SignaturePad';
 import { useClients } from '../../hooks/useClients';
 import { todayISO, formatDateLong } from '../../utils/date';
-import { fullName } from '../../utils/format';
 import styles from './ConsentModal.module.css';
 
 export default function ConsentModal({ open, onClose, client }) {
   const { signConsent } = useClients();
   const [agreed, setAgreed] = useState(false);
-  const [signature, setSignature] = useState('');
+  const [signatureUrl, setSignatureUrl] = useState(null);
 
-  const canSign = agreed && signature.trim().toLowerCase() === fullName(client).toLowerCase();
+  const canSign = agreed && Boolean(signatureUrl);
 
   const handleSign = () => {
     if (!canSign) return;
-    signConsent(client.id, todayISO());
+    signConsent(client.id, todayISO(), signatureUrl);
     setAgreed(false);
-    setSignature('');
+    setSignatureUrl(null);
     onClose();
   };
 
@@ -48,22 +48,10 @@ export default function ConsentModal({ open, onClose, client }) {
         Je reconnais avoir pris connaissance des clauses ci-dessus et j'accepte le traitement de mes données personnelles.
       </label>
 
-      <div className="field-group">
-        <label className="field-label" htmlFor="consent-signature">
-          Signature — tapez votre nom complet ({fullName(client)}) pour valider
-        </label>
-        <input
-          id="consent-signature"
-          className="input-field"
-          value={signature}
-          onChange={(e) => setSignature(e.target.value)}
-          placeholder={fullName(client)}
-        />
+      <div className="field-group" style={{ marginBottom: 0 }}>
+        <label className="field-label">Signature de la cliente</label>
+        <SignaturePad onChange={setSignatureUrl} resetKey={open} />
       </div>
-
-      {signature && (
-        <div className={styles.signaturePreview}>{signature}</div>
-      )}
 
       <p style={{ fontSize: '0.76rem', color: 'var(--color-text-muted)', marginTop: 12 }}>
         Signé électroniquement le {formatDateLong(todayISO())}.

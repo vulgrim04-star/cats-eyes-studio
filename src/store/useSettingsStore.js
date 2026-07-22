@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
+import { supabaseSyncStorage } from '../utils/supabaseSyncStorage';
 
 const DAYS = ['lun', 'mar', 'mer', 'jeu', 'ven', 'sam', 'dim'];
 
@@ -21,6 +22,10 @@ const DEFAULT_SALON = {
   email: 'contact@catseyesstudio.fr',
   currency: 'EUR',
   hours: DEFAULT_HOURS,
+  logoUrl: '',
+  bufferMinutes: 10,
+  vatRate: 20,
+  cancellationPolicy: "Toute annulation doit être effectuée au moins 24h à l'avance. En cas d'annulation tardive ou de no-show, un acompte pourra être demandé lors de la prochaine réservation.",
 };
 
 export const useSettingsStore = create(
@@ -34,6 +39,7 @@ export const useSettingsStore = create(
       },
       appearance: {
         themeColor: '#C8718A',
+        darkMode: false,
       },
 
       updateSalon: (patch) => set((s) => ({ salon: { ...s.salon, ...patch } })),
@@ -48,20 +54,23 @@ export const useSettingsStore = create(
         set((s) => ({ notifications: { ...s.notifications, [key]: !s.notifications[key] } })),
       setThemeColor: (color) =>
         set((s) => ({ appearance: { ...s.appearance, themeColor: color } })),
+      toggleDarkMode: () =>
+        set((s) => ({ appearance: { ...s.appearance, darkMode: !s.appearance.darkMode } })),
     }),
     {
       name: 'ces-settings',
-      version: 2,
-      storage: createJSONStorage(() => localStorage),
-      // v1 -> v2 : passage à des horaires par jour + devise + couleur de thème.
+      version: 3,
+      storage: createJSONStorage(() => supabaseSyncStorage),
+      skipHydration: true,
+      // v2 -> v3 : ajout du tampon entre RDV, TVA, politique d'annulation, mode sombre.
       migrate: (persisted) => ({
-        salon: { ...DEFAULT_SALON, ...(persisted?.salon ?? {}), hours: DEFAULT_HOURS },
+        salon: { ...DEFAULT_SALON, ...(persisted?.salon ?? {}), hours: persisted?.salon?.hours ?? DEFAULT_HOURS },
         notifications: persisted?.notifications ?? {
           autoConfirm: true,
           reminder24h: true,
           reminder2h: true,
         },
-        appearance: { themeColor: '#C8718A' },
+        appearance: { themeColor: persisted?.appearance?.themeColor ?? '#C8718A', darkMode: false },
       }),
     }
   )

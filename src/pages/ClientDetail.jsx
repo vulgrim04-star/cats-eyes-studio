@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Icon from '../components/common/Icon';
 import EmptyState from '../components/common/EmptyState';
@@ -9,9 +9,11 @@ import HistoryTab from '../components/clients/HistoryTab';
 import PhotosTab from '../components/clients/PhotosTab';
 import LashMapTab from '../components/clients/LashMapTab';
 import NotesTab from '../components/clients/NotesTab';
+import ClientSheetPrint from '../components/clients/ClientSheetPrint';
 import { useClient, useClients } from '../hooks/useClients';
-import { useAppointments } from '../hooks/useAppointments';
+import { useAppointments, enrich, getAppointmentsByClient } from '../hooks/useAppointments';
 import { useToast } from '../hooks/useToast';
+import { useSettings } from '../hooks/useSettings';
 import { completedCountForClient } from '../utils/loyalty';
 import { fileToResizedDataUrl } from '../utils/image';
 import { initials, fullName } from '../utils/format';
@@ -32,8 +34,17 @@ export default function ClientDetail() {
   const { appointments } = useAppointments();
   const { updateClient } = useClients();
   const { showToast } = useToast();
+  const { salon } = useSettings();
   const [tab, setTab] = useState('profil');
   const [consentOpen, setConsentOpen] = useState(false);
+  const [printing, setPrinting] = useState(false);
+
+  useEffect(() => {
+    if (printing) {
+      window.print();
+      setPrinting(false);
+    }
+  }, [printing]);
 
   if (!client) {
     return <EmptyState icon="users" title="Cliente introuvable" subtitle="Cette fiche cliente n'existe pas ou a été supprimée." />;
@@ -87,6 +98,9 @@ export default function ClientDetail() {
           </div>
         </div>
         <div className={styles.spacer} />
+        <button type="button" className="btn btn-ghost" onClick={() => setPrinting(true)}>
+          <Icon name="printer" size={16} /> Imprimer
+        </button>
         <button
           type="button"
           className="btn btn-primary"
@@ -116,6 +130,11 @@ export default function ClientDetail() {
       {tab === 'notes' && <NotesTab client={client} appointments={appointments} />}
 
       <ConsentModal open={consentOpen} onClose={() => setConsentOpen(false)} client={client} />
+      <ClientSheetPrint
+        client={printing ? client : null}
+        history={getAppointmentsByClient(appointments, client.id).map(enrich)}
+        salon={salon}
+      />
     </>
   );
 }

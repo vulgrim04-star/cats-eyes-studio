@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Modal from '../common/Modal';
 import EyeDiagram from './EyeDiagram';
 import { useClients } from '../../hooks/useClients';
@@ -25,9 +25,14 @@ const EMPTY = {
   zonesRight: ['', '', '', '', '', ''],
 };
 
-export default function LashMapModal({ open, onClose, client }) {
-  const { addLashMap } = useClients();
-  const [form, setForm] = useState(EMPTY);
+export default function LashMapModal({ open, onClose, client, editingMap }) {
+  const { addLashMap, updateLashMap } = useClients();
+  const isEdit = Boolean(editingMap);
+  const [form, setForm] = useState(() => (editingMap ? { ...EMPTY, ...editingMap } : EMPTY));
+
+  useEffect(() => {
+    setForm(editingMap ? { ...EMPTY, ...editingMap } : EMPTY);
+  }, [editingMap, open]);
 
   const update = (patch) => setForm((f) => ({ ...f, ...patch }));
 
@@ -48,8 +53,12 @@ export default function LashMapModal({ open, onClose, client }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    addLashMap(client.id, form);
-    setForm(EMPTY);
+    if (isEdit) {
+      updateLashMap(client.id, editingMap.id, form);
+    } else {
+      addLashMap(client.id, form);
+      setForm(EMPTY);
+    }
     onClose();
   };
 
@@ -57,12 +66,12 @@ export default function LashMapModal({ open, onClose, client }) {
     <Modal
       open={open}
       onClose={onClose}
-      title="Nouvelle Lash Map"
+      title={isEdit ? 'Modifier la Lash Map' : 'Nouvelle Lash Map'}
       maxWidth={680}
       footer={
         <>
           <button type="button" className="btn btn-ghost" onClick={onClose}>Annuler</button>
-          <button type="submit" form="lashmap-form" className="btn btn-primary">Enregistrer la fiche</button>
+          <button type="submit" form="lashmap-form" className="btn btn-primary">{isEdit ? 'Enregistrer' : 'Enregistrer la fiche'}</button>
         </>
       }
     >

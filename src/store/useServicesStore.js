@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { services as seedServices } from '../data/services';
 import { createId } from '../utils/id';
+import { supabaseSyncStorage } from '../utils/supabaseSyncStorage';
 
 export const useServicesStore = create(
   persist(
@@ -35,6 +36,6 @@ export const useServicesStore = create(
         }));
       },
     }),
-    { name: 'ces-services', version: 1, storage: createJSONStorage(() => localStorage) }
+    { name: 'ces-services', version: 1, storage: createJSONStorage(() => supabaseSyncStorage), skipHydration: true }
   )
 );

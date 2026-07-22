@@ -1,0 +1,68 @@
+.wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(160deg, var(--color-cream), var(--color-sand));
+  padding: var(--space-6);
+}
+
+.card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-8);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.brand h1 {
+  font-family: var(--font-title);
+  font-size: 1.25rem;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.subtitle {
+  color: var(--color-text-muted);
+  font-size: 0.88rem;
+  margin: -8px 0 4px;
+}
+
+.error {
+  color: var(--color-danger);
+  background: var(--color-danger-bg);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 0.82rem;
+}
+
+.info {
+  color: var(--color-success);
+  background: var(--color-success-bg);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+  font-size: 0.82rem;
+}
+
+.switchBtn {
+  background: none;
+  border: none;
+  color: var(--color-rose-dark);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: center;
+  padding: 4px;
+}
+.switchBtn:hover {
+  text-decoration: underline;
+}

@@ -4,6 +4,32 @@
   box-sizing: border-box;
 }
 
+.printable {
+  display: none;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .printable, .printable * {
+    visibility: visible;
+  }
+  .printable {
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 24px;
+    background: #fff;
+    color: #1a1a1a;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
+
 html, body {
   margin: 0;
   padding: 0;

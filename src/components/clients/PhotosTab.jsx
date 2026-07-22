@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Modal from '../common/Modal';
 import Icon from '../common/Icon';
 import EmptyState from '../common/EmptyState';
+import PhotoLightbox from './PhotoLightbox';
 import { useClients } from '../../hooks/useClients';
 import { useToast } from '../../hooks/useToast';
 import { fileToResizedDataUrl } from '../../utils/image';
@@ -35,12 +36,13 @@ function PhotoSlot({ label, url, onFile, styleClass }) {
 }
 
 export default function PhotosTab({ client }) {
-  const { addPhotoSession } = useClients();
+  const { addPhotoSession, updatePhotoSession, removePhotoSession } = useClients();
   const { showToast } = useToast();
   const [modalOpen, setModalOpen] = useState(false);
   const [label, setLabel] = useState('');
   const [beforeUrl, setBeforeUrl] = useState('');
   const [afterUrl, setAfterUrl] = useState('');
+  const [viewingPhoto, setViewingPhoto] = useState(null);
 
   const handleFile = async (file, setter) => {
     try {
@@ -69,6 +71,25 @@ export default function PhotosTab({ client }) {
     }
   };
 
+  const handleReplace = async (file, side) => {
+    if (!viewingPhoto) return;
+    try {
+      const dataUrl = await fileToResizedDataUrl(file);
+      updatePhotoSession(client.id, viewingPhoto.id, { [side]: dataUrl });
+      setViewingPhoto((p) => ({ ...p, [side]: dataUrl }));
+    } catch {
+      showToast("Impossible de lire cette image", 'error');
+    }
+  };
+
+  const handleDeleteSession = () => {
+    if (!viewingPhoto) return;
+    if (window.confirm('Supprimer cette session photo ?')) {
+      removePhotoSession(client.id, viewingPhoto.id);
+      setViewingPhoto(null);
+    }
+  };
+
   return (
     <>
       {client.photos.length === 0 ? (
@@ -77,7 +98,7 @@ export default function PhotosTab({ client }) {
 
       <div className={styles.grid}>
         {client.photos.map((photo) => (
-          <div key={photo.id} className={styles.session}>
+          <button key={photo.id} type="button" className={styles.session} onClick={() => setViewingPhoto(photo)}>
             <div className={styles.pair}>
               {photo.beforeUrl ? (
                 <img src={photo.beforeUrl} alt="Avant" className={styles.photoImg} />
@@ -94,7 +115,7 @@ export default function PhotosTab({ client }) {
               <div className={styles.label}>{photo.label}</div>
               <div className={styles.date}>{formatDateShort(photo.sessionDate)}</div>
             </div>
-          </div>
+          </button>
         ))}
 
         <button type="button" className={styles.addCard} onClick={() => setModalOpen(true)}>
@@ -132,6 +153,14 @@ export default function PhotosTab({ client }) {
           </div>
         </form>
       </Modal>
+
+      <PhotoLightbox
+        photo={viewingPhoto}
+        onClose={() => setViewingPhoto(null)}
+        onReplaceBefore={(file) => handleReplace(file, 'beforeUrl')}
+        onReplaceAfter={(file) => handleReplace(file, 'afterUrl')}
+        onDelete={handleDeleteSession}
+      />
     </>
   );
 }

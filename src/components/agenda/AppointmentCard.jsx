@@ -5,7 +5,7 @@ import { addMinutesToTime } from '../../utils/date';
 import { formatPrice, fullName } from '../../utils/format';
 import styles from './AppointmentCard.module.css';
 
-export default function AppointmentCard({ appointment, showActions = true, onStatusChange, onEdit, onRequestComplete }) {
+export default function AppointmentCard({ appointment, showActions = true, onStatusChange, onEdit, onRequestComplete, onPrint }) {
   const navigate = useNavigate();
   const { client, service, staff, time, duration, status } = appointment;
   const stripeColor = STATUS_MAP[status]?.color ?? 'var(--color-rose)';
@@ -88,6 +88,11 @@ export default function AppointmentCard({ appointment, showActions = true, onSta
             {(status === 'completed' || status === 'cancelled' || status === 'no-show') && (
               <button type="button" className={`${styles.actionBtn} ${styles.cancel}`} onClick={() => onStatusChange(appointment.id, 'pending')}>
                 Remettre en attente
+              </button>
+            )}
+            {status === 'completed' && onPrint && (
+              <button type="button" className={`${styles.actionBtn} ${styles.cancel}`} onClick={() => onPrint(appointment)}>
+                <Icon name="printer" size={13} /> Reçu
               </button>
             )}
           </div>

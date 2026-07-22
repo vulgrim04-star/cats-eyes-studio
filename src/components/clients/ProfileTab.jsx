@@ -45,9 +45,18 @@ export default function ProfileTab({ client, onOpenConsent }) {
           </span>
         </div>
         {client.consentSigned ? (
-          <p style={{ fontSize: '0.86rem', color: 'var(--color-text-soft)' }}>
-            Signé le {formatDateLong(client.consentDate)}.
-          </p>
+          <div>
+            <p style={{ fontSize: '0.86rem', color: 'var(--color-text-soft)', marginBottom: client.consentSignatureUrl ? 10 : 0 }}>
+              Signé le {formatDateLong(client.consentDate)}.
+            </p>
+            {client.consentSignatureUrl && (
+              <img
+                src={client.consentSignatureUrl}
+                alt="Signature"
+                style={{ height: 60, background: 'var(--color-cream)', borderRadius: 'var(--radius-sm)', padding: 8 }}
+              />
+            )}
+          </div>
         ) : (
           <>
             <p style={{ fontSize: '0.86rem', color: 'var(--color-text-soft)', marginBottom: 'var(--space-3)' }}>

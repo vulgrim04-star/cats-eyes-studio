@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Icon from '../components/common/Icon';
+import BrandMark from '../components/common/BrandMark';
+import WaitlistModal from '../components/common/WaitlistModal';
 import { useServices, groupByCategory } from '../hooks/useServices';
 import { useClients } from '../hooks/useClients';
 import { useAppointments } from '../hooks/useAppointments';
@@ -31,6 +33,7 @@ export default function Booking() {
   const [contact, setContact] = useState({ firstName: '', lastName: '', phone: '', email: '' });
   const [confirmedAppointment, setConfirmedAppointment] = useState(null);
   const [cancelled, setCancelled] = useState(false);
+  const [waitlistOpen, setWaitlistOpen] = useState(false);
 
   const service = getServiceById(serviceId);
   const realSlots = useMemo(
@@ -87,9 +90,7 @@ export default function Booking() {
     <div className={styles.page}>
       <div className={styles.wrap}>
         <div className={styles.brand}>
-          <span className={styles.brandMark}>
-            <Icon name="scissors" size={20} />
-          </span>
+          <BrandMark size={44} radius="var(--radius-md)" iconSize={20} />
           <span className={styles.brandName}>{salon.name}</span>
         </div>
 
@@ -210,11 +211,18 @@ export default function Booking() {
               </div>
 
               {realSlots.length === 0 ? (
-                <p style={{ fontSize: '0.86rem', color: 'var(--color-text-muted)' }}>
-                  {closedToday
-                    ? 'Le salon est fermé ce jour-là, choisissez une autre date.'
-                    : 'Aucun créneau disponible ce jour-là, essayez une autre date.'}
-                </p>
+                <>
+                  <p style={{ fontSize: '0.86rem', color: 'var(--color-text-muted)' }}>
+                    {closedToday
+                      ? 'Le salon est fermé ce jour-là, choisissez une autre date.'
+                      : 'Aucun créneau disponible ce jour-là, essayez une autre date.'}
+                  </p>
+                  {!closedToday && (
+                    <button type="button" className="btn btn-secondary btn-sm" style={{ marginTop: 'var(--space-3)' }} onClick={() => setWaitlistOpen(true)}>
+                      Rejoindre la liste d'attente pour ce jour
+                    </button>
+                  )}
+                </>
               ) : (
                 <div className={styles.slotGrid}>
                   {realSlots.map((s) => (
@@ -272,6 +280,10 @@ export default function Booking() {
                 <input id="bk-email" type="email" className="input-field" value={contact.email} onChange={(e) => setContact({ ...contact, email: e.target.value })} />
               </div>
 
+              {salon.cancellationPolicy && (
+                <p className={styles.policyText}>{salon.cancellationPolicy}</p>
+              )}
+
               <div className={styles.footerActions}>
                 <button type="button" className="btn btn-ghost" onClick={() => setStep(2)}>
                   <Icon name="chevron-left" size={16} /> Retour
@@ -315,6 +327,13 @@ export default function Booking() {
           )}
         </div>
       </div>
+
+      <WaitlistModal
+        open={waitlistOpen}
+        onClose={() => setWaitlistOpen(false)}
+        date={date}
+        serviceName={service?.name ?? ''}
+      />
     </div>
   );
 }

@@ -1,6 +1,8 @@
 import { NavLink } from 'react-router-dom';
 import Icon from '../common/Icon';
+import BrandMark from '../common/BrandMark';
 import { useSettings } from '../../hooks/useSettings';
+import { signOut, useAuthStore } from '../../store/useAuthStore';
 import styles from './Sidebar.module.css';
 
 const NAV_ITEMS = [
@@ -24,6 +26,7 @@ function initialsOf(name) {
 
 export default function Sidebar() {
   const { salon } = useSettings();
+  const email = useAuthStore((s) => s.session?.user?.email);
   const nameParts = salon.name.split(' ');
   const brandSub = nameParts.length > 1 ? nameParts.pop() : '';
   const brandFirst = nameParts.join(' ') || salon.name;
@@ -31,9 +34,7 @@ export default function Sidebar() {
   return (
     <aside className={styles.sidebar}>
       <div className={styles.brand}>
-        <span className={styles.brandMark}>
-          <Icon name="scissors" size={20} />
-        </span>
+        <BrandMark size={42} radius="var(--radius-md)" iconSize={20} />
         <div>
           <div className={styles.brandName}>{brandFirst}</div>
           <div className={styles.brandSub}>{brandSub}</div>
@@ -67,8 +68,16 @@ export default function Sidebar() {
         <span className={styles.avatar}>{initialsOf(salon.managerName)}</span>
         <div>
           <div className={styles.footerName}>{salon.managerName}</div>
-          <div className={styles.footerRole}>Gérante</div>
+          <div className={styles.footerRole}>{email || 'Gérante'}</div>
         </div>
+        <button
+          type="button"
+          className={styles.logoutBtn}
+          title="Déconnexion"
+          onClick={() => signOut()}
+        >
+          <Icon name="logout" size={17} />
+        </button>
       </div>
     </aside>
   );

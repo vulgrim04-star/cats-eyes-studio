@@ -4,6 +4,7 @@ import { products as seedProducts } from '../data/products';
 import { movements as seedMovements } from '../data/movements';
 import { createId } from '../utils/id';
 import { todayISO } from '../utils/date';
+import { supabaseSyncStorage } from '../utils/supabaseSyncStorage';
 
 export const useProductsStore = create(
   persist(
@@ -37,6 +38,6 @@ export const useProductsStore = create(
 
       movementsForProduct: (productId) => get().movements.filter((m) => m.productId === productId),
     }),
-    { name: 'ces-products', version: 1, storage: createJSONStorage(() => localStorage) }
+    { name: 'ces-products', version: 1, storage: createJSONStorage(() => supabaseSyncStorage), skipHydration: true }
   )
 );

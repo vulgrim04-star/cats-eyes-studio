@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import Icon from '../common/Icon';
+import BrandMark from '../common/BrandMark';
 import NotificationsPanel from './NotificationsPanel';
 import GlobalSearch from './GlobalSearch';
 import { useAppointments, enrich, getPendingAppointments } from '../../hooks/useAppointments';
@@ -26,9 +27,7 @@ export default function TopBar() {
   return (
     <header className={styles.bar}>
       <div className={styles.brand}>
-        <span className={styles.brandMark}>
-          <Icon name="scissors" size={17} />
-        </span>
+        <BrandMark size={34} radius="var(--radius-sm)" iconSize={17} />
         {salon.name}
       </div>
 

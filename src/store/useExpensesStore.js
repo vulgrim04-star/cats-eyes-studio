@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { expenses as seedExpenses } from '../data/expenses';
 import { createId } from '../utils/id';
+import { supabaseSyncStorage } from '../utils/supabaseSyncStorage';
 
 export const useExpensesStore = create(
   persist(
@@ -18,6 +19,6 @@ export const useExpensesStore = create(
         set((state) => ({ expenses: state.expenses.filter((e) => e.id !== id) }));
       },
     }),
-    { name: 'ces-expenses', version: 1, storage: createJSONStorage(() => localStorage) }
+    { name: 'ces-expenses', version: 1, storage: createJSONStorage(() => supabaseSyncStorage), skipHydration: true }
   )
 );

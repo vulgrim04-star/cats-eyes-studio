@@ -3,6 +3,8 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { appointments as seedAppointments } from '../data/appointments';
 import { createId } from '../utils/id';
 import { rangesOverlap } from '../utils/date';
+import { useSettingsStore } from './useSettingsStore';
+import { supabaseSyncStorage } from '../utils/supabaseSyncStorage';
 
 export const useAppointmentsStore = create(
   persist(
@@ -10,11 +12,12 @@ export const useAppointmentsStore = create(
       appointments: seedAppointments,
 
       findOverlap: ({ staffId, date, time, duration, excludeId }) => {
+        const buffer = useSettingsStore.getState().salon.bufferMinutes ?? 0;
         return get().appointments.find((apt) => {
           if (apt.id === excludeId) return false;
           if (apt.staffId !== staffId || apt.date !== date) return false;
           if (apt.status === 'cancelled') return false;
-          return rangesOverlap(apt.time, apt.duration, time, duration);
+          return rangesOverlap(apt.time, apt.duration, time, duration, buffer);
         });
       },
 
@@ -43,6 +46,6 @@ export const useAppointmentsStore = create(
         set((state) => ({ appointments: state.appointments.filter((a) => a.id !== id) }));
       },
     }),
-    { name: 'ces-appointments', version: 1, storage: createJSONStorage(() => localStorage) }
+    { name: 'ces-appointments', version: 1, storage: createJSONStorage(() => supabaseSyncStorage), skipHydration: true }
   )
 );

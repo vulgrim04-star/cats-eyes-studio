@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { clients as seedClients } from '../data/clients';
 import { createId } from '../utils/id';
+import { supabaseSyncStorage } from '../utils/supabaseSyncStorage';
 
 export const useClientsStore = create(
   persist(
@@ -37,12 +38,12 @@ export const useClientsStore = create(
         }));
       },
 
-      signConsent: (id, date) => {
-        get().updateClient(id, { consentSigned: true, consentDate: date });
+      signConsent: (id, date, signatureUrl) => {
+        get().updateClient(id, { consentSigned: true, consentDate: date, consentSignatureUrl: signatureUrl });
       },
 
-      signLashMapConsent: (id, date) => {
-        get().updateClient(id, { lashMapConsentSigned: true, lashMapConsentDate: date });
+      signLashMapConsent: (id, date, signatureUrl) => {
+        get().updateClient(id, { lashMapConsentSigned: true, lashMapConsentDate: date, lashMapConsentSignatureUrl: signatureUrl });
       },
 
       addNote: (id, note) => {
@@ -62,6 +63,24 @@ export const useClientsStore = create(
         }));
       },
 
+      updatePhotoSession: (id, photoId, patch) => {
+        set((state) => ({
+          clients: state.clients.map((c) =>
+            c.id === id
+              ? { ...c, photos: c.photos.map((p) => (p.id === photoId ? { ...p, ...patch } : p)) }
+              : c
+          ),
+        }));
+      },
+
+      removePhotoSession: (id, photoId) => {
+        set((state) => ({
+          clients: state.clients.map((c) =>
+            c.id === id ? { ...c, photos: c.photos.filter((p) => p.id !== photoId) } : c
+          ),
+        }));
+      },
+
       addLashMap: (id, map) => {
         const entry = { id: createId('lm'), date: new Date().toISOString().slice(0, 10), ...map };
         set((state) => ({
@@ -70,6 +89,16 @@ export const useClientsStore = create(
           ),
         }));
         return entry;
+      },
+
+      updateLashMap: (id, mapId, patch) => {
+        set((state) => ({
+          clients: state.clients.map((c) =>
+            c.id === id
+              ? { ...c, lashMaps: (c.lashMaps ?? []).map((m) => (m.id === mapId ? { ...m, ...patch } : m)) }
+              : c
+          ),
+        }));
       },
 
       removeLashMap: (id, mapId) => {
@@ -83,7 +112,8 @@ export const useClientsStore = create(
     {
       name: 'ces-clients',
       version: 2,
-      storage: createJSONStorage(() => localStorage),
+      storage: createJSONStorage(() => supabaseSyncStorage),
+      skipHydration: true,
       // v1 -> v2 : les fiches persistées avant la Lash Map n'ont pas le champ lashMaps.
       // On repart des données de démo enrichies (phase de développement, pas de données réelles).
       migrate: () => ({ clients: seedClients }),

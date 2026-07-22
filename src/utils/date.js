@@ -66,9 +66,9 @@ export function addMinutesToTime(time, minutesToAdd) {
   return minutesToTime(timeToMinutes(time) + minutesToAdd);
 }
 
-export function rangesOverlap(startA, durA, startB, durB) {
-  const aStart = timeToMinutes(startA);
-  const aEnd = aStart + durA;
+export function rangesOverlap(startA, durA, startB, durB, buffer = 0) {
+  const aStart = timeToMinutes(startA) - buffer;
+  const aEnd = aStart + durA + buffer * 2;
   const bStart = timeToMinutes(startB);
   const bEnd = bStart + durB;
   return aStart < bEnd && bStart < aEnd;

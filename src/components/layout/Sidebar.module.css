@@ -89,7 +89,35 @@
   border-top: 1px solid var(--color-border);
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
+}
+
+.footer > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.footerRole {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.logoutBtn {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.logoutBtn:hover {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
 }
 
 .avatar {

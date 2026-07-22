@@ -124,6 +124,6 @@
   color: var(--color-danger);
 }
 .cancel {
-  background: #F1EAEA;
+  background: var(--color-neutral-bg);
   color: var(--color-text-soft);
 }
