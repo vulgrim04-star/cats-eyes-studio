@@ -1,0 +1,39 @@
+.clauses {
+  background: var(--color-cream);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  font-size: 0.84rem;
+  color: var(--color-text-soft);
+  line-height: 1.6;
+  margin-bottom: var(--space-4);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.clauses ul {
+  margin: 8px 0 0;
+  padding-left: 18px;
+}
+
+.checkboxRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.86rem;
+  margin-bottom: var(--space-4);
+}
+
+.signaturePreview {
+  border: 1.5px dashed var(--color-rose-light);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  text-align: center;
+  font-family: 'Playfair Display', serif;
+  font-style: italic;
+  font-size: 1.3rem;
+  color: var(--color-rose-dark);
+  min-height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

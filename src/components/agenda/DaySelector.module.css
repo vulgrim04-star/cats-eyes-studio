@@ -1,0 +1,79 @@
+.wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+}
+
+.scroller {
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  padding: 2px;
+}
+
+.arrow {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-rose-dark);
+}
+
+.day {
+  flex-shrink: 0;
+  scroll-snap-align: start;
+  width: 60px;
+  padding: 10px 0;
+  border-radius: var(--radius-lg);
+  background: var(--color-white);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  border: none;
+  color: var(--color-text-soft);
+  position: relative;
+}
+
+.dayActive {
+  background: linear-gradient(135deg, var(--color-rose), var(--color-rose-dark));
+  color: var(--color-white);
+  box-shadow: var(--shadow-md);
+}
+
+.dayLabel {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  opacity: 0.85;
+}
+
+.dayNumber {
+  font-family: var(--font-title);
+  font-size: 1.15rem;
+  font-weight: 600;
+}
+
+.dayToday {
+  box-shadow: inset 0 0 0 2px var(--color-rose);
+}
+
+.dayCount {
+  font-size: 0.62rem;
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.day:not(.dayActive) .dayCount {
+  background: var(--color-rose-light);
+  color: var(--color-rose-dark);
+}

@@ -1,0 +1,139 @@
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-5);
+}
+
+@media (min-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+
+.dayRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.dayChip {
+  padding: 8px 14px;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-cream);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-soft);
+  text-transform: capitalize;
+}
+
+.dayChipActive {
+  background: var(--color-rose-dark);
+  border-color: var(--color-rose-dark);
+  color: var(--color-white);
+}
+
+.prefRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 13px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.prefRow:last-child {
+  border-bottom: none;
+}
+
+.prefText {
+  flex: 1;
+  min-width: 0;
+}
+
+.prefTitle {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.prefSubtitle {
+  font-size: 0.76rem;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+/* --- Horaires par jour --- */
+
+.hoursTable {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.hoursRow {
+  display: grid;
+  grid-template-columns: 76px 1fr 1fr auto;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 560px) {
+  .hoursRow {
+    grid-template-columns: 1fr 1fr;
+    row-gap: 6px;
+  }
+  .hoursDay {
+    grid-column: 1 / -1;
+  }
+}
+
+.hoursDay {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--color-text);
+  text-transform: capitalize;
+}
+
+.hoursInput {
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-cream);
+  font-size: 0.82rem;
+}
+
+.hoursInput:disabled {
+  opacity: 0.4;
+}
+
+/* --- Couleur du thème --- */
+
+.colorRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.colorPicker {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-border);
+  padding: 0;
+  cursor: pointer;
+  background: none;
+}
+
+.swatches {
+  display: flex;
+  gap: 8px;
+}
+
+.swatch {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--color-white);
+  box-shadow: 0 0 0 1.5px var(--color-border);
+  cursor: pointer;
+}

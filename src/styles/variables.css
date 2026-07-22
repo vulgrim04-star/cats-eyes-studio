@@ -1,0 +1,72 @@
+:root {
+  /* Palette */
+  --color-rose: #C8718A;
+  --color-rose-dark: #8B4E63;
+  --color-rose-light: #F0C4D0;
+  --color-cream: #FDF8F5;
+  --color-sand: #E8D5C4;
+
+  --color-rose-rgb: 200, 113, 138;
+
+  --color-white: #FFFFFF;
+  --color-text: #3B2A30;
+  --color-text-soft: #7A6169;
+  --color-text-muted: #A88E95;
+  --color-border: #EDE0DD;
+
+  --color-success: #6FA98A;
+  --color-success-bg: #E7F3ED;
+  --color-warning: #D9A441;
+  --color-warning-bg: #FBF1DF;
+  --color-danger: #C6667A;
+  --color-danger-bg: #FBE9EC;
+  --color-info: #7C93C8;
+  --color-info-bg: #EAEEF9;
+
+  /* Status colors */
+  --status-confirmed: #6FA98A;
+  --status-pending: #D9A441;
+  --status-completed: #7C93C8;
+  --status-cancelled: #A88E95;
+  --status-noshow: #C6667A;
+
+  /* Typography */
+  --font-title: 'Playfair Display', 'Georgia', serif;
+  --font-body: 'DM Sans', 'Segoe UI', sans-serif;
+
+  /* Radii */
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-xl: 32px;
+  --radius-pill: 999px;
+
+  /* Shadows */
+  --shadow-sm: 0 2px 8px rgba(139, 78, 99, 0.08);
+  --shadow-md: 0 8px 24px rgba(139, 78, 99, 0.12);
+  --shadow-lg: 0 16px 40px rgba(139, 78, 99, 0.18);
+  --shadow-inset: inset 0 0 0 1px rgba(139, 78, 99, 0.08);
+
+  /* Spacing */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+
+  /* Layout */
+  --sidebar-width: 260px;
+  --header-height: 72px;
+  --bottom-nav-height: 68px;
+  --content-max-width: 1320px;
+
+  /* Motion */
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: 150ms var(--ease);
+  --transition-base: 220ms var(--ease);
+  --transition-slow: 360ms var(--ease);
+}

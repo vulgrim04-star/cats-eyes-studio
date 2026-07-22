@@ -1,0 +1,26 @@
+.switch {
+  position: relative;
+  width: 42px;
+  height: 24px;
+  border-radius: var(--radius-pill);
+  background: var(--color-border);
+  border: none;
+  flex-shrink: 0;
+  transition: background var(--transition-fast);
+}
+.switch.active {
+  background: var(--color-success);
+}
+.switch span {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-white);
+  transition: transform var(--transition-fast);
+}
+.switch.active span {
+  transform: translateX(18px);
+}

@@ -1,0 +1,121 @@
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--color-text-soft);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: var(--space-4);
+}
+.backLink:hover {
+  color: var(--color-rose-dark);
+}
+
+.headCard {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-5);
+  flex-wrap: wrap;
+}
+
+.avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--color-rose-light);
+  color: var(--color-rose-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.avatarImg {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+}
+
+.avatarUpload {
+  position: relative;
+  cursor: pointer;
+  flex-shrink: 0;
+  display: block;
+}
+
+.avatarEdit {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--color-rose-dark);
+  color: var(--color-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--color-cream);
+}
+
+.name {
+  font-size: 1.4rem;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.contact {
+  display: flex;
+  gap: var(--space-4);
+  color: var(--color-text-soft);
+  font-size: 0.85rem;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.contact span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.spacer {
+  flex: 1;
+}
+
+.tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: var(--space-5);
+  overflow-x: auto;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.tab {
+  flex-shrink: 0;
+  padding: 10px 16px;
+  border: none;
+  background: none;
+  font-weight: 600;
+  font-size: 0.86rem;
+  color: var(--color-text-muted);
+  border-bottom: 2px solid transparent;
+}
+
+.tabActive {
+  color: var(--color-rose-dark);
+  border-bottom-color: var(--color-rose);
+}
+
+@media (max-width: 640px) {
+  .headCard .spacer {
+    display: none;
+  }
+}

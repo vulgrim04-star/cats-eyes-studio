@@ -1,0 +1,46 @@
+.dayHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.dayHeadingTitle {
+  font-size: 1.05rem;
+  color: var(--color-rose-dark);
+  text-transform: capitalize;
+}
+
+.dayHeadingCount {
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.viewToggle {
+  display: flex;
+  background: var(--color-cream);
+  border-radius: var(--radius-pill);
+  padding: 3px;
+}
+
+.viewBtn {
+  padding: 7px 16px;
+  border-radius: var(--radius-pill);
+  border: none;
+  background: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-soft);
+}
+
+.viewBtnActive {
+  background: var(--color-white);
+  color: var(--color-rose-dark);
+  box-shadow: var(--shadow-sm);
+}

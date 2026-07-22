@@ -1,0 +1,63 @@
+.card {
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.iconWrap {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.label {
+  font-size: 0.8rem;
+  color: var(--color-text-soft);
+  font-weight: 500;
+}
+
+.value {
+  font-family: var(--font-title);
+  font-size: 1.9rem;
+  color: var(--color-rose-dark);
+  line-height: 1;
+}
+
+.trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  width: fit-content;
+  padding: 3px 9px;
+  border-radius: var(--radius-pill);
+}
+
+.trendUp {
+  color: var(--color-success);
+  background: var(--color-success-bg);
+}
+.trendDown {
+  color: var(--color-danger);
+  background: var(--color-danger-bg);
+}
+.trendFlat {
+  color: var(--color-text-muted);
+  background: var(--color-cream);
+}

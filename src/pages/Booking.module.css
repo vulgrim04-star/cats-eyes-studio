@@ -1,0 +1,279 @@
+.page {
+  min-height: 100vh;
+  background: linear-gradient(180deg, var(--color-cream), var(--color-rose-light) 320%);
+  display: flex;
+  justify-content: center;
+  padding: var(--space-6) var(--space-4) var(--space-12);
+}
+
+.wrap {
+  width: 100%;
+  max-width: 560px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-6);
+}
+
+.brandMark {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--color-rose), var(--color-rose-dark));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-white);
+}
+
+.brandName {
+  font-family: var(--font-title);
+  font-size: 1.4rem;
+  color: var(--color-rose-dark);
+}
+
+.steps {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: var(--space-6);
+}
+
+.stepDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-rose-light);
+}
+.stepDotActive {
+  background: var(--color-rose-dark);
+  width: 22px;
+  border-radius: var(--radius-pill);
+  transition: width var(--transition-base);
+}
+
+.panel {
+  background: var(--color-white);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-6);
+}
+
+.title {
+  font-size: 1.3rem;
+  margin-bottom: var(--space-1);
+}
+
+.subtitle {
+  color: var(--color-text-soft);
+  font-size: 0.88rem;
+  margin-bottom: var(--space-5);
+}
+
+.serviceGrid {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-height: 380px;
+  overflow-y: auto;
+  margin-bottom: var(--space-2);
+}
+
+.categoryLabel {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+  margin: var(--space-3) 0 4px;
+}
+.categoryLabel:first-child {
+  margin-top: 0;
+}
+
+.serviceOption {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 13px 16px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-white);
+  text-align: left;
+}
+
+.serviceOptionActive {
+  border-color: var(--color-rose);
+  background: var(--color-rose-light);
+}
+
+.serviceOptionName {
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--color-text);
+}
+
+.serviceOptionMeta {
+  font-size: 0.74rem;
+  color: var(--color-text-muted);
+}
+
+.serviceOptionPrice {
+  font-weight: 700;
+  color: var(--color-rose-dark);
+  flex-shrink: 0;
+}
+
+.dayRow {
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  margin-bottom: var(--space-5);
+  padding: 2px;
+}
+
+.dayChip {
+  flex-shrink: 0;
+  width: 56px;
+  padding: 10px 0;
+  border-radius: var(--radius-lg);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-white);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.dayChipActive {
+  border-color: var(--color-rose);
+  background: linear-gradient(135deg, var(--color-rose), var(--color-rose-dark));
+  color: var(--color-white);
+}
+
+.dayChipClosed {
+  opacity: 0.4;
+}
+
+.slotGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 8px;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.slot {
+  padding: 10px 4px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-white);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.slotActive {
+  border-color: var(--color-rose);
+  background: var(--color-rose-dark);
+  color: var(--color-white);
+}
+
+.footerActions {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+.recap {
+  background: var(--color-cream);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin-bottom: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.86rem;
+}
+
+.recapRow {
+  display: flex;
+  justify-content: space-between;
+}
+
+.successIcon {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--color-success-bg);
+  color: var(--color-success);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto var(--space-4);
+}
+
+.successText {
+  text-align: center;
+}
+
+.showcaseInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: var(--space-5);
+}
+
+.showcaseRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.86rem;
+  color: var(--color-text-soft);
+}
+
+.hoursGrid {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--color-cream);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.hoursRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.84rem;
+}
+
+.hoursOpen {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.hoursClosed {
+  color: var(--color-text-muted);
+}
+
+.featuredRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.featuredChip {
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--color-rose-light);
+  color: var(--color-rose-dark);
+  font-size: 0.78rem;
+  font-weight: 600;
+}

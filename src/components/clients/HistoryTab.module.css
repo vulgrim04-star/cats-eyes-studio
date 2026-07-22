@@ -1,0 +1,37 @@
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.row:last-child {
+  border-bottom: none;
+}
+
+.date {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--color-text);
+}
+
+.price {
+  font-weight: 700;
+  color: var(--color-rose-dark);
+  flex-shrink: 0;
+}
+
+.notes {
+  font-size: 0.78rem;
+  color: var(--color-text-soft);
+  margin-top: 3px;
+  font-style: italic;
+}

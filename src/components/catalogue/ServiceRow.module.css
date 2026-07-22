@@ -1,0 +1,55 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.row:last-child {
+  border-bottom: none;
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  font-weight: 600;
+  font-size: 0.88rem;
+  color: var(--color-text);
+}
+
+.meta {
+  font-size: 0.76rem;
+  color: var(--color-text-muted);
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.price {
+  font-weight: 700;
+  color: var(--color-rose-dark);
+  flex-shrink: 0;
+  min-width: 56px;
+  text-align: right;
+}
+
+.actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.iconBtn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: none;
+  background: var(--color-cream);
+  color: var(--color-rose-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.iconBtn:hover {
+  background: var(--color-rose-light);
+}
