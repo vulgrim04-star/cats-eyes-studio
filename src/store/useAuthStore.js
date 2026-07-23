@@ -36,7 +36,7 @@ export function initAuth() {
   initialized = true;
   supabase.auth.onAuthStateChange(async (_event, session) => {
     setSyncUserId(session?.user?.id ?? null);
-    await rehydrateAllStores();
+    await rehydrateAllStores(session?.user?.id ?? null);
     useAuthStore.setState({ session, ready: true });
   });
 }
