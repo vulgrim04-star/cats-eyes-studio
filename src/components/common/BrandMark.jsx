@@ -1,6 +1,6 @@
 import { useSettings } from '../../hooks/useSettings';
 
-const DEFAULT_LOGO = '/brand-logo.jpg';
+const DEFAULT_LOGO = '/icon-512.png';
 
 export default function BrandMark({ size = 34, radius = 'var(--radius-sm)' }) {
   const { salon } = useSettings();
