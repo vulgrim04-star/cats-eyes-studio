@@ -19,6 +19,7 @@ export default function App() {
       <ThemeEffect />
       <Routes>
         <Route path="/reservation" element={<Booking />} />
+        <Route path="/r/:ownerId" element={<Booking />} />
         <Route element={<RequireAuth />}>
           <Route element={<Layout />}>
             <Route path="/" element={<Dashboard />} />

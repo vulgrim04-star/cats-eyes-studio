@@ -4,7 +4,6 @@ import Icon from '../components/common/Icon';
 import ServiceRow from '../components/catalogue/ServiceRow';
 import ServiceModal from '../components/catalogue/ServiceModal';
 import PromoList from '../components/catalogue/PromoList';
-import StaffPricing from '../components/catalogue/StaffPricing';
 import { useServices, groupByCategory } from '../hooks/useServices';
 import { SERVICE_CATEGORIES } from '../data/services';
 import styles from './Catalogue.module.css';
@@ -61,7 +60,6 @@ export default function Catalogue() {
 
       <div className={styles.bottomGrid}>
         <PromoList />
-        <StaffPricing services={services} />
       </div>
 
       <ServiceModal open={modalOpen} onClose={() => setModalOpen(false)} service={editingService} />

@@ -6,6 +6,7 @@ import AlertsPanel from '../components/dashboard/AlertsPanel';
 import TopServices from '../components/dashboard/TopServices';
 import WinBackList from '../components/dashboard/WinBackList';
 import WaitlistCard from '../components/dashboard/WaitlistCard';
+import BookingRequestsCard from '../components/dashboard/BookingRequestsCard';
 import AppointmentCard from '../components/agenda/AppointmentCard';
 import PaymentModal from '../components/agenda/PaymentModal';
 import EmptyState from '../components/common/EmptyState';
@@ -167,6 +168,7 @@ export default function Dashboard() {
 
         <div className={styles.sideCol}>
           <AlertsPanel lowStock={alerts.lowStock} pendingAppointments={alerts.pending} birthdays={alerts.birthdays} />
+          <BookingRequestsCard />
           <WaitlistCard />
           <WinBackList rows={winBackRows} />
           <TopServices rows={topServices} />

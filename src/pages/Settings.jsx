@@ -25,8 +25,20 @@ export default function Settings() {
   const { salon, notifications, appearance, updateSalon, updateDayHours, toggleNotification, setThemeColor, toggleDarkMode } = useSettings();
   const { showToast } = useToast();
   const email = useAuthStore((s) => s.session?.user?.email);
+  const ownerId = useAuthStore((s) => s.session?.user?.id);
   const [form, setForm] = useState(salon);
   const [dirty, setDirty] = useState(false);
+
+  const bookingLink = ownerId ? `${window.location.origin}/r/${ownerId}` : '';
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(bookingLink);
+      showToast('Lien de réservation copié', 'success');
+    } catch {
+      showToast('Impossible de copier le lien', 'error');
+    }
+  };
 
   const handleLogoFile = async (file) => {
     try {
@@ -235,6 +247,21 @@ export default function Settings() {
               </div>
             );
           })}
+        </div>
+      </div>
+
+      <div className="card" style={{ marginTop: 'var(--space-5)' }}>
+        <h3 className="card-title" style={{ marginBottom: 'var(--space-2)' }}>Lien de réservation en ligne</h3>
+        <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
+          Une page de réservation autonome (sans connexion, sans redirection vers le logiciel) à partager où tu veux
+          — bio Instagram, site web, SMS… Les demandes de RDV arrivent dans "Demandes en attente" sur le tableau de bord,
+          à toi de les valider.
+        </p>
+        <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap', alignItems: 'center' }}>
+          <input className="input-field" readOnly value={bookingLink} style={{ flex: '1 1 260px' }} onFocus={(e) => e.target.select()} />
+          <button type="button" className="btn btn-primary btn-sm" onClick={handleCopyLink} disabled={!bookingLink}>
+            <Icon name="clipboard" size={14} /> Copier le lien
+          </button>
         </div>
       </div>
 

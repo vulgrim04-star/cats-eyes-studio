@@ -12,6 +12,9 @@ export function useServices() {
   const updateServiceRaw = useServicesStore((s) => s.updateService);
   const removeServiceRaw = useServicesStore((s) => s.removeService);
   const togglePromo = useServicesStore((s) => s.togglePromo);
+  const addPromoRaw = useServicesStore((s) => s.addPromo);
+  const updatePromoRaw = useServicesStore((s) => s.updatePromo);
+  const removePromoRaw = useServicesStore((s) => s.removePromo);
   const showToast = useUIStore((s) => s.showToast);
 
   const addService = (data) => {
@@ -30,7 +33,23 @@ export function useServices() {
     showToast('Prestation supprimée du catalogue', 'warning');
   };
 
-  return { services, promoCodes, addService, updateService, removeService, togglePromo };
+  const addPromo = (data) => {
+    const promo = addPromoRaw(data);
+    showToast(`Code promo "${data.code}" créé`, 'success');
+    return promo;
+  };
+
+  const updatePromo = (id, patch) => {
+    updatePromoRaw(id, patch);
+    showToast('Code promo mis à jour', 'success');
+  };
+
+  const removePromo = (id) => {
+    removePromoRaw(id);
+    showToast('Code promo supprimé', 'warning');
+  };
+
+  return { services, promoCodes, addService, updateService, removeService, togglePromo, addPromo, updatePromo, removePromo };
 }
 
 export function groupByCategory(services) {

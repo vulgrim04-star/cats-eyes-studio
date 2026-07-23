@@ -22,3 +22,20 @@
   font-size: 0.8rem;
   color: var(--color-text-muted);
 }
+
+.iconBtn {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.iconBtn:hover {
+  background: var(--color-cream);
+  color: var(--color-rose-dark);
+}

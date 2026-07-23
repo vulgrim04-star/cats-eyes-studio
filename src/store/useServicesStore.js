@@ -35,6 +35,22 @@ export const useServicesStore = create(
           promoCodes: state.promoCodes.map((p) => (p.id === id ? { ...p, active: !p.active } : p)),
         }));
       },
+
+      addPromo: (data) => {
+        const promo = { id: createId('promo'), active: true, ...data };
+        set((state) => ({ promoCodes: [...state.promoCodes, promo] }));
+        return promo;
+      },
+
+      updatePromo: (id, patch) => {
+        set((state) => ({
+          promoCodes: state.promoCodes.map((p) => (p.id === id ? { ...p, ...patch } : p)),
+        }));
+      },
+
+      removePromo: (id) => {
+        set((state) => ({ promoCodes: state.promoCodes.filter((p) => p.id !== id) }));
+      },
     }),
     { name: 'ces-services', version: 1, storage: createJSONStorage(() => supabaseSyncStorage), skipHydration: true }
   )

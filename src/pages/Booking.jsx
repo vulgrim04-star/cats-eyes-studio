@@ -1,5 +1,5 @@
-import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useEffect, useMemo, useState } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import Icon from '../components/common/Icon';
 import BrandMark from '../components/common/BrandMark';
 import WaitlistModal from '../components/common/WaitlistModal';
@@ -8,8 +8,10 @@ import { useServices, groupByCategory } from '../hooks/useServices';
 import { useClients } from '../hooks/useClients';
 import { useAppointments } from '../hooks/useAppointments';
 import { useSettings, WEEK_DAYS } from '../hooks/useSettings';
+import { useToast } from '../hooks/useToast';
 import { SERVICE_CATEGORIES } from '../data/services';
 import { availableSlots, daySchedule } from '../utils/booking';
+import { fetchPublicSalonConfig, fetchPublicAppointmentsForDate, submitBookingRequest } from '../utils/publicBooking';
 import { addDaysISO, formatDateLong, formatDayLabel, formatDayNumber, todayISO } from '../utils/date';
 import { formatDuration, formatPrice } from '../utils/format';
 import { topServicesThisMonth } from '../utils/stats';
@@ -20,12 +22,20 @@ const DAY_LABELS = { lun: 'Lundi', mar: 'Mardi', mer: 'Mercredi', jeu: 'Jeudi', 
 
 export default function Booking() {
   const navigate = useNavigate();
-  const { services } = useServices();
+  const { ownerId } = useParams();
+  const isPublic = Boolean(ownerId);
+  const { showToast } = useToast();
+
+  const { services: localServices } = useServices();
   const { clients, addClient } = useClients();
-  const { appointments, addAppointment, setStatus } = useAppointments();
-  const { salon } = useSettings();
-  const grouped = useMemo(() => groupByCategory(services), [services]);
-  const featured = useMemo(() => topServicesThisMonth(appointments, 3), [appointments]);
+  const { appointments: localAppointments, addAppointment, setStatus } = useAppointments();
+  const { salon: localSalon } = useSettings();
+
+  const [publicSalon, setPublicSalon] = useState(null);
+  const [publicServices, setPublicServices] = useState([]);
+  const [publicConfigLoaded, setPublicConfigLoaded] = useState(false);
+  const [publicDateAppointments, setPublicDateAppointments] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
 
   const [step, setStep] = useState(0);
   const [serviceId, setServiceId] = useState('');
@@ -36,16 +46,72 @@ export default function Booking() {
   const [cancelled, setCancelled] = useState(false);
   const [waitlistOpen, setWaitlistOpen] = useState(false);
 
+  useEffect(() => {
+    if (!isPublic) return;
+    let cancelledEffect = false;
+    fetchPublicSalonConfig(ownerId).then(({ salon, services }) => {
+      if (cancelledEffect) return;
+      setPublicSalon(salon);
+      setPublicServices(services);
+      setPublicConfigLoaded(true);
+    });
+    return () => { cancelledEffect = true; };
+  }, [isPublic, ownerId]);
+
+  useEffect(() => {
+    if (!isPublic) return;
+    let cancelledEffect = false;
+    fetchPublicAppointmentsForDate(ownerId, date).then((rows) => {
+      if (!cancelledEffect) setPublicDateAppointments(rows);
+    });
+    return () => { cancelledEffect = true; };
+  }, [isPublic, ownerId, date]);
+
+  const salon = isPublic ? publicSalon : localSalon;
+  const services = isPublic ? publicServices : localServices;
+  const appointmentsForSlots = isPublic ? publicDateAppointments : localAppointments;
+
+  const grouped = useMemo(() => groupByCategory(services), [services]);
+  const featured = useMemo(() => (isPublic ? [] : topServicesThisMonth(localAppointments, 3)), [isPublic, localAppointments]);
+
   const service = services.find((s) => s.id === serviceId);
   const realSlots = useMemo(
-    () => (service ? availableSlots(appointments, date, service.duration, salon) : []),
-    [service, date, appointments, salon]
+    () => (service && salon ? availableSlots(appointmentsForSlots, date, service.duration, salon) : []),
+    [service, date, appointmentsForSlots, salon]
   );
-  const closedToday = !daySchedule(salon, date) || daySchedule(salon, date).closed;
+  const closedToday = !salon || !daySchedule(salon, date) || daySchedule(salon, date).closed;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!contact.firstName || !contact.lastName || !contact.phone || !slot) return;
+
+    if (isPublic) {
+      setSubmitting(true);
+      const ok = await submitBookingRequest(ownerId, {
+        first_name: contact.firstName,
+        last_name: contact.lastName,
+        phone: contact.phone,
+        email: contact.email,
+        service_id: service.id,
+        service_name: service.name,
+        duration: service.duration,
+        price: service.price,
+        date,
+        time: slot.time,
+        staff_id: slot.staffId,
+        staff_name: slot.staffName,
+        notes: 'Réservation en ligne',
+      });
+      setSubmitting(false);
+      if (ok) {
+        setConfirmedAppointment({ service, date, time: slot.time, staffName: slot.staffName });
+        setCancelled(false);
+        setStep(4);
+      } else {
+        showToast("Une erreur est survenue, réessayez dans un instant.", 'error');
+      }
+      return;
+    }
 
     let client = clients.find((c) => c.phone.replace(/\s/g, '') === contact.phone.replace(/\s/g, ''));
     if (!client) {
@@ -85,10 +151,32 @@ export default function Booking() {
   };
 
   const handleCancel = () => {
-    if (!confirmedAppointment) return;
+    if (!confirmedAppointment || isPublic) return;
     setStatus(confirmedAppointment.id, 'cancelled');
     setCancelled(true);
   };
+
+  if (isPublic && !publicConfigLoaded) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.wrap}>
+          <p style={{ textAlign: 'center', color: 'var(--color-text-muted)', marginTop: 'var(--space-10)' }}>Chargement…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isPublic && !salon) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.wrap}>
+          <p style={{ textAlign: 'center', color: 'var(--color-text-muted)', marginTop: 'var(--space-10)' }}>
+            Ce lien de réservation n'est plus valide.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.page}>
@@ -222,7 +310,7 @@ export default function Booking() {
                       ? 'Le salon est fermé ce jour-là, choisissez une autre date.'
                       : 'Aucun créneau disponible ce jour-là, essayez une autre date.'}
                   </p>
-                  {!closedToday && (
+                  {!closedToday && !isPublic && (
                     <button type="button" className="btn btn-secondary btn-sm" style={{ marginTop: 'var(--space-3)' }} onClick={() => setWaitlistOpen(true)}>
                       Rejoindre la liste d'attente pour ce jour
                     </button>
@@ -293,8 +381,8 @@ export default function Booking() {
                 <button type="button" className="btn btn-ghost" onClick={() => setStep(2)}>
                   <Icon name="chevron-left" size={16} /> Retour
                 </button>
-                <button type="submit" className="btn btn-primary">
-                  Confirmer le RDV
+                <button type="submit" className="btn btn-primary" disabled={submitting}>
+                  {submitting ? 'Envoi…' : 'Confirmer le RDV'}
                 </button>
               </div>
             </form>
@@ -310,7 +398,9 @@ export default function Booking() {
                 <p className={styles.subtitle}>
                   {cancelled
                     ? 'Votre rendez-vous a bien été annulé. À bientôt chez nous !'
-                    : 'Une confirmation par SMS et e-mail vous sera envoyée sous peu (simulation).'}
+                    : isPublic
+                      ? "Votre demande a été transmise à l'institut, vous recevrez une confirmation dès qu'elle sera validée."
+                      : 'Une confirmation par SMS et e-mail vous sera envoyée sous peu (simulation).'}
                 </p>
               </div>
               <div className={styles.recap}>
@@ -321,24 +411,28 @@ export default function Booking() {
               </div>
               <div className={styles.footerActions} style={{ justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
                 <button type="button" className="btn btn-secondary" onClick={reset}>Nouvelle réservation</button>
-                {!cancelled && (
+                {!cancelled && !isPublic && (
                   <button type="button" className="btn btn-ghost" onClick={handleCancel}>
                     Annuler mon RDV
                   </button>
                 )}
-                <button type="button" className="btn btn-primary" onClick={() => navigate('/agenda')}>Voir l'agenda</button>
+                {!isPublic && (
+                  <button type="button" className="btn btn-primary" onClick={() => navigate('/agenda')}>Voir l'agenda</button>
+                )}
               </div>
             </>
           )}
         </div>
       </div>
 
-      <WaitlistModal
-        open={waitlistOpen}
-        onClose={() => setWaitlistOpen(false)}
-        date={date}
-        serviceName={service?.name ?? ''}
-      />
+      {!isPublic && (
+        <WaitlistModal
+          open={waitlistOpen}
+          onClose={() => setWaitlistOpen(false)}
+          date={date}
+          serviceName={service?.name ?? ''}
+        />
+      )}
     </div>
   );
 }
