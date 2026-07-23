@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useClientsStore } from '../store/useClientsStore';
+import { useUIStore } from '../store/useUIStore';
 
 /**
  * Couche d'accès aux données clientes. Découplée du store interne (zustand)
@@ -9,6 +10,8 @@ export function useClients() {
   const clients = useClientsStore((s) => s.clients);
   const addClient = useClientsStore((s) => s.addClient);
   const updateClient = useClientsStore((s) => s.updateClient);
+  const removeClientRaw = useClientsStore((s) => s.removeClient);
+  const showToast = useUIStore((s) => s.showToast);
   const signConsent = useClientsStore((s) => s.signConsent);
   const signLashMapConsent = useClientsStore((s) => s.signLashMapConsent);
   const addNote = useClientsStore((s) => s.addNote);
@@ -19,10 +22,16 @@ export function useClients() {
   const updateLashMap = useClientsStore((s) => s.updateLashMap);
   const removeLashMap = useClientsStore((s) => s.removeLashMap);
 
+  const removeClient = (id) => {
+    removeClientRaw(id);
+    showToast('Fiche cliente supprimée', 'warning');
+  };
+
   return {
     clients,
     addClient,
     updateClient,
+    removeClient,
     signConsent,
     signLashMapConsent,
     addNote,

@@ -31,13 +31,13 @@ export default function BottomNav() {
             end={item.end}
             className={({ isActive }) => `${styles.item} ${isActive ? styles.itemActive : ''}`}
           >
-            <Icon name={item.icon} size={21} />
-            {item.label}
+            <Icon name={item.icon} size={20} />
+            <span className={styles.label}>{item.label}</span>
           </NavLink>
         ))}
         <button type="button" className={styles.item} onClick={() => setOpen(true)}>
-          <Icon name="more" size={21} />
-          Plus
+          <Icon name="more" size={20} />
+          <span className={styles.label}>Plus</span>
         </button>
       </nav>
 

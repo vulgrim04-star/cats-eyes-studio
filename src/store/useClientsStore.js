@@ -38,6 +38,10 @@ export const useClientsStore = create(
         }));
       },
 
+      removeClient: (id) => {
+        set((state) => ({ clients: state.clients.filter((c) => c.id !== id) }));
+      },
+
       signConsent: (id, date, signatureUrl) => {
         get().updateClient(id, { consentSigned: true, consentDate: date, consentSignatureUrl: signatureUrl });
       },

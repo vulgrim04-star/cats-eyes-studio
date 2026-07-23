@@ -12,6 +12,7 @@ export function useProducts() {
   const addStockRaw = useProductsStore((s) => s.addStock);
   const removeStockRaw = useProductsStore((s) => s.removeStock);
   const movementsForProduct = useProductsStore((s) => s.movementsForProduct);
+  const removeProductRaw = useProductsStore((s) => s.removeProduct);
   const showToast = useUIStore((s) => s.showToast);
 
   const currentUser = () => useSettingsStore.getState().salon.managerName;
@@ -26,7 +27,12 @@ export function useProducts() {
     showToast(`Mouvement enregistré : -${payload.quantity} en stock`, 'success');
   };
 
-  return { products, movements, addStock, removeStock, movementsForProduct };
+  const removeProduct = (productId) => {
+    removeProductRaw(productId);
+    showToast('Produit supprimé du stock', 'warning');
+  };
+
+  return { products, movements, addStock, removeStock, movementsForProduct, removeProduct };
 }
 
 export function lowStockProducts(products) {

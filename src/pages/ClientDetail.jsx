@@ -32,7 +32,7 @@ export default function ClientDetail() {
   const navigate = useNavigate();
   const client = useClient(id);
   const { appointments } = useAppointments();
-  const { updateClient } = useClients();
+  const { updateClient, removeClient } = useClients();
   const { showToast } = useToast();
   const { salon } = useSettings();
   const [tab, setTab] = useState('profil');
@@ -49,6 +49,14 @@ export default function ClientDetail() {
   if (!client) {
     return <EmptyState icon="users" title="Cliente introuvable" subtitle="Cette fiche cliente n'existe pas ou a été supprimée." />;
   }
+
+  const handleDelete = () => {
+    if (!window.confirm(`Supprimer définitivement la fiche de ${fullName(client)} ? Cette action est irréversible (l'historique des RDV associés sera conservé mais ne pourra plus être lié à une fiche).`)) {
+      return;
+    }
+    removeClient(client.id);
+    navigate('/clientes');
+  };
 
   const handleAvatarFile = async (file) => {
     try {
@@ -98,6 +106,9 @@ export default function ClientDetail() {
           </div>
         </div>
         <div className={styles.spacer} />
+        <button type="button" className="btn btn-ghost" onClick={handleDelete} title="Supprimer la fiche">
+          <Icon name="trash" size={16} />
+        </button>
         <button type="button" className="btn btn-ghost" onClick={() => setPrinting(true)}>
           <Icon name="printer" size={16} /> Imprimer
         </button>

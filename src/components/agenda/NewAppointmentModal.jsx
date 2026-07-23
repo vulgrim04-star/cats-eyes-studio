@@ -1,22 +1,27 @@
 import { useEffect, useMemo, useState } from 'react';
 import Modal from '../common/Modal';
+import Icon from '../common/Icon';
 import { useAppointments } from '../../hooks/useAppointments';
 import { useClients } from '../../hooks/useClients';
 import { useServices, groupByCategory } from '../../hooks/useServices';
 import { useStaff } from '../../hooks/useStaff';
+import { useSettings } from '../../hooks/useSettings';
 import { SERVICE_CATEGORIES } from '../../data/services';
 import { formatDuration, formatPrice, fullName } from '../../utils/format';
 import { addDaysISO, todayISO } from '../../utils/date';
+import { availableSlots } from '../../utils/booking';
 import { useToast } from '../../hooks/useToast';
 
 export default function NewAppointmentModal({ open, onClose, appointment, defaultDate, defaultClientId, defaultStaffId }) {
-  const { addAppointment, reschedule } = useAppointments();
+  const { appointments, addAppointment, reschedule } = useAppointments();
   const { clients } = useClients();
   const { services } = useServices();
   const { staff } = useStaff();
+  const { salon } = useSettings();
   const { showToast } = useToast();
   const grouped = useMemo(() => groupByCategory(services), [services]);
   const isEdit = Boolean(appointment);
+  const [customTime, setCustomTime] = useState(false);
 
   const [form, setForm] = useState(() => ({
     clientId: defaultClientId ?? '',
@@ -44,6 +49,15 @@ export default function NewAppointmentModal({ open, onClose, appointment, defaul
   }, [appointment]);
 
   const selectedService = services.find((s) => s.id === form.serviceId);
+
+  const otherAppointments = useMemo(
+    () => appointments.filter((a) => a.id !== appointment?.id),
+    [appointments, appointment]
+  );
+  const slots = useMemo(() => {
+    if (!form.staffId || !selectedService || !form.date) return [];
+    return availableSlots(otherAppointments, form.date, selectedService.duration, salon, form.staffId);
+  }, [otherAppointments, form.date, form.staffId, selectedService, salon]);
 
   const update = (patch) => setForm((f) => ({ ...f, ...patch }));
 
@@ -139,15 +153,47 @@ export default function NewAppointmentModal({ open, onClose, appointment, defaul
           </select>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <div className="field-group">
-            <label className="field-label" htmlFor="apt-date">Date</label>
-            <input id="apt-date" type="date" className="input-field" value={form.date} onChange={(e) => update({ date: e.target.value })} required />
+        <div className="field-group">
+          <label className="field-label" htmlFor="apt-date">Date</label>
+          <input id="apt-date" type="date" className="input-field" value={form.date} onChange={(e) => update({ date: e.target.value })} required />
+        </div>
+
+        <div className="field-group">
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <label className="field-label" style={{ marginBottom: 0 }}>Heure</label>
+            <button
+              type="button"
+              onClick={() => setCustomTime((v) => !v)}
+              style={{ background: 'none', border: 'none', fontSize: '0.74rem', fontWeight: 600, color: 'var(--color-rose-dark)' }}
+            >
+              {customTime ? 'Voir les créneaux libres' : 'Saisir une heure manuellement'}
+            </button>
           </div>
-          <div className="field-group">
-            <label className="field-label" htmlFor="apt-time">Heure</label>
+
+          {customTime ? (
             <input id="apt-time" type="time" className="input-field" value={form.time} onChange={(e) => update({ time: e.target.value })} required />
-          </div>
+          ) : !form.staffId || !selectedService ? (
+            <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: 6 }}>
+              Choisissez une prestation et une esthéticienne pour voir les créneaux libres.
+            </p>
+          ) : slots.length === 0 ? (
+            <p style={{ fontSize: '0.8rem', color: 'var(--color-danger)', marginTop: 6 }}>
+              <Icon name="alert-triangle" size={13} /> Aucun créneau libre ce jour-là pour cette esthéticienne. Choisissez une autre date/esthéticienne, ou saisissez une heure manuellement.
+            </p>
+          ) : (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>
+              {slots.map((s) => (
+                <button
+                  key={s.time}
+                  type="button"
+                  className={`btn btn-sm ${form.time === s.time ? 'btn-primary' : 'btn-secondary'}`}
+                  onClick={() => update({ time: s.time })}
+                >
+                  {s.time}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="field-group">

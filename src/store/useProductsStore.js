@@ -37,6 +37,10 @@ export const useProductsStore = create(
       },
 
       movementsForProduct: (productId) => get().movements.filter((m) => m.productId === productId),
+
+      removeProduct: (productId) => {
+        set((state) => ({ products: state.products.filter((p) => p.id !== productId) }));
+      },
     }),
     { name: 'ces-products', version: 1, storage: createJSONStorage(() => supabaseSyncStorage), skipHydration: true }
   )

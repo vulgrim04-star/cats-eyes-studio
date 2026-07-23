@@ -32,6 +32,7 @@ export const useSettingsStore = create(
   persist(
     (set) => ({
       salon: DEFAULT_SALON,
+      onboarded: false,
       notifications: {
         autoConfirm: true,
         reminder24h: true,
@@ -43,6 +44,7 @@ export const useSettingsStore = create(
       },
 
       updateSalon: (patch) => set((s) => ({ salon: { ...s.salon, ...patch } })),
+      completeOnboarding: (salonPatch) => set((s) => ({ salon: { ...s.salon, ...salonPatch }, onboarded: true })),
       updateDayHours: (day, patch) =>
         set((s) => ({
           salon: {
@@ -59,12 +61,15 @@ export const useSettingsStore = create(
     }),
     {
       name: 'ces-settings',
-      version: 3,
+      version: 4,
       storage: createJSONStorage(() => supabaseSyncStorage),
       skipHydration: true,
-      // v2 -> v3 : ajout du tampon entre RDV, TVA, politique d'annulation, mode sombre.
+      // v2 -> v4 : ajout du tampon entre RDV, TVA, politique d'annulation, mode sombre, onboarding.
+      // Un compte qui avait déjà des données persistées est par définition un compte existant :
+      // on ne le fait pas repasser par l'onboarding obligatoire.
       migrate: (persisted) => ({
         salon: { ...DEFAULT_SALON, ...(persisted?.salon ?? {}), hours: persisted?.salon?.hours ?? DEFAULT_HOURS },
+        onboarded: persisted?.onboarded ?? true,
         notifications: persisted?.notifications ?? {
           autoConfirm: true,
           reminder24h: true,

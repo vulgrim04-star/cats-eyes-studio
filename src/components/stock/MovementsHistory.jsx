@@ -1,10 +1,12 @@
 import Icon from '../common/Icon';
 import EmptyState from '../common/EmptyState';
-import { getProductById } from '../../data/products';
+import { useProductsStore } from '../../store/useProductsStore';
 import { formatDateShort } from '../../utils/date';
 import styles from './MovementsHistory.module.css';
 
 export default function MovementsHistory({ movements, limit = 10 }) {
+  const products = useProductsStore((s) => s.products);
+  const getProductById = (id) => products.find((p) => p.id === id);
   const sorted = [...movements].sort((a, b) => (a.date < b.date ? 1 : -1)).slice(0, limit);
 
   return (

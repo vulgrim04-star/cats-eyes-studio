@@ -7,9 +7,11 @@ import { useUIStore } from '../store/useUIStore';
  */
 export function useSettings() {
   const salon = useSettingsStore((s) => s.salon);
+  const onboarded = useSettingsStore((s) => s.onboarded);
   const notifications = useSettingsStore((s) => s.notifications);
   const appearance = useSettingsStore((s) => s.appearance);
   const updateSalonRaw = useSettingsStore((s) => s.updateSalon);
+  const completeOnboarding = useSettingsStore((s) => s.completeOnboarding);
   const updateDayHours = useSettingsStore((s) => s.updateDayHours);
   const toggleNotification = useSettingsStore((s) => s.toggleNotification);
   const setThemeColorRaw = useSettingsStore((s) => s.setThemeColor);
@@ -28,9 +30,11 @@ export function useSettings() {
 
   return {
     salon,
+    onboarded,
     notifications,
     appearance,
     updateSalon,
+    completeOnboarding,
     updateDayHours,
     toggleNotification,
     setThemeColor,

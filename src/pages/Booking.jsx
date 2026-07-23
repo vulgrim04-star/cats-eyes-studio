@@ -3,11 +3,12 @@ import { useNavigate } from 'react-router-dom';
 import Icon from '../components/common/Icon';
 import BrandMark from '../components/common/BrandMark';
 import WaitlistModal from '../components/common/WaitlistModal';
+import ToastContainer from '../components/common/ToastContainer';
 import { useServices, groupByCategory } from '../hooks/useServices';
 import { useClients } from '../hooks/useClients';
 import { useAppointments } from '../hooks/useAppointments';
 import { useSettings, WEEK_DAYS } from '../hooks/useSettings';
-import { SERVICE_CATEGORIES, getServiceById } from '../data/services';
+import { SERVICE_CATEGORIES } from '../data/services';
 import { availableSlots, daySchedule } from '../utils/booking';
 import { addDaysISO, formatDateLong, formatDayLabel, formatDayNumber, todayISO } from '../utils/date';
 import { formatDuration, formatPrice } from '../utils/format';
@@ -35,7 +36,7 @@ export default function Booking() {
   const [cancelled, setCancelled] = useState(false);
   const [waitlistOpen, setWaitlistOpen] = useState(false);
 
-  const service = getServiceById(serviceId);
+  const service = services.find((s) => s.id === serviceId);
   const realSlots = useMemo(
     () => (service ? availableSlots(appointments, date, service.duration, salon) : []),
     [service, date, appointments, salon]
@@ -67,6 +68,9 @@ export default function Booking() {
       setConfirmedAppointment({ ...appointment, client, service, staffName: slot.staffName });
       setCancelled(false);
       setStep(4);
+    } else {
+      setSlot(null);
+      setStep(2);
     }
   };
 
@@ -88,6 +92,7 @@ export default function Booking() {
 
   return (
     <div className={styles.page}>
+      <ToastContainer />
       <div className={styles.wrap}>
         <div className={styles.brand}>
           <BrandMark size={44} radius="var(--radius-md)" iconSize={20} />

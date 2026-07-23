@@ -51,3 +51,20 @@
   font-size: 0.72rem;
   color: var(--color-text-muted);
 }
+
+.deleteBtn {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.deleteBtn:hover {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}

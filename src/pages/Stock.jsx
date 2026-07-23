@@ -11,10 +11,16 @@ import { PRODUCT_CATEGORIES } from '../data/products';
 import styles from './Stock.module.css';
 
 export default function Stock() {
-  const { products, movements } = useProducts();
+  const { products, movements, removeProduct } = useProducts();
   const { services } = useServices();
   const [category, setCategory] = useState('all');
   const [orderingProduct, setOrderingProduct] = useState(null);
+
+  const handleDelete = (product) => {
+    if (window.confirm(`Supprimer "${product.name}" du stock ? Cette action est irréversible.`)) {
+      removeProduct(product.id);
+    }
+  };
 
   const lowStock = useMemo(() => lowStockProducts(products), [products]);
 
@@ -52,7 +58,7 @@ export default function Stock() {
 
       <div className={styles.grid}>
         {filtered.map((product) => (
-          <ProductCard key={product.id} product={product} onOrder={setOrderingProduct} />
+          <ProductCard key={product.id} product={product} onOrder={setOrderingProduct} onDelete={handleDelete} />
         ))}
       </div>
 

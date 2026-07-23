@@ -10,15 +10,18 @@ export function setSyncUserId(id) {
  * et, si une session est active, synchronise la même valeur dans Supabase (table app_state). */
 export const supabaseSyncStorage = {
   getItem: async (name) => {
-    const local = localStorage.getItem(name);
-    if (!currentUserId) return local;
+    if (!currentUserId) return localStorage.getItem(name);
     const { data, error } = await supabase
       .from('app_state')
       .select('data')
       .eq('user_id', currentUserId)
       .eq('store_key', name)
       .maybeSingle();
-    if (error || !data) return local;
+    // Erreur réseau/API : on retombe sur le cache local plutôt que de perdre l'affichage.
+    if (error) return localStorage.getItem(name);
+    // Pas d'erreur mais aucune ligne : ce compte n'a encore rien en cloud, on ne doit
+    // surtout pas hériter du cache local d'un autre compte utilisé sur ce même navigateur.
+    if (!data) return null;
     const json = JSON.stringify(data.data);
     localStorage.setItem(name, json);
     return json;
