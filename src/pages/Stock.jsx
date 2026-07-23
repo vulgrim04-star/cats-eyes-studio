@@ -3,8 +3,10 @@ import PageHeader from '../components/common/PageHeader';
 import Icon from '../components/common/Icon';
 import ProductCard from '../components/stock/ProductCard';
 import OrderModal from '../components/stock/OrderModal';
+import ProductModal from '../components/stock/ProductModal';
 import MovementsHistory from '../components/stock/MovementsHistory';
 import MarginTable from '../components/stock/MarginTable';
+import EmptyState from '../components/common/EmptyState';
 import { useProducts, lowStockProducts } from '../hooks/useProducts';
 import { useServices } from '../hooks/useServices';
 import { PRODUCT_CATEGORIES } from '../data/products';
@@ -15,6 +17,18 @@ export default function Stock() {
   const { services } = useServices();
   const [category, setCategory] = useState('all');
   const [orderingProduct, setOrderingProduct] = useState(null);
+  const [productModalOpen, setProductModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState(null);
+
+  const openNewProduct = () => {
+    setEditingProduct(null);
+    setProductModalOpen(true);
+  };
+
+  const openEditProduct = (product) => {
+    setEditingProduct(product);
+    setProductModalOpen(true);
+  };
 
   const handleDelete = (product) => {
     if (window.confirm(`Supprimer "${product.name}" du stock ? Cette action est irréversible.`)) {
@@ -31,7 +45,15 @@ export default function Stock() {
 
   return (
     <>
-      <PageHeader title="Stock" subtitle={`${products.length} produits référencés`} />
+      <PageHeader
+        title="Stock"
+        subtitle={`${products.length} produits référencés`}
+        actions={
+          <button type="button" className="btn btn-primary" onClick={openNewProduct}>
+            <Icon name="plus" size={16} /> Nouveau produit
+          </button>
+        }
+      />
 
       {lowStock.length > 0 && (
         <div className={styles.banner}>
@@ -56,11 +78,19 @@ export default function Stock() {
         ))}
       </div>
 
-      <div className={styles.grid}>
-        {filtered.map((product) => (
-          <ProductCard key={product.id} product={product} onOrder={setOrderingProduct} onDelete={handleDelete} />
-        ))}
-      </div>
+      {filtered.length === 0 ? (
+        <EmptyState
+          icon="package"
+          title="Aucun produit référencé"
+          subtitle="Ajoute un premier produit pour commencer à suivre ton stock."
+        />
+      ) : (
+        <div className={styles.grid}>
+          {filtered.map((product) => (
+            <ProductCard key={product.id} product={product} onOrder={setOrderingProduct} onEdit={openEditProduct} onDelete={handleDelete} />
+          ))}
+        </div>
+      )}
 
       <div className={styles.bottomGrid}>
         <MovementsHistory movements={movements} />
@@ -68,6 +98,7 @@ export default function Stock() {
       </div>
 
       <OrderModal product={orderingProduct} onClose={() => setOrderingProduct(null)} />
+      <ProductModal open={productModalOpen} onClose={() => setProductModalOpen(false)} product={editingProduct} />
     </>
   );
 }

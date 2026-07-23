@@ -1,18 +1,31 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { products as seedProducts } from '../data/products';
-import { movements as seedMovements } from '../data/movements';
 import { createId } from '../utils/id';
 import { todayISO } from '../utils/date';
 import { supabaseSyncStorage } from '../utils/supabaseSyncStorage';
+import { useSettingsStore } from './useSettingsStore';
+
+const currentManagerName = () => useSettingsStore.getState().salon.managerName;
 
 export const useProductsStore = create(
   persist(
     (set, get) => ({
-      products: seedProducts,
-      movements: seedMovements,
+      products: [],
+      movements: [],
 
-      addStock: ({ productId, quantity, reason, user = 'Léa Moreau' }) => {
+      addProduct: (data) => {
+        const product = { id: createId('prd'), stock: 0, stockMin: 0, ...data };
+        set((state) => ({ products: [...state.products, product] }));
+        return product;
+      },
+
+      updateProduct: (id, patch) => {
+        set((state) => ({
+          products: state.products.map((p) => (p.id === id ? { ...p, ...patch } : p)),
+        }));
+      },
+
+      addStock: ({ productId, quantity, reason, user = currentManagerName() }) => {
         set((state) => ({
           products: state.products.map((p) =>
             p.id === productId ? { ...p, stock: p.stock + quantity } : p
@@ -24,7 +37,7 @@ export const useProductsStore = create(
         }));
       },
 
-      removeStock: ({ productId, quantity, reason, user = 'Léa Moreau' }) => {
+      removeStock: ({ productId, quantity, reason, user = currentManagerName() }) => {
         set((state) => ({
           products: state.products.map((p) =>
             p.id === productId ? { ...p, stock: Math.max(0, p.stock - quantity) } : p

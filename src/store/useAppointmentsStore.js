@@ -1,6 +1,5 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { appointments as seedAppointments } from '../data/appointments';
 import { createId } from '../utils/id';
 import { rangesOverlap } from '../utils/date';
 import { useSettingsStore } from './useSettingsStore';
@@ -9,7 +8,7 @@ import { supabaseSyncStorage } from '../utils/supabaseSyncStorage';
 export const useAppointmentsStore = create(
   persist(
     (set, get) => ({
-      appointments: seedAppointments,
+      appointments: [],
 
       findOverlap: ({ staffId, date, time, duration, excludeId }) => {
         const buffer = useSettingsStore.getState().salon.bufferMinutes ?? 0;

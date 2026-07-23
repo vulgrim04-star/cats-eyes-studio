@@ -9,6 +9,8 @@ import { useSettingsStore } from '../store/useSettingsStore';
 export function useProducts() {
   const products = useProductsStore((s) => s.products);
   const movements = useProductsStore((s) => s.movements);
+  const addProductRaw = useProductsStore((s) => s.addProduct);
+  const updateProduct = useProductsStore((s) => s.updateProduct);
   const addStockRaw = useProductsStore((s) => s.addStock);
   const removeStockRaw = useProductsStore((s) => s.removeStock);
   const movementsForProduct = useProductsStore((s) => s.movementsForProduct);
@@ -16,6 +18,12 @@ export function useProducts() {
   const showToast = useUIStore((s) => s.showToast);
 
   const currentUser = () => useSettingsStore.getState().salon.managerName;
+
+  const addProduct = (data) => {
+    const product = addProductRaw(data);
+    showToast(`« ${product.name} » ajouté au stock`, 'success');
+    return product;
+  };
 
   const addStock = (payload) => {
     addStockRaw({ user: currentUser(), ...payload });
@@ -32,7 +40,7 @@ export function useProducts() {
     showToast('Produit supprimé du stock', 'warning');
   };
 
-  return { products, movements, addStock, removeStock, movementsForProduct, removeProduct };
+  return { products, movements, addProduct, updateProduct, addStock, removeStock, movementsForProduct, removeProduct };
 }
 
 export function lowStockProducts(products) {

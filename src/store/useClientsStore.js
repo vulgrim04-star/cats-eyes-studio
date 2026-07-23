@@ -1,13 +1,12 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { clients as seedClients } from '../data/clients';
 import { createId } from '../utils/id';
 import { supabaseSyncStorage } from '../utils/supabaseSyncStorage';
 
 export const useClientsStore = create(
   persist(
     (set, get) => ({
-      clients: seedClients,
+      clients: [],
 
       addClient: (data) => {
         const client = {
@@ -119,8 +118,7 @@ export const useClientsStore = create(
       storage: createJSONStorage(() => supabaseSyncStorage),
       skipHydration: true,
       // v1 -> v2 : les fiches persistées avant la Lash Map n'ont pas le champ lashMaps.
-      // On repart des données de démo enrichies (phase de développement, pas de données réelles).
-      migrate: () => ({ clients: seedClients }),
+      migrate: (persisted) => ({ clients: (persisted?.clients ?? []).map((c) => ({ lashMaps: [], ...c })) }),
     }
   )
 );

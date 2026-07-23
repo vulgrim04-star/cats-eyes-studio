@@ -8,7 +8,7 @@ function categoryLabel(id) {
   return PRODUCT_CATEGORIES.find((c) => c.id === id)?.label ?? id;
 }
 
-export default function ProductCard({ product, onOrder, onDelete }) {
+export default function ProductCard({ product, onOrder, onEdit, onDelete }) {
   const low = product.stock < product.stockMin;
   const ratio = stockRatio(product);
   const color = low ? 'var(--color-danger)' : ratio < 0.6 ? 'var(--color-warning)' : 'var(--color-success)';
@@ -26,6 +26,15 @@ export default function ProductCard({ product, onOrder, onDelete }) {
               <Icon name="alert-triangle" size={11} /> Stock faible
             </span>
           )}
+          <button
+            type="button"
+            className={styles.deleteBtn}
+            onClick={() => onEdit(product)}
+            title="Modifier ce produit"
+            aria-label="Modifier ce produit"
+          >
+            <Icon name="edit" size={14} />
+          </button>
           <button
             type="button"
             className={styles.deleteBtn}

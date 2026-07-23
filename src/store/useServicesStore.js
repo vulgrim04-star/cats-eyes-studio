@@ -1,13 +1,12 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { services as seedServices } from '../data/services';
 import { createId } from '../utils/id';
 import { supabaseSyncStorage } from '../utils/supabaseSyncStorage';
 
 export const useServicesStore = create(
   persist(
     (set) => ({
-      services: seedServices,
+      services: [],
       promoCodes: [
         { id: 'promo_1', code: 'BIENVENUE10', label: '10% de réduction — première visite', discountPercent: 10, active: true },
         { id: 'promo_2', code: 'FIDELITE15', label: '15% de réduction — cliente fidèle', discountPercent: 15, active: true },

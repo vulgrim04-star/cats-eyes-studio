@@ -1,13 +1,12 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { expenses as seedExpenses } from '../data/expenses';
 import { createId } from '../utils/id';
 import { supabaseSyncStorage } from '../utils/supabaseSyncStorage';
 
 export const useExpensesStore = create(
   persist(
     (set) => ({
-      expenses: seedExpenses,
+      expenses: [],
 
       addExpense: (data) => {
         const expense = { id: createId('exp'), ...data };
