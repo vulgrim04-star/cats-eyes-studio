@@ -28,8 +28,11 @@ export async function fetchPublicAppointmentsForDate(ownerId, date) {
   return data ?? [];
 }
 
-/** Enregistre une demande de RDV en attente de validation par l'institut. */
-export async function submitBookingRequest(ownerId, payload) {
+/** Enregistre une demande de RDV en attente de validation par l'institut.
+ * Une seule tentative de nouvel essai automatique en cas d'échec réseau/serveur
+ * transitoire, pour éviter qu'une cliente perde sa réservation à cause d'un
+ * simple aléa de connexion. */
+export async function submitBookingRequest(ownerId, payload, attempt = 1) {
   const { error } = await supabase.from('booking_requests').insert({
     owner_id: ownerId,
     status: 'pending',
@@ -37,6 +40,10 @@ export async function submitBookingRequest(ownerId, payload) {
   });
   if (error) {
     console.error('[publicBooking] submitBookingRequest failed', error);
+    if (attempt < 2) {
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      return submitBookingRequest(ownerId, payload, attempt + 1);
+    }
     return false;
   }
   return true;
