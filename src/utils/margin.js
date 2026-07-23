@@ -8,6 +8,7 @@ const COST_RATIO = {
 };
 
 export function estimateCost(service) {
+  if (service.costOverride != null) return service.costOverride;
   const ratio = COST_RATIO[service.category] ?? 0.18;
   return Math.round(service.price * ratio * 100) / 100;
 }
