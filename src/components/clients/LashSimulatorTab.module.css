@@ -1,0 +1,159 @@
+.intro {
+  font-size: 0.86rem;
+  color: var(--color-text-soft);
+  margin-bottom: var(--space-4);
+  max-width: 60ch;
+}
+
+.photoPicker {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.uploadCard {
+  border: 1.5px dashed var(--color-rose-light);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--color-rose-dark);
+  font-size: 0.86rem;
+  font-weight: 600;
+  min-height: 160px;
+  cursor: pointer;
+}
+
+.existingRow {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.existingLabel {
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.existingThumbs {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.existingThumb {
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  border: 1.5px solid var(--color-border);
+  padding: 0;
+}
+.existingThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.stageWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: var(--space-4);
+}
+
+.stage {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--color-cream);
+  box-shadow: var(--shadow-sm);
+  touch-action: none;
+}
+
+.photo {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  pointer-events: none;
+  user-select: none;
+}
+
+.overlayHandle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  cursor: grab;
+  touch-action: none;
+}
+.overlayHandle:active {
+  cursor: grabbing;
+}
+
+.changePhotoBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.76rem;
+  color: var(--color-text-muted);
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.chipRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: var(--space-4);
+}
+
+.chip {
+  padding: 7px 14px;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-white);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-soft);
+}
+
+.chipActive {
+  border-color: var(--color-rose);
+  background: var(--color-rose-light);
+  color: var(--color-rose-dark);
+}
+
+.sliders {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-width: 360px;
+  margin-bottom: var(--space-4);
+}
+
+.sliderRow {
+  display: grid;
+  grid-template-columns: 70px 1fr;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.82rem;
+  color: var(--color-text-soft);
+}
+.sliderRow input[type='range'] {
+  width: 100%;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
