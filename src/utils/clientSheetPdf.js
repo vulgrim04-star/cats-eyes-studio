@@ -39,7 +39,9 @@ function addLabelValueGrid(doc, pairs, y, rgb) {
   return y;
 }
 
-export async function generateClientSheetPdf(client, appointments, salon, sections, themeColor) {
+/** Construit le document jsPDF sans le télécharger — utilisé à la fois pour l'aperçu
+ * (affiché dans une iframe) et pour le téléchargement final. */
+export async function buildClientSheetPdf(client, appointments, salon, sections, themeColor) {
   const { jsPDF } = await import('jspdf');
   const doc = new jsPDF();
   const rgb = hexToRgb(themeColor);
@@ -182,5 +184,10 @@ export async function generateClientSheetPdf(client, appointments, salon, sectio
   }
 
   addFooterToAllPages(doc, salon, themeColor);
+  return doc;
+}
+
+export async function generateClientSheetPdf(client, appointments, salon, sections, themeColor) {
+  const doc = await buildClientSheetPdf(client, appointments, salon, sections, themeColor);
   doc.save(`fiche-cliente-${slug(fullName(client))}.pdf`);
 }

@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Modal from '../common/Modal';
-import { generateClientSheetPdf } from '../../utils/clientSheetPdf';
+import Icon from '../common/Icon';
+import { buildClientSheetPdf, generateClientSheetPdf } from '../../utils/clientSheetPdf';
 
 const SECTIONS = [
   { key: 'identity', label: 'Informations générales', hint: "Coordonnées, Instagram, préférences, type de cils…" },
@@ -15,8 +16,38 @@ const ALL_CHECKED = SECTIONS.reduce((acc, s) => ({ ...acc, [s.key]: true }), {})
 export default function ClientSheetExportModal({ open, onClose, client, appointments, salon, themeColor }) {
   const [checked, setChecked] = useState(ALL_CHECKED);
   const [generating, setGenerating] = useState(false);
+  const [previewing, setPreviewing] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState('');
 
-  const toggle = (key) => setChecked((c) => ({ ...c, [key]: !c[key] }));
+  const clearPreview = () => {
+    setPreviewUrl((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return '';
+    });
+  };
+
+  // Réinitialise l'aperçu à chaque ouverture/fermeture pour ne jamais montrer le PDF
+  // d'une cliente précédente, et libère l'URL blob pour éviter une fuite mémoire.
+  useEffect(() => {
+    if (!open) clearPreview();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
+  const toggle = (key) => {
+    setChecked((c) => ({ ...c, [key]: !c[key] }));
+    clearPreview();
+  };
+
+  const handlePreview = async () => {
+    setPreviewing(true);
+    try {
+      const doc = await buildClientSheetPdf(client, appointments, salon, checked, themeColor);
+      clearPreview();
+      setPreviewUrl(doc.output('bloburl'));
+    } finally {
+      setPreviewing(false);
+    }
+  };
 
   const handleGenerate = async () => {
     setGenerating(true);
@@ -35,7 +66,7 @@ export default function ClientSheetExportModal({ open, onClose, client, appointm
       open={open}
       onClose={onClose}
       title="Télécharger la fiche cliente"
-      maxWidth={440}
+      maxWidth={680}
       footer={
         <>
           <button type="button" className="btn btn-ghost" onClick={onClose}>Annuler</button>
@@ -46,7 +77,7 @@ export default function ClientSheetExportModal({ open, onClose, client, appointm
       }
     >
       <p style={{ fontSize: '0.86rem', color: 'var(--color-text-soft)', marginBottom: 'var(--space-3)' }}>
-        Choisissez ce qui doit être inclus dans le PDF.
+        Choisissez ce qui doit être inclus dans le PDF, puis prévisualisez avant de télécharger.
       </p>
       <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
         {SECTIONS.map((s) => (
@@ -64,6 +95,30 @@ export default function ClientSheetExportModal({ open, onClose, client, appointm
           </label>
         ))}
       </div>
+
+      <button
+        type="button"
+        className="btn btn-secondary btn-sm"
+        style={{ marginTop: 'var(--space-4)' }}
+        onClick={handlePreview}
+        disabled={previewing || noneChecked}
+      >
+        <Icon name="eye" size={14} /> {previewing ? 'Génération de l’aperçu…' : previewUrl ? 'Actualiser l’aperçu' : 'Aperçu du PDF'}
+      </button>
+
+      {previewUrl && (
+        <iframe
+          src={previewUrl}
+          title="Aperçu du PDF"
+          style={{
+            width: '100%',
+            height: 440,
+            marginTop: 'var(--space-3)',
+            border: '1px solid var(--color-border)',
+            borderRadius: 'var(--radius-md)',
+          }}
+        />
+      )}
     </Modal>
   );
 }

@@ -37,6 +37,7 @@ const PATHS = {
   printer: 'M7 8.5V4h10v4.5M7 17.5H5.5A1.5 1.5 0 0 1 4 16v-5a1.5 1.5 0 0 1 1.5-1.5h13A1.5 1.5 0 0 1 20 11v5a1.5 1.5 0 0 1-1.5 1.5H17M7 13.5h10v7H7v-7Z',
   upload: 'M12 15V4m0 0 4 4m-4-4L8 8M5 15.5v3A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5v-3',
   moon: 'M20 14.5a8 8 0 1 1-9.5-11 6.5 6.5 0 0 0 9.5 11Z',
+  eye: 'M2.5 12S6.5 5 12 5s9.5 7 9.5 7-4 7-9.5 7-9.5-7-9.5-7Zm9.5 3a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z',
 };
 
 export default function Icon({ name, size = 20, strokeWidth = 1.8, className = '', ...rest }) {
