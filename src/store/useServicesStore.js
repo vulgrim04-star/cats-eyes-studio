@@ -3,13 +3,15 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { createId } from '../utils/id';
 import { supabaseSyncStorage } from '../utils/supabaseSyncStorage';
 
+export const DEFAULT_PROMO_CODES = [
+  { id: 'promo_1', code: 'BIENVENUE10', label: '10% de réduction — première visite', discountPercent: 10, active: true },
+];
+
 export const useServicesStore = create(
   persist(
     (set) => ({
       services: [],
-      promoCodes: [
-        { id: 'promo_1', code: 'BIENVENUE10', label: '10% de réduction — première visite', discountPercent: 10, active: true },
-      ],
+      promoCodes: DEFAULT_PROMO_CODES,
 
       addService: (data) => {
         const service = { id: createId('srv'), ...data };

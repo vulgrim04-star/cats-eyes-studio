@@ -10,6 +10,7 @@ import { CURRENCIES } from '../utils/format';
 import { downloadBackup, restoreBackup } from '../utils/backup';
 import { signOut, useAuthStore } from '../store/useAuthStore';
 import DeleteAccountModal from '../components/settings/DeleteAccountModal';
+import ResetDataModal from '../components/settings/ResetDataModal';
 import styles from './Settings.module.css';
 
 const DAY_LABELS = { lun: 'Lun', mar: 'Mar', mer: 'Mer', jeu: 'Jeu', ven: 'Ven', sam: 'Sam', dim: 'Dim' };
@@ -30,6 +31,7 @@ export default function Settings() {
   const [form, setForm] = useState(salon);
   const [dirty, setDirty] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [resetModalOpen, setResetModalOpen] = useState(false);
 
   const bookingLink = ownerId ? `${window.location.origin}/r/${ownerId}` : '';
 
@@ -321,7 +323,17 @@ export default function Settings() {
 
       <div className="card" style={{ marginTop: 'var(--space-5)', borderColor: 'var(--color-danger)' }}>
         <h3 className="card-title" style={{ marginBottom: 'var(--space-2)', color: 'var(--color-danger)' }}>Zone dangereuse</h3>
-        <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
+
+        <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginBottom: 'var(--space-3)' }}>
+          Efface toutes les données métier (clientes, rendez-vous, prestations, stock, dépenses, demandes en
+          attente) pour repartir de zéro, comme un compte tout juste créé. Ton compte de connexion et les
+          paramètres du salon restent intacts.
+        </p>
+        <button type="button" className="btn btn-danger btn-sm" style={{ marginBottom: 'var(--space-4)' }} onClick={() => setResetModalOpen(true)}>
+          <Icon name="alert-triangle" size={14} /> Réinitialiser toutes les données
+        </button>
+
+        <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)', paddingTop: 'var(--space-4)', borderTop: '1px solid var(--color-border)' }}>
           Supprime définitivement ton compte et toutes tes données (clientes, rendez-vous, prestations, stock,
           finances, paramètres). Une confirmation par email est requise avant que la suppression ait lieu.
         </p>
@@ -330,6 +342,7 @@ export default function Settings() {
         </button>
       </div>
 
+      <ResetDataModal open={resetModalOpen} onClose={() => setResetModalOpen(false)} />
       <DeleteAccountModal open={deleteModalOpen} onClose={() => setDeleteModalOpen(false)} />
     </>
   );
