@@ -1,3 +1,4 @@
+import { useId } from 'react';
 import styles from './EyeDiagram.module.css';
 
 // Génère N zones réparties le long de l'arc des cils (10%-90% de la largeur), avec un
@@ -80,6 +81,62 @@ function Lashes({ values, zones }) {
   return lashes;
 }
 
+// Forme de la sclère (blanc de l'œil), réutilisée pour le remplissage et pour découper
+// l'iris — la paupière supérieure "mange" légèrement le haut de l'iris, comme sur un œil réel.
+const SCLERA_D = 'M32 93 Q140 66 248 93 Q140 118 32 93 Z';
+
+// Illustration réaliste de l'œil (sclère, iris, paupières) — purement décorative, sans
+// donnée cliente. Les identifiants de gradient/découpe sont uniques par instance (useId)
+// car ce composant est monté plusieurs fois sur une même page (gauche/droite × plusieurs
+// Lash Maps dans l'onglet), et des id SVG dupliqués provoqueraient des références croisées.
+function EyeIllustration() {
+  const uid = useId();
+  const irisGradId = `iris-${uid}`;
+  const lidShadeId = `lid-${uid}`;
+  const scleraClipId = `sclera-clip-${uid}`;
+
+  return (
+    <>
+      <defs>
+        <radialGradient id={irisGradId} cx="42%" cy="36%" r="65%">
+          <stop offset="0%" stopColor="#9a7a56" />
+          <stop offset="55%" stopColor="#5c4530" />
+          <stop offset="100%" stopColor="#2a1d14" />
+        </radialGradient>
+        <linearGradient id={lidShadeId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="var(--color-text)" stopOpacity="0.14" />
+          <stop offset="100%" stopColor="var(--color-text)" stopOpacity="0" />
+        </linearGradient>
+        <clipPath id={scleraClipId}>
+          <path d={SCLERA_D} />
+        </clipPath>
+      </defs>
+
+      {/* ombre douce de la paupière, entre la ligne de cils et le pli */}
+      <path d="M20 92 Q140 48 260 92 Q140 132 20 92 Z" fill={`url(#${lidShadeId})`} />
+
+      {/* sclère */}
+      <path d={SCLERA_D} fill="var(--color-cream)" stroke="var(--color-text)" strokeOpacity="0.08" />
+
+      {/* iris + pupille + reflet, découpés à la forme de la sclère */}
+      <g clipPath={`url(#${scleraClipId})`}>
+        <circle cx="140" cy="96" r="19" fill={`url(#${irisGradId})`} />
+        <circle cx="140" cy="96" r="8.5" fill="#160f0a" />
+        <circle cx="135" cy="90" r="3" fill="#fff" opacity="0.85" />
+      </g>
+
+      {/* paupière inférieure */}
+      <path d="M32 93 Q140 112 248 93" fill="none" stroke="var(--color-text)" strokeWidth="1.4" opacity="0.35" strokeLinecap="round" />
+
+      {/* cils naturels du bas */}
+      <path d="M34 138 Q90 118 150 121 Q210 124 252 138 Q200 132 150 131 Q95 130 34 138 Z" fill="var(--color-text)" opacity="0.9" />
+
+      {/* pli de paupière, discret */}
+      <path d="M26 88 Q140 30 254 88" fill="none" stroke="var(--color-text)" strokeWidth="1" opacity="0.22" />
+    </>
+  );
+}
+
 export default function EyeDiagram({ title, zones, onChange, readOnly = false }) {
   const values = zones ?? ['', '', '', '', '', ''];
   const zonePositions = buildZones(values.length);
@@ -110,10 +167,9 @@ export default function EyeDiagram({ title, zones, onChange, readOnly = false })
         )}
       </div>
       <svg viewBox="0 0 280 150" className={styles.svg} aria-hidden="true">
+        <EyeIllustration />
         <Lashes values={values} zones={zonePositions} />
         <path d="M20 92 Q140 48 260 92" fill="none" stroke="var(--color-text)" strokeWidth="3" strokeLinecap="round" />
-        <path d="M20 92 Q140 48 260 92 Q140 128 20 92 Z" fill="var(--color-rose-light)" opacity="0.65" />
-        <path d="M34 138 Q90 118 150 121 Q210 124 252 138 Q200 132 150 131 Q95 130 34 138 Z" fill="var(--color-text)" opacity="0.9" />
       </svg>
     </div>
   );
