@@ -9,7 +9,6 @@ import ProfileTab from '../components/clients/ProfileTab';
 import HistoryTab from '../components/clients/HistoryTab';
 import PhotosTab from '../components/clients/PhotosTab';
 import LashMapTab from '../components/clients/LashMapTab';
-import LashSimulatorTab from '../components/clients/LashSimulatorTab';
 import NotesTab from '../components/clients/NotesTab';
 import ClientSheetExportModal from '../components/clients/ClientSheetExportModal';
 import { useClient, useClients } from '../hooks/useClients';
@@ -25,7 +24,6 @@ const TABS = [
   { id: 'profil', label: 'Profil' },
   { id: 'historique', label: 'Historique' },
   { id: 'lashmap', label: 'Lash Map' },
-  { id: 'simulateur', label: 'Simulateur' },
   { id: 'photos', label: 'Photos' },
   { id: 'notes', label: 'Notes' },
 ];
@@ -136,7 +134,6 @@ export default function ClientDetail() {
       )}
       {tab === 'historique' && <HistoryTab client={client} appointments={appointments} />}
       {tab === 'lashmap' && <LashMapTab client={client} />}
-      {tab === 'simulateur' && <LashSimulatorTab client={client} />}
       {tab === 'photos' && <PhotosTab client={client} />}
       {tab === 'notes' && <NotesTab client={client} appointments={appointments} />}
 

@@ -4,11 +4,11 @@ import EyeDiagram from './EyeDiagram';
 import { useClients } from '../../hooks/useClients';
 import { todayISO, formatDateLong } from '../../utils/date';
 import { estimateNextRetouchDate } from '../../utils/lashCycle';
-import { EFFECTS } from '../../utils/lashOverlayShapes';
 import styles from './LashMap.module.css';
 
 const POSE_TYPES = ['Pose complète', 'Retouche', 'Dépose'];
 const STYLES = ['Classique', 'Volume', 'Mega volume', 'Hybride', 'Wispy'];
+const EFFECTS = ['Cat Eye', 'Open Eye', 'Squirrel', 'Rounded', 'Wispy'];
 const CURLS = ['J', 'B', 'C', 'CC', 'D', 'DD', 'L', 'M'];
 const LENGTHS = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
 const THICKNESSES = [0.03, 0.05, 0.07, 0.1, 0.12, 0.15];
