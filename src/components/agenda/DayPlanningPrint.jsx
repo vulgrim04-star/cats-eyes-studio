@@ -29,7 +29,7 @@ export default function DayPlanningPrint({ date, appointments, salon }) {
               <span>
                 <strong>{apt.time}</strong> — {apt.client ? fullName(apt.client) : 'Cliente'} · {apt.service?.name}
               </span>
-              <span>{apt.staff?.name} · {STATUS_LABELS[apt.status] ?? apt.status} · {formatPrice(apt.price)}</span>
+              <span>{STATUS_LABELS[apt.status] ?? apt.status} · {formatPrice(apt.price)}</span>
             </div>
           ))}
         </div>

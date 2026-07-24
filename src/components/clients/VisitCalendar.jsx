@@ -118,7 +118,7 @@ export default function VisitCalendar({ appointments }) {
               <div>
                 <div className={styles.detailService}>{visit.service?.name}</div>
                 <div className={styles.detailMeta}>
-                  {visit.time} · {visit.staff?.name}
+                  {visit.time}
                   {visit.notes && ` · ${visit.notes}`}
                 </div>
               </div>

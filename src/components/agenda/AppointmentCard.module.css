@@ -76,19 +76,6 @@
   flex-wrap: wrap;
 }
 
-.staffChip {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-}
-
-.staffDot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
 .actions {
   display: flex;
   gap: 6px;

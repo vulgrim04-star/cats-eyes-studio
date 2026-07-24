@@ -47,7 +47,6 @@ export function useBookingRequests() {
     const appointment = addAppointment({
       clientId: client.id,
       serviceId: request.service_id,
-      staffId: request.staff_id,
       date: request.date,
       time: request.time,
       duration: request.duration,

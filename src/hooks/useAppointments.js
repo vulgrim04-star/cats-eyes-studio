@@ -3,7 +3,6 @@ import { useUIStore } from '../store/useUIStore';
 import { useClientsStore } from '../store/useClientsStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { getServiceById } from '../data/services';
-import { getStaffById } from '../data/staff';
 import { todayISO, timeToMinutes } from '../utils/date';
 
 // Les clientes peuvent être créées dynamiquement (réservation en ligne, nouvelle fiche) :
@@ -83,7 +82,6 @@ export function enrich(appointment) {
     ...appointment,
     client: getClientById(appointment.clientId),
     service: getServiceById(appointment.serviceId),
-    staff: getStaffById(appointment.staffId),
   };
 }
 

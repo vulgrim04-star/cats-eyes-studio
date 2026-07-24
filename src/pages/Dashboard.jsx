@@ -142,7 +142,6 @@ export default function Dashboard() {
               <div className={styles.nextMeta}>
                 <span>{nextAppointment.date === today ? "Aujourd'hui" : nextAppointment.date}</span>
                 <span>Jusqu'à {addMinutesToTime(nextAppointment.time, nextAppointment.duration)}</span>
-                <span>{nextAppointment.staff?.name}</span>
               </div>
             </div>
           )}

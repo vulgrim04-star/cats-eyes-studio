@@ -65,7 +65,6 @@ export default function Finances() {
         apt.time,
         apt.client ? fullName(apt.client) : '',
         apt.service?.name ?? '',
-        apt.staff?.name ?? '',
         apt.price,
         PAYMENT_LABELS[apt.paymentMethod] ?? '',
       ]);
@@ -75,7 +74,7 @@ export default function Finances() {
     }
     downloadCsv(
       `cats-eyes-ca-${range[0]}_${range[1]}.csv`,
-      ['Date', 'Heure', 'Cliente', 'Prestation', 'Esthéticienne', 'Prix (€)', 'Paiement'],
+      ['Date', 'Heure', 'Cliente', 'Prestation', 'Prix (€)', 'Paiement'],
       rows
     );
     showToast(`Export CSV téléchargé (${rows.length} lignes)`, 'success');

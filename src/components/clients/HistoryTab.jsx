@@ -20,7 +20,7 @@ export default function HistoryTab({ client, appointments }) {
         {history.map((apt) => (
           <div key={apt.id} className={styles.row}>
             <div>
-              <div className={styles.date}>{formatDateShort(apt.date)} · {apt.time} · {apt.staff?.name}</div>
+              <div className={styles.date}>{formatDateShort(apt.date)} · {apt.time}</div>
               <div className={styles.name}>{apt.service?.name}</div>
               {apt.notes && <div className={styles.notes}>{apt.notes}</div>}
             </div>

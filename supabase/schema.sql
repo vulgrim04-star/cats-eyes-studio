@@ -32,8 +32,8 @@ create table if not exists public.booking_requests (
   price numeric not null,
   date text not null,
   time text not null,
-  staff_id text not null,
-  staff_name text,
+  staff_id text, -- non utilisé (app pour praticienne indépendante) ; laissé nullable pour compat
+  staff_name text, -- idem
   notes text,
   status text not null default 'pending',
   created_at timestamptz not null default now()

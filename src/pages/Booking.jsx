@@ -98,13 +98,11 @@ export default function Booking() {
         price: service.price,
         date,
         time: slot.time,
-        staff_id: slot.staffId,
-        staff_name: slot.staffName,
         notes: 'Réservation en ligne',
       });
       setSubmitting(false);
       if (ok) {
-        setConfirmedAppointment({ service, date, time: slot.time, staffName: slot.staffName });
+        setConfirmedAppointment({ service, date, time: slot.time });
         setCancelled(false);
         setStep(4);
       } else {
@@ -121,7 +119,6 @@ export default function Booking() {
     const appointment = addAppointment({
       clientId: client.id,
       serviceId: service.id,
-      staffId: slot.staffId,
       date,
       time: slot.time,
       duration: service.duration,
@@ -131,7 +128,7 @@ export default function Booking() {
     });
 
     if (appointment) {
-      setConfirmedAppointment({ ...appointment, client, service, staffName: slot.staffName });
+      setConfirmedAppointment({ ...appointment, client, service });
       setCancelled(false);
       setStep(4);
     } else {
@@ -407,7 +404,6 @@ export default function Booking() {
                 <div className={styles.recapRow}><span>Prestation</span><strong>{confirmedAppointment.service.name}</strong></div>
                 <div className={styles.recapRow}><span>Date</span><strong>{formatDateLong(confirmedAppointment.date)}</strong></div>
                 <div className={styles.recapRow}><span>Heure</span><strong>{confirmedAppointment.time}</strong></div>
-                <div className={styles.recapRow}><span>Esthéticienne</span><strong>{confirmedAppointment.staffName}</strong></div>
               </div>
               <div className={styles.footerActions} style={{ justifyContent: 'center', gap: 12, flexWrap: 'wrap' }}>
                 <button type="button" className="btn btn-secondary" onClick={reset}>Nouvelle réservation</button>

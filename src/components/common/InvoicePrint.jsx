@@ -39,26 +39,24 @@ export default function InvoicePrint({ appointment, salon }) {
         <thead>
           <tr>
             <th>Prestation</th>
-            <th>Esthéticienne</th>
             <th>Prix TTC</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td>{appointment.service?.name}</td>
-            <td>{appointment.staff?.name}</td>
             <td>{formatPriceFull(priceTTC)}</td>
           </tr>
           <tr>
-            <td colSpan={2}>Dont TVA ({vatRate}%)</td>
+            <td>Dont TVA ({vatRate}%)</td>
             <td>{formatPriceFull(vatAmount)}</td>
           </tr>
           <tr>
-            <td colSpan={2}>Total HT</td>
+            <td>Total HT</td>
             <td>{formatPriceFull(priceHT)}</td>
           </tr>
           <tr className={styles.totalsRow}>
-            <td colSpan={2}>Total TTC</td>
+            <td>Total TTC</td>
             <td>{formatPriceFull(priceTTC)}</td>
           </tr>
         </tbody>

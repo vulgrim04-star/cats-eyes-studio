@@ -10,11 +10,11 @@ export const useAppointmentsStore = create(
     (set, get) => ({
       appointments: [],
 
-      findOverlap: ({ staffId, date, time, duration, excludeId }) => {
+      findOverlap: ({ date, time, duration, excludeId }) => {
         const buffer = useSettingsStore.getState().salon.bufferMinutes ?? 0;
         return get().appointments.find((apt) => {
           if (apt.id === excludeId) return false;
-          if (apt.staffId !== staffId || apt.date !== date) return false;
+          if (apt.date !== date) return false;
           if (apt.status === 'cancelled') return false;
           return rangesOverlap(apt.time, apt.duration, time, duration, buffer);
         });

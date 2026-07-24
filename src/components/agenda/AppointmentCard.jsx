@@ -7,7 +7,7 @@ import styles from './AppointmentCard.module.css';
 
 export default function AppointmentCard({ appointment, showActions = true, onStatusChange, onEdit, onRequestComplete, onPrint }) {
   const navigate = useNavigate();
-  const { client, service, staff, time, duration, status } = appointment;
+  const { client, service, time, duration, status } = appointment;
   const stripeColor = STATUS_MAP[status]?.color ?? 'var(--color-rose)';
 
   const handleComplete = () => {
@@ -43,11 +43,6 @@ export default function AppointmentCard({ appointment, showActions = true, onSta
 
         <div className={styles.metaRow}>
           <span>{formatPrice(appointment.price)}</span>
-          <span>·</span>
-          <span className={styles.staffChip}>
-            <span className={styles.staffDot} style={{ background: staff?.color }} />
-            {staff?.name}
-          </span>
         </div>
 
         {showActions && onStatusChange && (

@@ -4,7 +4,6 @@ import Icon from '../common/Icon';
 import { useAppointments } from '../../hooks/useAppointments';
 import { useClients } from '../../hooks/useClients';
 import { useServices, groupByCategory } from '../../hooks/useServices';
-import { useStaff } from '../../hooks/useStaff';
 import { useSettings } from '../../hooks/useSettings';
 import { SERVICE_CATEGORIES } from '../../data/services';
 import { formatDuration, formatPrice, fullName } from '../../utils/format';
@@ -12,11 +11,10 @@ import { addDaysISO, todayISO } from '../../utils/date';
 import { availableSlots } from '../../utils/booking';
 import { useToast } from '../../hooks/useToast';
 
-export default function NewAppointmentModal({ open, onClose, appointment, defaultDate, defaultClientId, defaultStaffId }) {
+export default function NewAppointmentModal({ open, onClose, appointment, defaultDate, defaultClientId }) {
   const { appointments, addAppointment, reschedule } = useAppointments();
   const { clients } = useClients();
   const { services } = useServices();
-  const { staff } = useStaff();
   const { salon } = useSettings();
   const { showToast } = useToast();
   const grouped = useMemo(() => groupByCategory(services), [services]);
@@ -26,7 +24,6 @@ export default function NewAppointmentModal({ open, onClose, appointment, defaul
   const [form, setForm] = useState(() => ({
     clientId: defaultClientId ?? '',
     serviceId: '',
-    staffId: defaultStaffId ?? '',
     date: defaultDate ?? todayISO(),
     time: '10:00',
     notes: '',
@@ -40,7 +37,6 @@ export default function NewAppointmentModal({ open, onClose, appointment, defaul
       setForm({
         clientId: appointment.clientId,
         serviceId: appointment.serviceId,
-        staffId: appointment.staffId,
         date: appointment.date,
         time: appointment.time,
         notes: appointment.notes ?? '',
@@ -55,19 +51,18 @@ export default function NewAppointmentModal({ open, onClose, appointment, defaul
     [appointments, appointment]
   );
   const slots = useMemo(() => {
-    if (!form.staffId || !selectedService || !form.date) return [];
-    return availableSlots(otherAppointments, form.date, selectedService.duration, salon, form.staffId);
-  }, [otherAppointments, form.date, form.staffId, selectedService, salon]);
+    if (!selectedService || !form.date) return [];
+    return availableSlots(otherAppointments, form.date, selectedService.duration, salon);
+  }, [otherAppointments, form.date, selectedService, salon]);
 
   const update = (patch) => setForm((f) => ({ ...f, ...patch }));
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!form.clientId || !form.serviceId || !form.staffId || !form.date || !form.time) return;
+    if (!form.clientId || !form.serviceId || !form.date || !form.time) return;
     const payload = {
       clientId: form.clientId,
       serviceId: form.serviceId,
-      staffId: form.staffId,
       date: form.date,
       time: form.time,
       duration: selectedService.duration,
@@ -95,7 +90,7 @@ export default function NewAppointmentModal({ open, onClose, appointment, defaul
     }
 
     onClose();
-    setForm({ clientId: '', serviceId: '', staffId: '', date: todayISO(), time: '10:00', notes: '' });
+    setForm({ clientId: '', serviceId: '', date: todayISO(), time: '10:00', notes: '' });
     setRecurring(false);
   };
 
@@ -144,16 +139,6 @@ export default function NewAppointmentModal({ open, onClose, appointment, defaul
         </div>
 
         <div className="field-group">
-          <label className="field-label" htmlFor="apt-staff">Esthéticienne</label>
-          <select id="apt-staff" className="input-field" value={form.staffId} onChange={(e) => update({ staffId: e.target.value })} required>
-            <option value="">Sélectionner une esthéticienne</option>
-            {staff.map((s) => (
-              <option key={s.id} value={s.id}>{s.name}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="field-group">
           <label className="field-label" htmlFor="apt-date">Date</label>
           <input id="apt-date" type="date" className="input-field" value={form.date} onChange={(e) => update({ date: e.target.value })} required />
         </div>
@@ -172,13 +157,13 @@ export default function NewAppointmentModal({ open, onClose, appointment, defaul
 
           {customTime ? (
             <input id="apt-time" type="time" className="input-field" value={form.time} onChange={(e) => update({ time: e.target.value })} required />
-          ) : !form.staffId || !selectedService ? (
+          ) : !selectedService ? (
             <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', marginTop: 6 }}>
-              Choisissez une prestation et une esthéticienne pour voir les créneaux libres.
+              Choisissez une prestation pour voir les créneaux libres.
             </p>
           ) : slots.length === 0 ? (
             <p style={{ fontSize: '0.8rem', color: 'var(--color-danger)', marginTop: 6 }}>
-              <Icon name="alert-triangle" size={13} /> Aucun créneau libre ce jour-là pour cette esthéticienne. Choisissez une autre date/esthéticienne, ou saisissez une heure manuellement.
+              <Icon name="alert-triangle" size={13} /> Aucun créneau libre ce jour-là. Choisissez une autre date, ou saisissez une heure manuellement.
             </p>
           ) : (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginTop: 8 }}>

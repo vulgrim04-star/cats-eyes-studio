@@ -4,7 +4,6 @@ import PageHeader from '../components/common/PageHeader';
 import Icon from '../components/common/Icon';
 import EmptyState from '../components/common/EmptyState';
 import DaySelector from '../components/agenda/DaySelector';
-import StaffFilter from '../components/agenda/StaffFilter';
 import AppointmentCard from '../components/agenda/AppointmentCard';
 import WeekView from '../components/agenda/WeekView';
 import NewAppointmentModal from '../components/agenda/NewAppointmentModal';
@@ -12,7 +11,6 @@ import PaymentModal from '../components/agenda/PaymentModal';
 import DayPlanningPrint from '../components/agenda/DayPlanningPrint';
 import InvoicePrint from '../components/common/InvoicePrint';
 import { useAppointments, enrich, getAppointmentsByDate } from '../hooks/useAppointments';
-import { useStaff } from '../hooks/useStaff';
 import { useSettings } from '../hooks/useSettings';
 import { addDaysISO, todayISO, formatDateLong, getWeekDays, getWeekStart } from '../utils/date';
 import { generateICS, downloadICS } from '../utils/ical';
@@ -23,12 +21,10 @@ export default function Agenda() {
   const location = useLocation();
   const navigate = useNavigate();
   const { appointments, setStatus } = useAppointments();
-  const { staff } = useStaff();
   const { salon } = useSettings();
   const { showToast } = useToast();
 
   const [selectedDate, setSelectedDate] = useState(todayISO());
-  const [staffFilter, setStaffFilter] = useState('all');
   const [viewMode, setViewMode] = useState('day');
   const [modalOpen, setModalOpen] = useState(false);
   const [prefill, setPrefill] = useState(null);
@@ -43,18 +39,17 @@ export default function Agenda() {
     const state = location.state;
     if (!state) return;
     if (state.openNew) {
-      setPrefill({ clientId: state.clientId, date: state.date, staffId: state.staffId });
+      setPrefill({ clientId: state.clientId, date: state.date });
       setModalOpen(true);
     }
     if (state.date) setSelectedDate(state.date);
     navigate(location.pathname, { replace: true, state: null });
   }, [location, navigate]);
 
-  const dayAppointments = useMemo(() => {
-    const list = getAppointmentsByDate(appointments, selectedDate).map(enrich);
-    if (staffFilter === 'all') return list;
-    return list.filter((a) => a.staffId === staffFilter);
-  }, [appointments, selectedDate, staffFilter]);
+  const dayAppointments = useMemo(
+    () => getAppointmentsByDate(appointments, selectedDate).map(enrich),
+    [appointments, selectedDate]
+  );
 
   const countFor = (date) => getAppointmentsByDate(appointments, date).filter((a) => a.status !== 'cancelled').length;
 
@@ -119,13 +114,11 @@ export default function Agenda() {
       />
 
       {viewMode === 'day' && <DaySelector days={days} selected={selectedDate} onSelect={setSelectedDate} countFor={countFor} />}
-      <StaffFilter staff={staff} selected={staffFilter} onSelect={setStaffFilter} />
 
       {viewMode === 'week' ? (
         <WeekView
           weekDays={weekDays}
           appointments={appointments}
-          staffFilter={staffFilter}
           onSelectDay={(day) => { setSelectedDate(day); setViewMode('day'); }}
         />
       ) : (
@@ -155,13 +148,12 @@ export default function Agenda() {
       )}
 
       <NewAppointmentModal
-        key={editingAppointment?.id ?? `${prefill?.clientId ?? ''}-${prefill?.date ?? selectedDate}-${prefill?.staffId ?? ''}`}
+        key={editingAppointment?.id ?? `${prefill?.clientId ?? ''}-${prefill?.date ?? selectedDate}`}
         open={modalOpen}
         onClose={closeModal}
         appointment={editingAppointment}
         defaultDate={prefill?.date ?? selectedDate}
         defaultClientId={prefill?.clientId}
-        defaultStaffId={prefill?.staffId}
       />
 
       <PaymentModal appointment={completingAppointment} onClose={() => setCompletingAppointment(null)} />

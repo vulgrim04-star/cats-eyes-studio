@@ -30,7 +30,6 @@ export function generateICS(appointments, salonName) {
       `DTSTART:${start}`,
       `DTEND:${end}`,
       `SUMMARY:${escapeText(`${clientName} — ${apt.service?.name ?? ''}`)}`,
-      `DESCRIPTION:${escapeText(`Esthéticienne : ${apt.staff?.name ?? ''}`)}`,
       'END:VEVENT',
     ].join('\r\n');
   });
