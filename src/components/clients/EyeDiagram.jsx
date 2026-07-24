@@ -21,6 +21,11 @@ const PX_MIN = 13;
 const PX_MAX = 34;
 const DEFAULT_MM = 13;
 
+// Couleur "encre" fixe (cils, eye-liner, sourcil) : ces éléments représentent une vraie
+// pigmentation et ne doivent jamais s'inverser en clair en mode sombre, contrairement au
+// reste de l'illustration qui, lui, suit var(--color-text) pour rester subtil sur les deux thèmes.
+const INK = '#241a12';
+
 function parseMm(value) {
   const n = parseFloat(value);
   return Number.isFinite(n) && n > 0 ? n : DEFAULT_MM;
@@ -47,11 +52,12 @@ function lengthAt(t, values, zones) {
   return mmToPx(DEFAULT_MM);
 }
 
-// Point sur la courbe de Bézier quadratique du bord ciliaire.
+// Point sur la courbe de Bézier quadratique du bord ciliaire (approxime la paupière
+// supérieure de l'illustration ci-dessous, qui elle est dessinée en courbes cubiques).
 function lashLinePoint(t) {
-  const p0 = { x: 20, y: 92 };
-  const p1 = { x: 140, y: 48 };
-  const p2 = { x: 260, y: 92 };
+  const p0 = { x: 38, y: 89 };
+  const p1 = { x: 146, y: 40 };
+  const p2 = { x: 252, y: 81 };
   const x = (1 - t) ** 2 * p0.x + 2 * (1 - t) * t * p1.x + t ** 2 * p2.x;
   const y = (1 - t) ** 2 * p0.y + 2 * (1 - t) * t * p1.y + t ** 2 * p2.y;
   return { x, y };
@@ -71,10 +77,10 @@ function Lashes({ values, zones }) {
         y1={y}
         x2={x + slant}
         y2={y - len}
-        stroke="var(--color-text)"
+        stroke={INK}
         strokeWidth="1.6"
         strokeLinecap="round"
-        opacity="0.85"
+        opacity="0.88"
       />
     );
   }
@@ -82,58 +88,98 @@ function Lashes({ values, zones }) {
 }
 
 // Forme de la sclère (blanc de l'œil), réutilisée pour le remplissage et pour découper
-// l'iris — la paupière supérieure "mange" légèrement le haut de l'iris, comme sur un œil réel.
-const SCLERA_D = 'M32 93 Q140 66 248 93 Q140 118 32 93 Z';
+// l'iris — la paupière supérieure a une pointe externe plus relevée que le coin interne,
+// plus rond, comme sur un œil réel.
+const SCLERA_D =
+  'M40 88 C55 62 95 48 145 46 C193 44 228 58 250 80 C254 82 254 85 250 85 ' +
+  'C224 100 186 109 145 109 C98 109 58 100 42 90 C39 88.5 38 89 40 88 Z';
 
-// Illustration réaliste de l'œil (sclère, iris, paupières) — purement décorative, sans
-// donnée cliente. Les identifiants de gradient/découpe sont uniques par instance (useId)
-// car ce composant est monté plusieurs fois sur une même page (gauche/droite × plusieurs
-// Lash Maps dans l'onglet), et des id SVG dupliqués provoqueraient des références croisées.
+const IRIS_SPOKE_ANGLES = Array.from({ length: 12 }, (_, i) => i * 30);
+
+// Illustration de l'œil (sourcil, sclère, iris texturé, eye-liner effilé, cils du bas) —
+// purement décorative, sans donnée cliente. Les identifiants de gradient/découpe sont
+// uniques par instance (useId) car ce composant est monté plusieurs fois sur une même page
+// (gauche/droite × plusieurs Lash Maps dans l'onglet), et des id SVG dupliqués provoqueraient
+// des références croisées entre instances.
 function EyeIllustration() {
   const uid = useId();
   const irisGradId = `iris-${uid}`;
-  const lidShadeId = `lid-${uid}`;
+  const shadeId = `shade-${uid}`;
   const scleraClipId = `sclera-clip-${uid}`;
 
   return (
     <>
       <defs>
-        <radialGradient id={irisGradId} cx="42%" cy="36%" r="65%">
-          <stop offset="0%" stopColor="#9a7a56" />
-          <stop offset="55%" stopColor="#5c4530" />
-          <stop offset="100%" stopColor="#2a1d14" />
+        <radialGradient id={irisGradId} cx="42%" cy="35%" r="65%">
+          <stop offset="0%" stopColor="#b08a5f" />
+          <stop offset="45%" stopColor="#7a5636" />
+          <stop offset="80%" stopColor="#4a3220" />
+          <stop offset="100%" stopColor="#241812" />
         </radialGradient>
-        <linearGradient id={lidShadeId} x1="0" y1="0" x2="0" y2="1">
+        <radialGradient id={shadeId} cx="50%" cy="0%" r="70%">
           <stop offset="0%" stopColor="var(--color-text)" stopOpacity="0.14" />
           <stop offset="100%" stopColor="var(--color-text)" stopOpacity="0" />
-        </linearGradient>
+        </radialGradient>
         <clipPath id={scleraClipId}>
           <path d={SCLERA_D} />
         </clipPath>
       </defs>
 
-      {/* ombre douce de la paupière, entre la ligne de cils et le pli */}
-      <path d="M20 92 Q140 48 260 92 Q140 132 20 92 Z" fill={`url(#${lidShadeId})`} />
+      {/* sourcil, doux */}
+      <path
+        d="M50 28 C78 16 118 12 150 13 C185 14 210 19 232 30 C210 22 182 18 150 18 C120 18 82 21 50 28 Z"
+        fill={INK}
+        opacity="0.55"
+      />
+
+      {/* ombre douce de la paupière mobile */}
+      <path d="M40 88 C55 60 95 44 145 42 C195 40 228 56 250 80 Z" fill={`url(#${shadeId})`} />
 
       {/* sclère */}
-      <path d={SCLERA_D} fill="var(--color-cream)" stroke="var(--color-text)" strokeOpacity="0.08" />
+      <path d={SCLERA_D} fill="var(--color-cream)" stroke="var(--color-text)" strokeOpacity="0.15" strokeWidth="1" />
 
-      {/* iris + pupille + reflet, découpés à la forme de la sclère */}
+      {/* iris texturé + pupille + reflets, découpés à la forme de la sclère */}
       <g clipPath={`url(#${scleraClipId})`}>
-        <circle cx="140" cy="96" r="19" fill={`url(#${irisGradId})`} />
-        <circle cx="140" cy="96" r="8.5" fill="#160f0a" />
-        <circle cx="135" cy="90" r="3" fill="#fff" opacity="0.85" />
+        <circle cx="150" cy="80" r="24" fill={`url(#${irisGradId})`} />
+        <circle cx="150" cy="80" r="24" fill="none" stroke="#1c120d" strokeWidth="1.5" opacity="0.6" />
+        <g stroke="#3d2a1a" strokeWidth="0.6" opacity="0.35">
+          {IRIS_SPOKE_ANGLES.map((angle) => (
+            <line key={angle} x1="150" y1="80" x2="150" y2="58" transform={`rotate(${angle} 150 80)`} />
+          ))}
+        </g>
+        <circle cx="150" cy="80" r="11" fill="#0f0906" />
+        <circle cx="142" cy="70" r="4.5" fill="#fff" opacity="0.9" />
+        <circle cx="156" cy="86" r="2" fill="#fff" opacity="0.5" />
       </g>
 
-      {/* paupière inférieure */}
-      <path d="M32 93 Q140 112 248 93" fill="none" stroke="var(--color-text)" strokeWidth="1.4" opacity="0.35" strokeLinecap="round" />
+      {/* paupière inférieure, discrète */}
+      <path
+        d="M42 90 C70 104 100 110 145 110 C188 110 220 102 248 85"
+        fill="none"
+        stroke="var(--color-text)"
+        strokeWidth="1"
+        opacity="0.25"
+      />
 
       {/* cils naturels du bas */}
-      <path d="M34 138 Q90 118 150 121 Q210 124 252 138 Q200 132 150 131 Q95 130 34 138 Z" fill="var(--color-text)" opacity="0.9" />
-
-      {/* pli de paupière, discret */}
-      <path d="M26 88 Q140 30 254 88" fill="none" stroke="var(--color-text)" strokeWidth="1" opacity="0.22" />
+      <path
+        d="M50 122 Q90 112 145 114 Q195 116 232 124 Q195 120 145 120 Q95 119 50 122 Z"
+        fill={INK}
+        opacity="0.8"
+      />
     </>
+  );
+}
+
+// Eye-liner effilé, en pointe vers le coin externe — rendu séparément de EyeIllustration
+// et placé APRÈS <Lashes> dans le SVG parent pour bien capter la base des cils générés
+// par les données (sinon les cils dessineraient par-dessus le liner).
+function EyeLiner() {
+  return (
+    <path
+      d="M40 88 C55 62 95 48 145 46 C193 44 228 58 250 80 L262 74 C240 54 195 38 145 40 C93 42 52 58 36 86 Z"
+      fill={INK}
+    />
   );
 }
 
@@ -169,7 +215,7 @@ export default function EyeDiagram({ title, zones, onChange, readOnly = false })
       <svg viewBox="0 0 280 150" className={styles.svg} aria-hidden="true">
         <EyeIllustration />
         <Lashes values={values} zones={zonePositions} />
-        <path d="M20 92 Q140 48 260 92" fill="none" stroke="var(--color-text)" strokeWidth="3" strokeLinecap="round" />
+        <EyeLiner />
       </svg>
     </div>
   );
