@@ -1,8 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Modal from '../common/Modal';
 import EyeDiagram from './EyeDiagram';
 import { useClients } from '../../hooks/useClients';
-import { todayISO } from '../../utils/date';
+import { todayISO, formatDateLong } from '../../utils/date';
+import { estimateNextRetouchDate } from '../../utils/lashCycle';
 import styles from './LashMap.module.css';
 
 const POSE_TYPES = ['Pose complète', 'Retouche', 'Dépose'];
@@ -52,6 +53,11 @@ export default function LashMapModal({ open, onClose, client, editingMap }) {
     setCustomLength(next.length !== '' && !isPreset(LENGTHS, next.length));
     setCustomThickness(next.thickness !== '' && !isPreset(THICKNESSES, next.thickness));
   }, [editingMap, open]);
+
+  const suggestedRetouch = useMemo(
+    () => estimateNextRetouchDate(form.date, form.fillCycle),
+    [form.date, form.fillCycle]
+  );
 
   const update = (patch) => setForm((f) => ({ ...f, ...patch }));
   const updateLayer = (key, value) => setForm((f) => ({ ...f, layers: { ...f.layers, [key]: value } }));
@@ -114,6 +120,11 @@ export default function LashMapModal({ open, onClose, client, editingMap }) {
           <div className="field-group">
             <label className="field-label" htmlFor="lm-fill">Cycle de retouche</label>
             <input id="lm-fill" className="input-field" value={form.fillCycle} onChange={(e) => update({ fillCycle: e.target.value })} placeholder="2-3 semaines" />
+            {suggestedRetouch && (
+              <p style={{ fontSize: '0.74rem', color: 'var(--color-rose-dark)', marginTop: 6 }}>
+                → Prochaine retouche suggérée : {formatDateLong(suggestedRetouch)}
+              </p>
+            )}
           </div>
         </div>
 

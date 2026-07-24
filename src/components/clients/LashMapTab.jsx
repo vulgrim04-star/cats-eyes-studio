@@ -1,13 +1,16 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Icon from '../common/Icon';
 import EmptyState from '../common/EmptyState';
 import LashMapModal from './LashMapModal';
 import EyeDiagram from './EyeDiagram';
 import { useClients } from '../../hooks/useClients';
 import { formatDateLong } from '../../utils/date';
+import { estimateNextRetouchDate } from '../../utils/lashCycle';
 import styles from './LashMap.module.css';
 
 export default function LashMapTab({ client }) {
+  const navigate = useNavigate();
   const { removeLashMap } = useClients();
   const [modalOpen, setModalOpen] = useState(false);
   const [editingMap, setEditingMap] = useState(null);
@@ -66,6 +69,23 @@ export default function LashMapTab({ client }) {
               ))}
               {map.setShape && <span className={styles.tagNeutral}>{map.setShape}</span>}
             </div>
+
+            {(() => {
+              const suggested = estimateNextRetouchDate(map.date, map.fillCycle);
+              if (!suggested) return null;
+              return (
+                <div className={styles.retouchHint}>
+                  <span>Prochaine retouche suggérée : <strong>{formatDateLong(suggested)}</strong></span>
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => navigate('/agenda', { state: { openNew: true, clientId: client.id, date: suggested } })}
+                  >
+                    Planifier
+                  </button>
+                </div>
+              );
+            })()}
 
             <div className={styles.specsGrid}>
               <div className={styles.spec}>
