@@ -107,17 +107,33 @@ export default function ClientSheetExportModal({ open, onClose, client, appointm
       </button>
 
       {previewUrl && (
-        <iframe
-          src={previewUrl}
-          title="Aperçu du PDF"
-          style={{
-            width: '100%',
-            height: 440,
-            marginTop: 'var(--space-3)',
-            border: '1px solid var(--color-border)',
-            borderRadius: 'var(--radius-md)',
-          }}
-        />
+        <div style={{ marginTop: 'var(--space-3)' }}>
+          {/* Un <iframe src="blob:…"> ne s'affiche généralement pas sur mobile (pas de
+              lecteur PDF intégré aux iframes sur iOS/Android) — ce lien ouvre l'aperçu en
+              navigation directe, que le navigateur sait afficher nativement partout. */}
+          <a
+            href={previewUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-ghost btn-sm"
+            style={{ display: 'inline-flex', marginBottom: 8 }}
+          >
+            <Icon name="eye" size={14} /> Ouvrir l’aperçu dans un nouvel onglet
+          </a>
+          <p style={{ fontSize: '0.72rem', color: 'var(--color-text-soft)', marginBottom: 8 }}>
+            Sur mobile, si rien ne s'affiche ci-dessous, utilisez ce lien.
+          </p>
+          <iframe
+            src={previewUrl}
+            title="Aperçu du PDF"
+            style={{
+              width: '100%',
+              height: 440,
+              border: '1px solid var(--color-border)',
+              borderRadius: 'var(--radius-md)',
+            }}
+          />
+        </div>
       )}
     </Modal>
   );
