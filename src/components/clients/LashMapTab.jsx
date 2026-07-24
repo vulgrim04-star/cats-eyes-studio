@@ -2,7 +2,6 @@ import { useState } from 'react';
 import Icon from '../common/Icon';
 import EmptyState from '../common/EmptyState';
 import LashMapModal from './LashMapModal';
-import LashMapConsentModal from './LashMapConsentModal';
 import EyeDiagram from './EyeDiagram';
 import { useClients } from '../../hooks/useClients';
 import { formatDateLong } from '../../utils/date';
@@ -11,7 +10,6 @@ import styles from './LashMap.module.css';
 export default function LashMapTab({ client }) {
   const { removeLashMap } = useClients();
   const [modalOpen, setModalOpen] = useState(false);
-  const [consentOpen, setConsentOpen] = useState(false);
   const [editingMap, setEditingMap] = useState(null);
   const maps = client.lashMaps ?? [];
 
@@ -23,11 +21,7 @@ export default function LashMapTab({ client }) {
 
   const handleNewClick = () => {
     setEditingMap(null);
-    if (client.lashMapConsentSigned) {
-      setModalOpen(true);
-    } else {
-      setConsentOpen(true);
-    }
+    setModalOpen(true);
   };
 
   const handleEditClick = (map) => {
@@ -37,20 +31,6 @@ export default function LashMapTab({ client }) {
 
   return (
     <>
-      {!client.lashMapConsentSigned && (
-        <div className={styles.consentBanner}>
-          <div>
-            <div className={styles.consentTitle}>Consentement Lash Map requis</div>
-            <div className={styles.consentSubtitle}>
-              À faire signer avant la première fiche technique de cette cliente.
-            </div>
-          </div>
-          <button type="button" className="btn btn-secondary btn-sm" onClick={() => setConsentOpen(true)}>
-            <Icon name="edit" size={14} /> Faire signer
-          </button>
-        </div>
-      )}
-
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 'var(--space-4)' }}>
         <button type="button" className="btn btn-primary btn-sm" onClick={handleNewClick}>
           <Icon name="plus" size={14} /> Nouvelle Lash Map
@@ -81,6 +61,9 @@ export default function LashMapTab({ client }) {
               {(map.styles ?? []).map((s) => (
                 <span key={s} className={styles.tag}>{s}</span>
               ))}
+              {(map.effects ?? []).map((e) => (
+                <span key={e} className={styles.tag}>{e}</span>
+              ))}
               {map.setShape && <span className={styles.tagNeutral}>{map.setShape}</span>}
             </div>
 
@@ -103,12 +86,32 @@ export default function LashMapTab({ client }) {
               </div>
               <div className={styles.spec}>
                 <span className={styles.specLabel}>Longueur</span>
-                <span className={styles.specValue}>{map.length || '—'}</span>
+                <span className={styles.specValue}>{map.length ? `${map.length}mm` : '—'}</span>
               </div>
               <div className={styles.spec}>
                 <span className={styles.specLabel}>Épaisseur</span>
-                <span className={styles.specValue}>{map.thickness || '—'}</span>
+                <span className={styles.specValue}>{map.thickness ? `${map.thickness}mm` : '—'}</span>
               </div>
+              <div className={styles.spec}>
+                <span className={styles.specLabel}>Colle</span>
+                <span className={styles.specValue}>{map.adhesive || '—'}</span>
+              </div>
+              <div className={styles.spec}>
+                <span className={styles.specLabel}>Coin interne / externe</span>
+                <span className={styles.specValue}>
+                  {map.innerCornerLength || map.outerCornerLength
+                    ? `${map.innerCornerLength || '—'} / ${map.outerCornerLength || '—'}`
+                    : '—'}
+                </span>
+              </div>
+              {map.layers && (map.layers.top || map.layers.mid || map.layers.bottom) && (
+                <div className={styles.spec}>
+                  <span className={styles.specLabel}>Couches (H / M / B)</span>
+                  <span className={styles.specValue}>
+                    {map.layers.top || '—'} / {map.layers.mid || '—'} / {map.layers.bottom || '—'}
+                  </span>
+                </div>
+              )}
             </div>
 
             <div className={styles.eyesRow}>
@@ -122,7 +125,6 @@ export default function LashMapTab({ client }) {
       )}
 
       <LashMapModal open={modalOpen} onClose={() => { setModalOpen(false); setEditingMap(null); }} client={client} editingMap={editingMap} />
-      <LashMapConsentModal open={consentOpen} onClose={() => setConsentOpen(false)} client={client} />
     </>
   );
 }

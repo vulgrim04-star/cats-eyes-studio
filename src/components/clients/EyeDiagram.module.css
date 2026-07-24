@@ -1,6 +1,6 @@
 .wrap {
   width: 100%;
-  max-width: 300px;
+  max-width: 340px;
   margin: 0 auto;
 }
 
@@ -16,18 +16,18 @@
 
 .inputsRow {
   position: relative;
-  height: 52px;
+  height: 64px;
 }
 
 .zoneInput {
   position: absolute;
-  width: 36px;
-  padding: 5px 0;
+  width: 48px;
+  padding: 7px 2px;
   text-align: center;
-  border-radius: 8px;
+  border-radius: 9px;
   border: 1.5px solid var(--color-border);
   background: var(--color-white);
-  font-size: 0.8rem;
+  font-size: 0.88rem;
   font-weight: 600;
   color: var(--color-rose-dark);
   transform: translateX(-50%);
