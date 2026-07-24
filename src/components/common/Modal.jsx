@@ -9,6 +9,9 @@ export default function Modal({ open, onClose, title, children, footer, maxWidth
   const panelRef = useRef(null);
   const titleId = useId();
 
+  // Focus initial + verrouillage du scroll : ne doit dépendre que de l'ouverture/fermeture,
+  // jamais d'un re-rendu du parent (ex. onClose recréé à chaque frappe dans un champ contrôlé),
+  // sinon le focus est arraché du champ actif à chaque caractère tapé (ferme le clavier mobile).
   useEffect(() => {
     if (!open) return undefined;
 
@@ -16,7 +19,18 @@ export default function Modal({ open, onClose, title, children, footer, maxWidth
     const previouslyFocused = document.activeElement;
     const firstFocusable = panel?.querySelector(FOCUSABLE_SELECTOR);
     (firstFocusable ?? panel)?.focus();
+    document.body.style.overflow = 'hidden';
 
+    return () => {
+      document.body.style.overflow = '';
+      previouslyFocused?.focus?.();
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const panel = panelRef.current;
     const onKeyDown = (e) => {
       if (e.key === 'Escape') {
         onClose?.();
@@ -38,12 +52,7 @@ export default function Modal({ open, onClose, title, children, footer, maxWidth
     };
 
     document.addEventListener('keydown', onKeyDown);
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.removeEventListener('keydown', onKeyDown);
-      document.body.style.overflow = '';
-      previouslyFocused?.focus?.();
-    };
+    return () => document.removeEventListener('keydown', onKeyDown);
   }, [open, onClose]);
 
   if (!open) return null;
