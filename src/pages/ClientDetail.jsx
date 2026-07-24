@@ -106,7 +106,7 @@ export default function ClientDetail() {
           </div>
         </div>
         <div className={styles.spacer} />
-        <button type="button" className="btn btn-ghost" onClick={handleDelete} title="Supprimer la fiche">
+        <button type="button" className="btn btn-ghost" onClick={handleDelete} title="Supprimer la fiche" aria-label="Supprimer la fiche">
           <Icon name="trash" size={16} />
         </button>
         <button type="button" className="btn btn-ghost" onClick={() => setPrinting(true)}>

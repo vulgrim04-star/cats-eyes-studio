@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { supabase } from '../lib/supabaseClient';
-import { setSyncUserId } from '../utils/supabaseSyncStorage';
+import { setSyncUserId, flushPendingWrites } from '../utils/supabaseSyncStorage';
 import { rehydrateAllStores } from './rehydrate';
 
 export const useAuthStore = create(() => ({
@@ -22,6 +22,7 @@ export async function signUp(email, password) {
 }
 
 export async function signOut() {
+  await flushPendingWrites();
   await supabase.auth.signOut();
 }
 

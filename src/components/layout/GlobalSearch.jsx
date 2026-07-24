@@ -5,8 +5,9 @@ import Icon from '../common/Icon';
 import { useClients, searchClients } from '../../hooks/useClients';
 import { useAppointments, enrich } from '../../hooks/useAppointments';
 import { useProducts } from '../../hooks/useProducts';
+import { useServices } from '../../hooks/useServices';
 import { formatDateShort } from '../../utils/date';
-import { fullName } from '../../utils/format';
+import { fullName, formatPrice } from '../../utils/format';
 import styles from './GlobalSearch.module.css';
 
 export default function GlobalSearch({ onClose }) {
@@ -14,6 +15,7 @@ export default function GlobalSearch({ onClose }) {
   const { clients } = useClients();
   const { appointments } = useAppointments();
   const { products } = useProducts();
+  const { services, promoCodes } = useServices();
   const [query, setQuery] = useState('');
 
   useEffect(() => {
@@ -42,7 +44,21 @@ export default function GlobalSearch({ onClose }) {
     [products, trimmed]
   );
 
-  const hasResults = matchedClients.length + matchedAppointments.length + matchedProducts.length > 0;
+  const matchedServices = useMemo(
+    () => (trimmed ? services.filter((s) => s.name.toLowerCase().includes(trimmed)).slice(0, 5) : []),
+    [services, trimmed]
+  );
+
+  const matchedPromos = useMemo(
+    () =>
+      trimmed
+        ? promoCodes.filter((p) => p.code.toLowerCase().includes(trimmed) || p.label?.toLowerCase().includes(trimmed)).slice(0, 5)
+        : [],
+    [promoCodes, trimmed]
+  );
+
+  const hasResults =
+    matchedClients.length + matchedAppointments.length + matchedProducts.length + matchedServices.length + matchedPromos.length > 0;
 
   const go = (path) => {
     onClose();
@@ -56,7 +72,7 @@ export default function GlobalSearch({ onClose }) {
           <Icon name="search" size={18} />
           <input
             className={styles.input}
-            placeholder="Rechercher une cliente, un RDV, un produit…"
+            placeholder="Rechercher une cliente, un RDV, un produit, une prestation…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             autoFocus
@@ -109,6 +125,36 @@ export default function GlobalSearch({ onClose }) {
                   <div>
                     <div className={styles.rowTitle}>{p.name}</div>
                     <div className={styles.rowSubtitle}>{p.stock} {p.unit} en stock</div>
+                  </div>
+                </button>
+              ))}
+            </>
+          )}
+
+          {matchedServices.length > 0 && (
+            <>
+              <div className={styles.groupLabel}>Prestations</div>
+              {matchedServices.map((s) => (
+                <button key={s.id} type="button" className={styles.row} onClick={() => go('/catalogue')}>
+                  <span className={styles.iconWrap}><Icon name="sparkles" size={15} /></span>
+                  <div>
+                    <div className={styles.rowTitle}>{s.name}</div>
+                    <div className={styles.rowSubtitle}>{formatPrice(s.price)} · {s.duration} min</div>
+                  </div>
+                </button>
+              ))}
+            </>
+          )}
+
+          {matchedPromos.length > 0 && (
+            <>
+              <div className={styles.groupLabel}>Codes promo</div>
+              {matchedPromos.map((p) => (
+                <button key={p.id} type="button" className={styles.row} onClick={() => go('/catalogue')}>
+                  <span className={styles.iconWrap}><Icon name="gift" size={15} /></span>
+                  <div>
+                    <div className={styles.rowTitle}>{p.code}</div>
+                    <div className={styles.rowSubtitle}>{p.label}{p.active ? '' : ' · inactif'}</div>
                   </div>
                 </button>
               ))}
