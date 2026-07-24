@@ -98,6 +98,13 @@ dans le tableau de bord Vercel du projet (Project Settings → Environment Varia
 - `SUPABASE_SERVICE_ROLE_KEY` — la clé `service_role` (même page). **Ne jamais l'exposer côté
   client** (pas de préfixe `VITE_`) : elle contourne toutes les policies RLS, exactement comme
   pour la fonction `delete-account` (voir `functions/delete-account/index.ts`).
+
+  **En pratique, ces deux-là n'ont pas besoin d'être ajoutées séparément** : le projet a une
+  intégration Supabase officielle (marketplace Vercel) déjà connectée, qui expose automatiquement
+  `Catseyesapp_SUPABASE_URL` et `Catseyesapp_SUPABASE_SERVICE_ROLE_KEY`. `api/_lib/supabaseAdmin.js`
+  retombe automatiquement sur ces deux variables préfixées si `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY`
+  ne sont pas définies — donc aucune étape manuelle requise pour celles-ci tant que l'intégration
+  reste connectée (Project Settings → Integrations → Supabase).
 - `RESEND_API_KEY` — clé API [Resend](https://resend.com) (compte gratuit, aucune carte
   bancaire requise pour le tier gratuit ~3000 e-mails/mois). Nécessaire pour les deux
   fonctionnalités d'e-mail (notification de réservation au salon, confirmation à la cliente) ;

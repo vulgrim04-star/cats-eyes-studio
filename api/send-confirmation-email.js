@@ -1,5 +1,5 @@
-import { createClient } from '@supabase/supabase-js';
 import { formatDateLong } from '../src/utils/date.js';
+import { hasSupabaseAdminConfig, getSupabaseAdmin } from './_lib/supabaseAdmin.js';
 
 function escapeHtml(str) {
   return String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -22,13 +22,13 @@ export default async function handler(req, res) {
     return;
   }
 
-  if (!process.env.SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  if (!hasSupabaseAdminConfig()) {
     res.status(500).send('Configuration serveur manquante.');
     return;
   }
 
   try {
-    const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
+    const supabase = getSupabaseAdmin();
     const { data: rows, error } = await supabase
       .from('app_state')
       .select('store_key, data')
