@@ -9,7 +9,7 @@ import WeekView from '../components/agenda/WeekView';
 import NewAppointmentModal from '../components/agenda/NewAppointmentModal';
 import PaymentModal from '../components/agenda/PaymentModal';
 import DayPlanningPrint from '../components/agenda/DayPlanningPrint';
-import InvoicePrint from '../components/common/InvoicePrint';
+import { generateInvoicePdf } from '../utils/invoicePdf';
 import { useAppointments, enrich, getAppointmentsByDate } from '../hooks/useAppointments';
 import { useSettings } from '../hooks/useSettings';
 import { addDaysISO, todayISO, formatDateLong, getWeekDays, getWeekStart } from '../utils/date';
@@ -21,7 +21,7 @@ export default function Agenda() {
   const location = useLocation();
   const navigate = useNavigate();
   const { appointments, setStatus } = useAppointments();
-  const { salon } = useSettings();
+  const { salon, appearance } = useSettings();
   const { showToast } = useToast();
 
   const [selectedDate, setSelectedDate] = useState(todayISO());
@@ -30,7 +30,6 @@ export default function Agenda() {
   const [prefill, setPrefill] = useState(null);
   const [editingAppointment, setEditingAppointment] = useState(null);
   const [completingAppointment, setCompletingAppointment] = useState(null);
-  const [printInvoice, setPrintInvoice] = useState(null);
   const [printPlanning, setPrintPlanning] = useState(false);
 
   const days = useMemo(() => getWeekDays(addDaysISO(todayISO(), -3), 21), []);
@@ -71,12 +70,9 @@ export default function Agenda() {
     showToast('Fichier iCal téléchargé — importez-le dans Google Calendar ou Outlook', 'success');
   };
 
-  useEffect(() => {
-    if (printInvoice) {
-      window.print();
-      setPrintInvoice(null);
-    }
-  }, [printInvoice]);
+  const handlePrintInvoice = (appointment) => {
+    generateInvoicePdf(appointment, salon, appearance.themeColor);
+  };
 
   useEffect(() => {
     if (printPlanning) {
@@ -139,7 +135,7 @@ export default function Agenda() {
                   onStatusChange={setStatus}
                   onEdit={(a) => { setEditingAppointment(a); setModalOpen(true); }}
                   onRequestComplete={setCompletingAppointment}
-                  onPrint={setPrintInvoice}
+                  onPrint={handlePrintInvoice}
                 />
               ))}
             </div>
@@ -158,7 +154,6 @@ export default function Agenda() {
 
       <PaymentModal appointment={completingAppointment} onClose={() => setCompletingAppointment(null)} />
 
-      <InvoicePrint appointment={printInvoice} salon={salon} />
       <DayPlanningPrint date={printPlanning ? selectedDate : null} appointments={dayAppointments} salon={salon} />
     </>
   );

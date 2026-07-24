@@ -87,7 +87,7 @@ export default function AppointmentCard({ appointment, showActions = true, onSta
             )}
             {status === 'completed' && onPrint && (
               <button type="button" className={`${styles.actionBtn} ${styles.cancel}`} onClick={() => onPrint(appointment)}>
-                <Icon name="printer" size={13} /> Reçu
+                <Icon name="download" size={13} /> Reçu
               </button>
             )}
           </div>
