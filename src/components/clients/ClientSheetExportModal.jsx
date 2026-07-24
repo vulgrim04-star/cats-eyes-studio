@@ -12,12 +12,23 @@ const SECTIONS = [
 ];
 
 const ALL_CHECKED = SECTIONS.reduce((acc, s) => ({ ...acc, [s.key]: true }), {});
+const MOBILE_QUERY = '(max-width: 640px)';
 
 export default function ClientSheetExportModal({ open, onClose, client, appointments, salon, themeColor }) {
   const [checked, setChecked] = useState(ALL_CHECKED);
   const [generating, setGenerating] = useState(false);
   const [previewing, setPreviewing] = useState(false);
   const [previewUrl, setPreviewUrl] = useState('');
+  const [isMobile, setIsMobile] = useState(() => window.matchMedia(MOBILE_QUERY).matches);
+
+  // Un <iframe src="blob:…"> ne s'affiche pas sur mobile (pas de lecteur PDF intégré aux
+  // iframes sur iOS/Android) — inutile de le rendre là où il resterait vide.
+  useEffect(() => {
+    const mq = window.matchMedia(MOBILE_QUERY);
+    const handler = (e) => setIsMobile(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   const clearPreview = () => {
     setPreviewUrl((prev) => {
@@ -108,31 +119,32 @@ export default function ClientSheetExportModal({ open, onClose, client, appointm
 
       {previewUrl && (
         <div style={{ marginTop: 'var(--space-3)' }}>
-          {/* Un <iframe src="blob:…"> ne s'affiche généralement pas sur mobile (pas de
-              lecteur PDF intégré aux iframes sur iOS/Android) — ce lien ouvre l'aperçu en
-              navigation directe, que le navigateur sait afficher nativement partout. */}
           <a
             href={previewUrl}
             target="_blank"
             rel="noopener noreferrer"
             className="btn btn-ghost btn-sm"
-            style={{ display: 'inline-flex', marginBottom: 8 }}
+            style={{ display: 'inline-flex', marginBottom: isMobile ? 0 : 8 }}
           >
             <Icon name="eye" size={14} /> Ouvrir l’aperçu dans un nouvel onglet
           </a>
-          <p style={{ fontSize: '0.72rem', color: 'var(--color-text-soft)', marginBottom: 8 }}>
-            Sur mobile, si rien ne s'affiche ci-dessous, utilisez ce lien.
-          </p>
-          <iframe
-            src={previewUrl}
-            title="Aperçu du PDF"
-            style={{
-              width: '100%',
-              height: 440,
-              border: '1px solid var(--color-border)',
-              borderRadius: 'var(--radius-md)',
-            }}
-          />
+          {!isMobile && (
+            <>
+              <p style={{ fontSize: '0.72rem', color: 'var(--color-text-soft)', marginBottom: 8 }}>
+                Si rien ne s'affiche ci-dessous, utilisez ce lien.
+              </p>
+              <iframe
+                src={previewUrl}
+                title="Aperçu du PDF"
+                style={{
+                  width: '100%',
+                  height: 440,
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius-md)',
+                }}
+              />
+            </>
+          )}
         </div>
       )}
     </Modal>
