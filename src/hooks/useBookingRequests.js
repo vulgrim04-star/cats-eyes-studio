@@ -32,6 +32,24 @@ export function useBookingRequests() {
     refresh();
   }, [refresh]);
 
+  // Rafraîchit la liste en direct dès qu'une demande arrive/est traitée, sans attendre
+  // que l'utilisatrice recharge la page (le toast/notification est géré séparément par
+  // useBookingNotifications, monté au niveau du Layout).
+  useEffect(() => {
+    if (!ownerId) return undefined;
+    const channel = supabase
+      .channel(`booking-requests-list-${ownerId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'booking_requests', filter: `owner_id=eq.${ownerId}` },
+        () => refresh()
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [ownerId, refresh]);
+
   const confirm = async (request) => {
     let client = clients.find((c) => c.phone.replace(/\s/g, '') === request.phone.replace(/\s/g, ''));
     if (!client) {

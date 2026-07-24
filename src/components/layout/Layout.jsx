@@ -3,9 +3,12 @@ import Sidebar from './Sidebar';
 import BottomNav from './BottomNav';
 import TopBar from './TopBar';
 import ToastContainer from '../common/ToastContainer';
+import { useBookingNotifications } from '../../hooks/useBookingNotifications';
 import styles from './Layout.module.css';
 
 export default function Layout() {
+  useBookingNotifications();
+
   return (
     <div className={styles.app}>
       <Sidebar />

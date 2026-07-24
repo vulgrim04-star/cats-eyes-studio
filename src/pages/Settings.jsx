@@ -32,6 +32,16 @@ export default function Settings() {
   const [dirty, setDirty] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [resetModalOpen, setResetModalOpen] = useState(false);
+  const [notifPermission, setNotifPermission] = useState(
+    typeof Notification !== 'undefined' ? Notification.permission : 'unsupported'
+  );
+
+  const requestNotifPermission = async () => {
+    if (typeof Notification === 'undefined') return;
+    const result = await Notification.requestPermission();
+    setNotifPermission(result);
+    if (result === 'granted') showToast('Notifications activées', 'success');
+  };
 
   const bookingLink = ownerId ? `${window.location.origin}/r/${ownerId}` : '';
 
@@ -271,6 +281,25 @@ export default function Settings() {
 
       <div className="card" style={{ marginTop: 'var(--space-5)' }}>
         <h3 className="card-title" style={{ marginBottom: 'var(--space-2)' }}>Préférences de notifications</h3>
+        <div className={styles.prefRow}>
+          <div className={styles.prefText}>
+            <div className={styles.prefTitle}>Alertes nouvelles demandes de réservation</div>
+            <div className={styles.prefSubtitle}>
+              {notifPermission === 'granted'
+                ? "Activées — tu reçois une alerte dès qu'une cliente demande un rendez-vous depuis le lien en ligne."
+                : notifPermission === 'denied'
+                  ? 'Bloquées dans les réglages de ton navigateur/téléphone — réactive-les manuellement pour les recevoir.'
+                  : notifPermission === 'unsupported'
+                    ? "Non disponibles sur ce navigateur. Tu verras quand même les demandes en attente sur le tableau de bord."
+                    : "Active-les pour être alerté(e) même sans avoir l'app ouverte sous les yeux."}
+            </div>
+          </div>
+          {notifPermission !== 'granted' && notifPermission !== 'unsupported' && (
+            <button type="button" className="btn btn-secondary btn-sm" onClick={requestNotifPermission} disabled={notifPermission === 'denied'}>
+              Activer
+            </button>
+          )}
+        </div>
         {NOTIFICATION_ROWS.map((row) => (
           <div key={row.key} className={styles.prefRow}>
             <div className={styles.prefText}>
