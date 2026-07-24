@@ -66,3 +66,31 @@
 .switchBtn:hover {
   text-decoration: underline;
 }
+
+.legalNotice {
+  font-size: 0.76rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+  text-align: center;
+  margin: 0;
+}
+
+.legalFooter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 0.76rem;
+  color: var(--color-text-muted);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+
+.legalLink {
+  color: var(--color-rose-dark);
+  font-weight: 600;
+  text-decoration: none;
+}
+.legalLink:hover {
+  text-decoration: underline;
+}

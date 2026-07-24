@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import PageHeader from '../components/common/PageHeader';
 import Icon from '../components/common/Icon';
 import BrandMark from '../components/common/BrandMark';
@@ -385,6 +386,16 @@ export default function Settings() {
           <button type="button" className="btn btn-secondary btn-sm" onClick={() => signOut()}>
             <Icon name="logout" size={14} /> Se déconnecter
           </button>
+        </div>
+        <div className={styles.prefRow}>
+          <div className={styles.prefText}>
+            <div className={styles.prefTitle}>Informations légales</div>
+            <div className={styles.prefSubtitle}>Politique de confidentialité et conditions d'utilisation</div>
+          </div>
+          <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+            <Link to="/confidentialite" className="btn btn-secondary btn-sm">Confidentialité</Link>
+            <Link to="/conditions" className="btn btn-secondary btn-sm">Conditions</Link>
+          </div>
         </div>
       </div>
 

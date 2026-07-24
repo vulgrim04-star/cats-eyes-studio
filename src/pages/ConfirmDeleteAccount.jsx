@@ -15,9 +15,19 @@ export default function ConfirmDeleteAccount() {
   const handleConfirm = async () => {
     setStatus('deleting');
     setError('');
-    const { data, error: fnError } = await supabase.functions.invoke('delete-account');
-    if (fnError || data?.error) {
-      setError(data?.error || fnError?.message || 'La suppression a échoué, réessaie dans un instant.');
+    try {
+      const response = await fetch('/api/delete-account', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || data?.error) {
+        setError(data?.error || 'La suppression a échoué, réessaie dans un instant.');
+        setStatus('error');
+        return;
+      }
+    } catch {
+      setError('Connexion impossible. Vérifie ta connexion internet et réessaie.');
       setStatus('error');
       return;
     }

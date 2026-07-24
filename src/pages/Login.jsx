@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import BrandMark from '../components/common/BrandMark';
 import { signIn, signUp, requestPasswordReset, useAuthStore, clearAuthError } from '../store/useAuthStore';
 import styles from './Login.module.css';
@@ -101,6 +102,14 @@ export default function Login() {
         {authError && <p className={styles.error}>{ERROR_MESSAGES[authError] ?? authError}</p>}
         {info && <p className={styles.info}>{info}</p>}
 
+        {mode === 'signup' && (
+          <p className={styles.legalNotice}>
+            En créant un compte, tu acceptes les{' '}
+            <Link to="/conditions" className={styles.legalLink}>conditions d'utilisation</Link> et la{' '}
+            <Link to="/confidentialite" className={styles.legalLink}>politique de confidentialité</Link>.
+          </p>
+        )}
+
         <button type="submit" className="btn btn-primary" disabled={loading}>
           {loading
             ? 'Patiente…'
@@ -118,6 +127,12 @@ export default function Login() {
         >
           {mode === 'signin' ? "Pas encore de compte ? Crée-en un" : mode === 'signup' ? 'Déjà un compte ? Connecte-toi' : 'Retour à la connexion'}
         </button>
+
+        <div className={styles.legalFooter}>
+          <Link to="/confidentialite" className={styles.legalLink}>Confidentialité</Link>
+          <span aria-hidden="true">·</span>
+          <Link to="/conditions" className={styles.legalLink}>Conditions</Link>
+        </div>
       </form>
     </div>
   );

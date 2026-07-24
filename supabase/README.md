@@ -86,18 +86,25 @@ mais aucun abonnement ne sera enregistré et aucune notification ne sera reçue 
 
 ## Variables d'environnement Vercel requises
 
-`api/ics.js` (flux d'abonnement calendrier Google/Apple, voir Paramètres → "Synchronisation
-avec Google / Apple Agenda"), `api/notify-booking.js` (e-mail + notification push au salon à
-la réception d'une nouvelle réservation en ligne) et `api/send-confirmation-email.js` (e-mail à la cliente dès
-qu'un RDV est créé, si "Confirmation automatique" est activé) tournent côté serveur sur
-Vercel, pas sur Supabase — il n'y a donc rien à déployer dans Supabase pour ces
-fonctionnalités. Il faut en revanche ajouter, une seule fois, ces variables d'environnement
-dans le tableau de bord Vercel du projet (Project Settings → Environment Variables) :
+Toutes les fonctions serveur du projet tournent sur **Vercel**, pas sur Supabase — il n'y a
+donc aucune Edge Function à déployer dans Supabase, et elles se mettent à jour toutes seules
+à chaque `git push` :
+
+- `api/ics.js` — flux d'abonnement calendrier Google/Apple (Paramètres → "Synchronisation
+  avec Google / Apple Agenda").
+- `api/notify-booking.js` — e-mail + notification push au salon à la réception d'une nouvelle
+  réservation en ligne.
+- `api/send-confirmation-email.js` — e-mail de confirmation à la cliente dès qu'un RDV est créé,
+  si "Confirmation automatique" est activé.
+- `api/delete-account.js` — suppression définitive du compte et de toutes ses données
+  (Paramètres → "Supprimer mon compte", après confirmation par e-mail).
+
+Il faut en revanche ajouter, une seule fois, ces variables d'environnement dans le tableau de
+bord Vercel du projet (Project Settings → Environment Variables) :
 
 - `SUPABASE_URL` — l'URL du projet Supabase (Project Settings → API dans le dashboard Supabase).
 - `SUPABASE_SERVICE_ROLE_KEY` — la clé `service_role` (même page). **Ne jamais l'exposer côté
-  client** (pas de préfixe `VITE_`) : elle contourne toutes les policies RLS, exactement comme
-  pour la fonction `delete-account` (voir `functions/delete-account/index.ts`).
+  client** (pas de préfixe `VITE_`) : elle contourne toutes les policies RLS.
 
   **En pratique, ces deux-là n'ont pas besoin d'être ajoutées séparément** : le projet a une
   intégration Supabase officielle (marketplace Vercel) déjà connectée, qui expose automatiquement
