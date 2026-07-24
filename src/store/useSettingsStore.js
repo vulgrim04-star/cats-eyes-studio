@@ -30,9 +30,10 @@ const DEFAULT_SALON = {
 
 export const useSettingsStore = create(
   persist(
-    (set) => ({
+    (set, get) => ({
       salon: DEFAULT_SALON,
       onboarded: false,
+      calendarToken: '',
       notifications: {
         autoConfirm: true,
         reminder24h: true,
@@ -41,6 +42,13 @@ export const useSettingsStore = create(
       appearance: {
         themeColor: '#C8718A',
         darkMode: false,
+      },
+
+      ensureCalendarToken: () => {
+        if (get().calendarToken) return get().calendarToken;
+        const token = crypto.randomUUID();
+        set({ calendarToken: token });
+        return token;
       },
 
       updateSalon: (patch) => set((s) => ({ salon: { ...s.salon, ...patch } })),
@@ -61,15 +69,17 @@ export const useSettingsStore = create(
     }),
     {
       name: 'ces-settings',
-      version: 4,
+      version: 5,
       storage: createJSONStorage(() => supabaseSyncStorage),
       skipHydration: true,
       // v2 -> v4 : ajout du tampon entre RDV, TVA, politique d'annulation, mode sombre, onboarding.
+      // v4 -> v5 : ajout du jeton d'abonnement calendrier (sync Google/Apple).
       // Un compte qui avait déjà des données persistées est par définition un compte existant :
       // on ne le fait pas repasser par l'onboarding obligatoire.
       migrate: (persisted) => ({
         salon: { ...DEFAULT_SALON, ...(persisted?.salon ?? {}), hours: persisted?.salon?.hours ?? DEFAULT_HOURS },
         onboarded: persisted?.onboarded ?? true,
+        calendarToken: persisted?.calendarToken ?? '',
         notifications: persisted?.notifications ?? {
           autoConfirm: true,
           reminder24h: true,

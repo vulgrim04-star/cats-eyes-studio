@@ -48,3 +48,18 @@ order by tablename, policyname;
 
 Comparer le résultat à `policies.sql`. En cas d'écart, mettre à jour ce dossier pour qu'il
 reste la source de vérité versionnée.
+
+## Variables d'environnement Vercel requises
+
+`api/ics.js` (flux d'abonnement calendrier Google/Apple, voir Paramètres → "Synchronisation
+avec Google / Apple Agenda") tourne côté serveur sur Vercel, pas sur Supabase — il n'y a donc
+rien à déployer dans Supabase pour cette fonctionnalité. Il faut en revanche ajouter, une seule
+fois, deux variables d'environnement dans le tableau de bord Vercel du projet
+(Project Settings → Environment Variables) :
+
+- `SUPABASE_URL` — l'URL du projet Supabase (Project Settings → API dans le dashboard Supabase).
+- `SUPABASE_SERVICE_ROLE_KEY` — la clé `service_role` (même page). **Ne jamais l'exposer côté
+  client** (pas de préfixe `VITE_`) : elle contourne toutes les policies RLS, exactement comme
+  pour la fonction `delete-account` (voir `functions/delete-account/index.ts`).
+
+Sans ces deux variables, le lien de calendrier renvoie une erreur 500 au lieu du flux `.ics`.

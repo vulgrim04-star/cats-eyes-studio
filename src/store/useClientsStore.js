@@ -28,6 +28,7 @@ export const useClientsStore = create(
           birthday: '',
           contactPreference: 'sms',
           referralSource: '',
+          instagram: '',
           createdAt: new Date().toISOString().slice(0, 10),
           ...data,
         };

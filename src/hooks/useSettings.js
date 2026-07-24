@@ -8,6 +8,8 @@ import { useUIStore } from '../store/useUIStore';
 export function useSettings() {
   const salon = useSettingsStore((s) => s.salon);
   const onboarded = useSettingsStore((s) => s.onboarded);
+  const calendarToken = useSettingsStore((s) => s.calendarToken);
+  const ensureCalendarToken = useSettingsStore((s) => s.ensureCalendarToken);
   const notifications = useSettingsStore((s) => s.notifications);
   const appearance = useSettingsStore((s) => s.appearance);
   const updateSalonRaw = useSettingsStore((s) => s.updateSalon);
@@ -31,6 +33,8 @@ export function useSettings() {
   return {
     salon,
     onboarded,
+    calendarToken,
+    ensureCalendarToken,
     notifications,
     appearance,
     updateSalon,

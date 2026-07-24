@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import PageHeader from '../components/common/PageHeader';
 import Icon from '../components/common/Icon';
 import BrandMark from '../components/common/BrandMark';
@@ -24,10 +24,15 @@ const NOTIFICATION_ROWS = [
 const COLOR_SWATCHES = ['#C8718A', '#8B5CF6', '#4F9DDE', '#4CA97A', '#D9A441', '#C6667A'];
 
 export default function Settings() {
-  const { salon, notifications, appearance, updateSalon, updateDayHours, toggleNotification, setThemeColor, toggleDarkMode } = useSettings();
+  const { salon, notifications, appearance, updateSalon, updateDayHours, toggleNotification, setThemeColor, toggleDarkMode, calendarToken, ensureCalendarToken } = useSettings();
   const { showToast } = useToast();
   const email = useAuthStore((s) => s.session?.user?.email);
   const ownerId = useAuthStore((s) => s.session?.user?.id);
+
+  useEffect(() => {
+    ensureCalendarToken();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [form, setForm] = useState(salon);
   const [dirty, setDirty] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -44,11 +49,21 @@ export default function Settings() {
   };
 
   const bookingLink = ownerId ? `${window.location.origin}/r/${ownerId}` : '';
+  const calendarLink = ownerId && calendarToken ? `${window.location.origin}/api/ics?u=${ownerId}&t=${calendarToken}` : '';
 
   const handleCopyLink = async () => {
     try {
       await navigator.clipboard.writeText(bookingLink);
       showToast('Lien de réservation copié', 'success');
+    } catch {
+      showToast('Impossible de copier le lien', 'error');
+    }
+  };
+
+  const handleCopyCalendarLink = async () => {
+    try {
+      await navigator.clipboard.writeText(calendarLink);
+      showToast('Lien de calendrier copié', 'success');
     } catch {
       showToast('Impossible de copier le lien', 'error');
     }
@@ -277,6 +292,37 @@ export default function Settings() {
             <Icon name="clipboard" size={14} /> Copier le lien
           </button>
         </div>
+      </div>
+
+      <div className="card" style={{ marginTop: 'var(--space-5)' }}>
+        <h3 className="card-title" style={{ marginBottom: 'var(--space-2)' }}>Synchronisation avec Google / Apple Agenda</h3>
+        <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
+          Un lien privé à coller une seule fois dans Google Calendar ou Apple Calendar ("s'abonner à un calendrier").
+          Tes rendez-vous y apparaissent automatiquement et se mettent à jour tout seuls, sans rien reconfigurer.
+          Ne partage ce lien avec personne : il donne accès en lecture à ton planning.
+        </p>
+        <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap', alignItems: 'center', marginBottom: 'var(--space-4)' }}>
+          <input className="input-field" readOnly value={calendarLink} style={{ flex: '1 1 260px' }} onFocus={(e) => e.target.select()} />
+          <button type="button" className="btn btn-primary btn-sm" onClick={handleCopyCalendarLink} disabled={!calendarLink}>
+            <Icon name="clipboard" size={14} /> Copier le lien
+          </button>
+        </div>
+        <details>
+          <summary style={{ fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', color: 'var(--color-rose-dark)' }}>
+            Comment l'ajouter à Google Calendar ou Apple Calendar ?
+          </summary>
+          <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginTop: 'var(--space-3)', display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
+            <p style={{ margin: 0 }}>
+              <strong>Google Calendar (ordinateur) :</strong> Autres agendas → "+" → À partir de l'URL → coller le lien → Ajouter l'agenda.
+            </p>
+            <p style={{ margin: 0 }}>
+              <strong>Apple Calendar (iPhone/Mac) :</strong> Réglages → Calendrier → Comptes → Ajouter un compte → Autre → Calendrier abonné → coller le lien.
+            </p>
+            <p style={{ margin: 0 }}>
+              La mise à jour n'est pas instantanée : Google/Apple rafraîchissent l'agenda toutes les quelques heures, pas en temps réel.
+            </p>
+          </div>
+        </details>
       </div>
 
       <div className="card" style={{ marginTop: 'var(--space-5)' }}>

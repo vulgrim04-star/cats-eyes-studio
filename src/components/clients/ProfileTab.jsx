@@ -20,6 +20,7 @@ export default function ProfileTab({ client, onOpenConsent, onOpenHealthForm }) 
     birthday: client.birthday ?? '',
     contactPreference: client.contactPreference ?? 'sms',
     referralSource: client.referralSource ?? '',
+    instagram: client.instagram ?? '',
   });
   const [dirty, setDirty] = useState(false);
 
@@ -128,6 +129,29 @@ export default function ProfileTab({ client, onOpenConsent, onOpenHealthForm }) 
             <label className="field-label" htmlFor="pf-email">Email</label>
             <input id="pf-email" className="input-field" value={form.email} onChange={(e) => update({ email: e.target.value })} />
           </div>
+        </div>
+
+        <div className="field-group">
+          <label className="field-label" htmlFor="pf-instagram">
+            Instagram{' '}
+            {client.instagram && (
+              <a
+                href={`https://instagram.com/${client.instagram}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{ fontWeight: 400, color: 'var(--color-rose-dark)' }}
+              >
+                Voir le profil ↗
+              </a>
+            )}
+          </label>
+          <input
+            id="pf-instagram"
+            className="input-field"
+            value={form.instagram}
+            onChange={(e) => update({ instagram: e.target.value.trim().replace(/^@+/, '').replace(/^https?:\/\/(www\.)?instagram\.com\//i, '').replace(/\/.*$/, '') })}
+            placeholder="pseudo (sans @)"
+          />
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>

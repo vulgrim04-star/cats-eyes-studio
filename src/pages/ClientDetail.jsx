@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Icon from '../components/common/Icon';
 import EmptyState from '../components/common/EmptyState';
@@ -10,7 +10,7 @@ import HistoryTab from '../components/clients/HistoryTab';
 import PhotosTab from '../components/clients/PhotosTab';
 import LashMapTab from '../components/clients/LashMapTab';
 import NotesTab from '../components/clients/NotesTab';
-import ClientSheetPrint from '../components/clients/ClientSheetPrint';
+import ClientSheetExportModal from '../components/clients/ClientSheetExportModal';
 import { useClient, useClients } from '../hooks/useClients';
 import { useAppointments, enrich, getAppointmentsByClient } from '../hooks/useAppointments';
 import { useToast } from '../hooks/useToast';
@@ -39,14 +39,7 @@ export default function ClientDetail() {
   const [tab, setTab] = useState('profil');
   const [consentOpen, setConsentOpen] = useState(false);
   const [healthFormOpen, setHealthFormOpen] = useState(false);
-  const [printing, setPrinting] = useState(false);
-
-  useEffect(() => {
-    if (printing) {
-      window.print();
-      setPrinting(false);
-    }
-  }, [printing]);
+  const [exportOpen, setExportOpen] = useState(false);
 
   if (!client) {
     return <EmptyState icon="users" title="Cliente introuvable" subtitle="Cette fiche cliente n'existe pas ou a été supprimée." />;
@@ -111,8 +104,8 @@ export default function ClientDetail() {
         <button type="button" className="btn btn-ghost" onClick={handleDelete} title="Supprimer la fiche" aria-label="Supprimer la fiche">
           <Icon name="trash" size={16} />
         </button>
-        <button type="button" className="btn btn-ghost" onClick={() => setPrinting(true)}>
-          <Icon name="printer" size={16} /> Imprimer
+        <button type="button" className="btn btn-ghost" onClick={() => setExportOpen(true)}>
+          <Icon name="download" size={16} /> Télécharger le PDF
         </button>
         <button
           type="button"
@@ -146,9 +139,11 @@ export default function ClientDetail() {
 
       <ConsentModal open={consentOpen} onClose={() => setConsentOpen(false)} client={client} />
       <HealthConsentModal open={healthFormOpen} onClose={() => setHealthFormOpen(false)} client={client} />
-      <ClientSheetPrint
-        client={printing ? client : null}
-        history={getAppointmentsByClient(appointments, client.id).map(enrich)}
+      <ClientSheetExportModal
+        open={exportOpen}
+        onClose={() => setExportOpen(false)}
+        client={client}
+        appointments={getAppointmentsByClient(appointments, client.id).map(enrich)}
         salon={salon}
       />
     </>
