@@ -2,15 +2,19 @@ import { useEffect } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuthStore } from '../store/useAuthStore';
 import { useUIStore } from '../store/useUIStore';
+import { useSettingsStore } from '../store/useSettingsStore';
 
 /** Alerte en temps réel (toast + notification navigateur) dès qu'une nouvelle demande
  * de réservation arrive, où que soit l'utilisatrice dans l'app. Monté une seule fois
- * au niveau du Layout pour couvrir toutes les pages authentifiées. */
+ * au niveau du Layout pour couvrir toutes les pages authentifiées. Désactivable dans
+ * Paramètres (notifications.newBookingAlert) pour les salonnières qui ne veulent pas
+ * de pop-up/notification navigateur. */
 export function useBookingNotifications() {
   const ownerId = useAuthStore((s) => s.session?.user?.id);
+  const alertEnabled = useSettingsStore((s) => s.notifications.newBookingAlert);
 
   useEffect(() => {
-    if (!ownerId) return undefined;
+    if (!ownerId || !alertEnabled) return undefined;
 
     const channel = supabase
       .channel(`booking-requests-notify-${ownerId}`)
@@ -35,5 +39,5 @@ export function useBookingNotifications() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [ownerId]);
+  }, [ownerId, alertEnabled]);
 }

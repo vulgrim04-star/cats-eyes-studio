@@ -52,14 +52,25 @@ reste la source de vérité versionnée.
 ## Variables d'environnement Vercel requises
 
 `api/ics.js` (flux d'abonnement calendrier Google/Apple, voir Paramètres → "Synchronisation
-avec Google / Apple Agenda") tourne côté serveur sur Vercel, pas sur Supabase — il n'y a donc
-rien à déployer dans Supabase pour cette fonctionnalité. Il faut en revanche ajouter, une seule
-fois, deux variables d'environnement dans le tableau de bord Vercel du projet
-(Project Settings → Environment Variables) :
+avec Google / Apple Agenda") et `api/notify-booking.js` (e-mail de notification de nouvelle
+réservation, voir Paramètres → "Préférences de notifications") tournent côté serveur sur
+Vercel, pas sur Supabase — il n'y a donc rien à déployer dans Supabase pour ces
+fonctionnalités. Il faut en revanche ajouter, une seule fois, ces variables d'environnement
+dans le tableau de bord Vercel du projet (Project Settings → Environment Variables) :
 
 - `SUPABASE_URL` — l'URL du projet Supabase (Project Settings → API dans le dashboard Supabase).
 - `SUPABASE_SERVICE_ROLE_KEY` — la clé `service_role` (même page). **Ne jamais l'exposer côté
   client** (pas de préfixe `VITE_`) : elle contourne toutes les policies RLS, exactement comme
   pour la fonction `delete-account` (voir `functions/delete-account/index.ts`).
+- `RESEND_API_KEY` — clé API [Resend](https://resend.com) (compte gratuit, aucune carte
+  bancaire requise pour le tier gratuit ~3000 e-mails/mois). Nécessaire uniquement pour
+  l'e-mail de notification de nouvelle réservation ; sans cette clé, le toggle "E-mail nouvelle
+  réservation" dans Paramètres reste sans effet (pas d'erreur, l'e-mail n'est simplement pas
+  envoyé). Les e-mails partent depuis le domaine de test `onboarding@resend.dev` fourni par
+  Resend — cela fonctionne sans configuration DNS, mais pour un meilleur taux de délivrabilité
+  et un expéditeur à votre propre nom de domaine, vous pouvez plus tard vérifier votre propre
+  domaine dans le dashboard Resend (Domains → Add Domain) sans rien changer côté code.
 
-Sans ces deux variables, le lien de calendrier renvoie une erreur 500 au lieu du flux `.ics`.
+Sans les deux premières variables, le lien de calendrier renvoie une erreur 500 au lieu du
+flux `.ics`. Sans `RESEND_API_KEY`, les réservations continuent de fonctionner normalement
+(la demande est bien enregistrée) — seul l'e-mail de notification ne part pas.

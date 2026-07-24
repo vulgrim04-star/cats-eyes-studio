@@ -12,7 +12,7 @@ const SECTIONS = [
 
 const ALL_CHECKED = SECTIONS.reduce((acc, s) => ({ ...acc, [s.key]: true }), {});
 
-export default function ClientSheetExportModal({ open, onClose, client, appointments, salon }) {
+export default function ClientSheetExportModal({ open, onClose, client, appointments, salon, themeColor }) {
   const [checked, setChecked] = useState(ALL_CHECKED);
   const [generating, setGenerating] = useState(false);
 
@@ -21,7 +21,7 @@ export default function ClientSheetExportModal({ open, onClose, client, appointm
   const handleGenerate = async () => {
     setGenerating(true);
     try {
-      await generateClientSheetPdf(client, appointments, salon, checked);
+      await generateClientSheetPdf(client, appointments, salon, checked, themeColor);
       onClose();
     } finally {
       setGenerating(false);

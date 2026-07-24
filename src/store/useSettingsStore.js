@@ -38,6 +38,8 @@ export const useSettingsStore = create(
         autoConfirm: true,
         reminder24h: true,
         reminder2h: true,
+        newBookingAlert: true,
+        newBookingEmail: false,
       },
       appearance: {
         themeColor: '#C8718A',
@@ -69,21 +71,25 @@ export const useSettingsStore = create(
     }),
     {
       name: 'ces-settings',
-      version: 5,
+      version: 6,
       storage: createJSONStorage(() => supabaseSyncStorage),
       skipHydration: true,
       // v2 -> v4 : ajout du tampon entre RDV, TVA, politique d'annulation, mode sombre, onboarding.
       // v4 -> v5 : ajout du jeton d'abonnement calendrier (sync Google/Apple).
+      // v5 -> v6 : ajout des préférences d'alerte (pop-up/email) pour les nouvelles réservations en ligne.
       // Un compte qui avait déjà des données persistées est par définition un compte existant :
       // on ne le fait pas repasser par l'onboarding obligatoire.
       migrate: (persisted) => ({
         salon: { ...DEFAULT_SALON, ...(persisted?.salon ?? {}), hours: persisted?.salon?.hours ?? DEFAULT_HOURS },
         onboarded: persisted?.onboarded ?? true,
         calendarToken: persisted?.calendarToken ?? '',
-        notifications: persisted?.notifications ?? {
+        notifications: {
           autoConfirm: true,
           reminder24h: true,
           reminder2h: true,
+          newBookingAlert: true,
+          newBookingEmail: false,
+          ...(persisted?.notifications ?? {}),
         },
         appearance: { themeColor: persisted?.appearance?.themeColor ?? '#C8718A', darkMode: false },
       }),

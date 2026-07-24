@@ -20,6 +20,47 @@
   color: var(--color-rose-dark);
 }
 
+.zoneCountRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.zoneStepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-cream);
+  border-radius: var(--radius-pill);
+  padding: 3px;
+}
+
+.zoneStepperBtn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: var(--color-white);
+  color: var(--color-rose-dark);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: var(--shadow-sm);
+}
+.zoneStepperBtn:disabled {
+  opacity: 0.4;
+}
+
+.zoneStepperCount {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--color-text-soft);
+  min-width: 52px;
+  text-align: center;
+}
+
 .eyesRow {
   display: grid;
   grid-template-columns: 1fr;

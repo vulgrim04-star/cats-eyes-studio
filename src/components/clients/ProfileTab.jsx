@@ -8,7 +8,7 @@ import { HEALTH_FORM_TITLE } from '../../data/consentText';
 
 export default function ProfileTab({ client, onOpenConsent, onOpenHealthForm }) {
   const { updateClient } = useClients();
-  const { salon } = useSettings();
+  const { salon, appearance } = useSettings();
   const [form, setForm] = useState({
     phone: client.phone,
     email: client.email,
@@ -61,7 +61,7 @@ export default function ProfileTab({ client, onOpenConsent, onOpenHealthForm }) 
                 style={{ height: 60, background: 'var(--color-cream)', borderRadius: 'var(--radius-sm)', padding: 8, marginBottom: 10, display: 'block' }}
               />
             )}
-            <button type="button" className="btn btn-secondary btn-sm" onClick={() => generateGdprConsentPdf(client, salon)}>
+            <button type="button" className="btn btn-secondary btn-sm" onClick={() => generateGdprConsentPdf(client, salon, appearance.themeColor)}>
               <Icon name="download" size={14} /> Télécharger le PDF
             </button>
           </div>
@@ -102,7 +102,7 @@ export default function ProfileTab({ client, onOpenConsent, onOpenHealthForm }) 
                 style={{ height: 60, background: 'var(--color-cream)', borderRadius: 'var(--radius-sm)', padding: 8, marginBottom: 10, display: 'block' }}
               />
             )}
-            <button type="button" className="btn btn-secondary btn-sm" onClick={() => generateHealthFormPdf(client, salon)}>
+            <button type="button" className="btn btn-secondary btn-sm" onClick={() => generateHealthFormPdf(client, salon, appearance.themeColor)}>
               <Icon name="download" size={14} /> Télécharger le PDF
             </button>
           </div>

@@ -11,6 +11,8 @@ const EFFECTS = ['Cat Eye', 'Open Eye', 'Squirrel', 'Rounded', 'Wispy'];
 const CURLS = ['J', 'B', 'C', 'CC', 'D', 'DD', 'L', 'M'];
 const LENGTHS = [6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
 const THICKNESSES = [0.03, 0.05, 0.07, 0.1, 0.12, 0.15];
+const MIN_ZONES = 3;
+const MAX_ZONES = 10;
 
 const EMPTY = {
   date: todayISO(),
@@ -65,6 +67,18 @@ export default function LashMapModal({ open, onClose, client, editingMap }) {
     const zones = [...form[key]];
     zones[index] = value;
     update({ [key]: zones });
+  };
+
+  const zoneCount = Math.max(form.zonesLeft.length, form.zonesRight.length);
+
+  const addZone = () => {
+    if (zoneCount >= MAX_ZONES) return;
+    update({ zonesLeft: [...form.zonesLeft, ''], zonesRight: [...form.zonesRight, ''] });
+  };
+
+  const removeZone = () => {
+    if (zoneCount <= MIN_ZONES) return;
+    update({ zonesLeft: form.zonesLeft.slice(0, -1), zonesRight: form.zonesRight.slice(0, -1) });
   };
 
   const handleSubmit = (e) => {
@@ -243,7 +257,30 @@ export default function LashMapModal({ open, onClose, client, editingMap }) {
         </div>
 
         <div className="field-group">
-          <label className="field-label">Longueurs par zone (mm)</label>
+          <div className={styles.zoneCountRow}>
+            <label className="field-label" style={{ marginBottom: 0 }}>Longueurs par zone (mm)</label>
+            <div className={styles.zoneStepper}>
+              <button
+                type="button"
+                className={styles.zoneStepperBtn}
+                onClick={removeZone}
+                disabled={zoneCount <= MIN_ZONES}
+                aria-label="Retirer une case"
+              >
+                −
+              </button>
+              <span className={styles.zoneStepperCount}>{zoneCount} cases</span>
+              <button
+                type="button"
+                className={styles.zoneStepperBtn}
+                onClick={addZone}
+                disabled={zoneCount >= MAX_ZONES}
+                aria-label="Ajouter une case"
+              >
+                +
+              </button>
+            </div>
+          </div>
           <div className={styles.eyesRow}>
             <EyeDiagram title="Œil gauche" zones={form.zonesLeft} onChange={(i, v) => setZone('left', i, v)} />
             <EyeDiagram title="Œil droit" zones={form.zonesRight} onChange={(i, v) => setZone('right', i, v)} />

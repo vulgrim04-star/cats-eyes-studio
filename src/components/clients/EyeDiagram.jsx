@@ -1,16 +1,16 @@
 import styles from './EyeDiagram.module.css';
 
-// Positions horizontales des 6 zones (en % de la largeur) et décalage vertical
-// pour suivre l'arc des cils (zones centrales plus hautes), plus une position "t"
-// approximative sur la courbe (utilisée pour faire correspondre le dessin aux valeurs).
-const ZONES = [
-  { left: 10, top: 28, t: 0.1 },
-  { left: 26, top: 12, t: 0.26 },
-  { left: 42, top: 2, t: 0.42 },
-  { left: 58, top: 2, t: 0.58 },
-  { left: 74, top: 12, t: 0.74 },
-  { left: 90, top: 28, t: 0.9 },
-];
+// Génère N zones réparties le long de l'arc des cils (10%-90% de la largeur), avec un
+// décalage vertical qui suit la courbure de l'œil (zones centrales plus hautes, coins plus
+// bas) — remplace l'ancien tableau figé à 6 zones pour permettre un nombre variable de cases.
+function buildZones(count) {
+  const n = Math.max(1, count);
+  return Array.from({ length: n }, (_, i) => {
+    const t = n === 1 ? 0.5 : 0.1 + 0.8 * (i / (n - 1));
+    const d = Math.min(1, Math.abs(t - 0.5) / 0.4);
+    return { left: t * 100, top: 2 + 26 * d ** 2, t };
+  });
+}
 
 // Bornes de conversion mm ↔ pixels : une zone sans valeur garde une longueur par
 // défaut "naturelle" (13mm) plutôt que de s'effondrer à zéro.
@@ -32,8 +32,8 @@ function mmToPx(mm) {
 
 // Longueur du cil dessiné à la position t, interpolée entre les deux zones voisines
 // les plus proches — le dessin grandit/rétrécit avec les valeurs saisies par zone.
-function lengthAt(t, values) {
-  const ts = ZONES.map((z) => z.t);
+function lengthAt(t, values, zones) {
+  const ts = zones.map((z) => z.t);
   if (t <= ts[0]) return mmToPx(parseMm(values[0]));
   if (t >= ts[ts.length - 1]) return mmToPx(parseMm(values[values.length - 1]));
   for (let i = 0; i < ts.length - 1; i += 1) {
@@ -56,12 +56,12 @@ function lashLinePoint(t) {
   return { x, y };
 }
 
-function Lashes({ values }) {
+function Lashes({ values, zones }) {
   const lashes = [];
   for (let i = 0; i <= 22; i += 1) {
     const t = 0.04 + (i / 22) * 0.92;
     const { x, y } = lashLinePoint(t);
-    const len = lengthAt(t, values);
+    const len = lengthAt(t, values, zones);
     const slant = (t - 0.5) * 26;
     lashes.push(
       <line
@@ -82,12 +82,14 @@ function Lashes({ values }) {
 
 export default function EyeDiagram({ title, zones, onChange, readOnly = false }) {
   const values = zones ?? ['', '', '', '', '', ''];
+  const zonePositions = buildZones(values.length);
+  const inputWidth = Math.max(22, Math.min(48, Math.floor(300 / values.length) - 4));
 
   return (
     <div className={styles.wrap}>
       <div className={styles.title}>{title}</div>
       <div className={styles.inputsRow}>
-        {ZONES.map((zone, i) =>
+        {zonePositions.map((zone, i) =>
           readOnly ? (
             <span key={i} className={styles.zoneValue} style={{ left: `${zone.left}%`, top: zone.top + 16 }}>
               {values[i] || '·'}
@@ -96,7 +98,7 @@ export default function EyeDiagram({ title, zones, onChange, readOnly = false })
             <input
               key={i}
               className={styles.zoneInput}
-              style={{ left: `${zone.left}%`, top: zone.top }}
+              style={{ left: `${zone.left}%`, top: zone.top, width: inputWidth, fontSize: inputWidth < 36 ? '0.72rem' : undefined }}
               value={values[i]}
               onChange={(e) => onChange(i, e.target.value)}
               placeholder="–"
@@ -108,7 +110,7 @@ export default function EyeDiagram({ title, zones, onChange, readOnly = false })
         )}
       </div>
       <svg viewBox="0 0 280 150" className={styles.svg} aria-hidden="true">
-        <Lashes values={values} />
+        <Lashes values={values} zones={zonePositions} />
         <path d="M20 92 Q140 48 260 92" fill="none" stroke="var(--color-text)" strokeWidth="3" strokeLinecap="round" />
         <path d="M20 92 Q140 48 260 92 Q140 128 20 92 Z" fill="var(--color-rose-light)" opacity="0.65" />
         <path d="M34 138 Q90 118 150 121 Q210 124 252 138 Q200 132 150 131 Q95 130 34 138 Z" fill="var(--color-text)" opacity="0.9" />

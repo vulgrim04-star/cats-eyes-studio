@@ -46,5 +46,24 @@ export async function submitBookingRequest(ownerId, payload, attempt = 1) {
     }
     return false;
   }
+  notifyNewBooking(ownerId, payload);
   return true;
+}
+
+/** Déclenche l'e-mail de notification (si activé côté salon) sans jamais faire échouer
+ * la réservation elle-même en cas de souci d'envoi — la demande est déjà enregistrée. */
+function notifyNewBooking(ownerId, payload) {
+  fetch('/api/notify-booking', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      ownerId,
+      firstName: payload.first_name,
+      lastName: payload.last_name,
+      phone: payload.phone,
+      serviceName: payload.service_name,
+      date: payload.date,
+      time: payload.time,
+    }),
+  }).catch((err) => console.error('[publicBooking] notifyNewBooking failed', err));
 }

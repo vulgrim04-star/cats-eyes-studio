@@ -1,60 +1,59 @@
 import { fullName, formatPrice } from './format';
 import { formatDateLong } from './date';
-import { MARGIN, PAGE_WIDTH, CONTENT_WIDTH, slug, addHeader, addParagraph, ensureSpace } from './pdfHelpers';
+import {
+  MARGIN,
+  PAGE_WIDTH,
+  CONTENT_WIDTH,
+  slug,
+  addHeader,
+  addParagraph,
+  addSectionBand,
+  addFooterToAllPages,
+  ensureSpace,
+  imageFormatOf,
+  hexToRgb,
+  shade,
+} from './pdfHelpers';
 
-function addSectionTitle(doc, text, y) {
-  y = ensureSpace(doc, y, 16);
-  y += 3;
-  doc.setDrawColor(210);
-  doc.line(MARGIN, y, PAGE_WIDTH - MARGIN, y);
-  y += 7;
-  doc.setFont('helvetica', 'bold');
-  doc.setFontSize(12);
-  doc.text(text, MARGIN, y);
-  doc.setFont('helvetica', 'normal');
-  return y + 6;
-}
-
-function addLabelValueGrid(doc, pairs, y) {
+function addLabelValueGrid(doc, pairs, y, rgb) {
   const visible = pairs.filter(([, value]) => value);
   const colWidth = CONTENT_WIDTH / 2;
+  const labelColor = shade(rgb, 0.15);
   for (let i = 0; i < visible.length; i += 2) {
     y = ensureSpace(doc, y, 12);
     visible.slice(i, i + 2).forEach(([label, value], idx) => {
       const x = MARGIN + idx * colWidth;
       doc.setFont('helvetica', 'bold');
-      doc.setFontSize(8.5);
-      doc.setTextColor(120);
+      doc.setFontSize(8);
+      doc.setTextColor(labelColor.r, labelColor.g, labelColor.b);
       doc.text(label.toUpperCase(), x, y);
-      doc.setTextColor(0);
+      doc.setTextColor(35, 30, 32);
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(10);
       const lines = doc.splitTextToSize(String(value), colWidth - 6);
       doc.text(lines, x, y + 5);
+      doc.setTextColor(0);
     });
     y += 13;
   }
   return y;
 }
 
-function imageFormatOf(dataUrl) {
-  const match = /^data:image\/(\w+);/i.exec(dataUrl || '');
-  const type = (match?.[1] || 'jpeg').toUpperCase();
-  return type === 'JPG' ? 'JPEG' : type;
-}
-
-export async function generateClientSheetPdf(client, appointments, salon, sections) {
+export async function generateClientSheetPdf(client, appointments, salon, sections, themeColor) {
   const { jsPDF } = await import('jspdf');
   const doc = new jsPDF();
-  let y = addHeader(doc, 'Fiche cliente', salon);
+  const rgb = hexToRgb(themeColor);
+  let y = addHeader(doc, 'Fiche cliente', salon, { themeColor });
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(14);
+  doc.setTextColor(35, 30, 32);
   doc.text(fullName(client), MARGIN, y + 2);
+  doc.setTextColor(0);
   y += 11;
 
   if (sections.identity) {
-    y = addSectionTitle(doc, 'Informations générales', y);
+    y = addSectionBand(doc, 'Informations générales', y, themeColor);
     y = addLabelValueGrid(doc, [
       ['Téléphone', client.phone],
       ['Email', client.email],
@@ -68,18 +67,18 @@ export async function generateClientSheetPdf(client, appointments, salon, sectio
       ['Longueur habituelle', client.length],
       ['Allergies', client.allergies],
       ['Contre-indications', client.contraindications],
-    ], y);
+    ], y, rgb);
     y += 3;
   }
 
   if (sections.notes && client.notes) {
-    y = addSectionTitle(doc, 'Notes', y);
+    y = addSectionBand(doc, 'Notes', y, themeColor);
     y = addParagraph(doc, client.notes, y, { fontSize: 9.5 });
     y += 3;
   }
 
   if (sections.history && appointments.length > 0) {
-    y = addSectionTitle(doc, 'Historique des rendez-vous', y);
+    y = addSectionBand(doc, 'Historique des rendez-vous', y, themeColor);
     const STATUS_LABELS = { confirmed: 'Confirmé', completed: 'Terminé', cancelled: 'Annulé', 'no-show': 'No-show', pending: 'En attente' };
     appointments.forEach((apt) => {
       y = ensureSpace(doc, y, 8);
@@ -98,12 +97,15 @@ export async function generateClientSheetPdf(client, appointments, salon, sectio
   }
 
   if (sections.lashMaps && (client.lashMaps ?? []).length > 0) {
-    y = addSectionTitle(doc, 'Lash Maps', y);
+    y = addSectionBand(doc, 'Lash Maps', y, themeColor);
+    const mapTitleColor = shade(rgb, 0.1);
     client.lashMaps.forEach((map) => {
       y = ensureSpace(doc, y, 26);
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(10.5);
+      doc.setTextColor(mapTitleColor.r, mapTitleColor.g, mapTitleColor.b);
       doc.text(`${formatDateLong(map.date)} — ${map.poseType || 'Séance'}`, MARGIN, y);
+      doc.setTextColor(0);
       y += 5.5;
 
       const specs = [
@@ -145,7 +147,7 @@ export async function generateClientSheetPdf(client, appointments, salon, sectio
   }
 
   if (sections.photos && (client.photos ?? []).length > 0) {
-    y = addSectionTitle(doc, 'Photos avant / après', y);
+    y = addSectionBand(doc, 'Photos avant / après', y, themeColor);
     client.photos.forEach((photo) => {
       y = ensureSpace(doc, y, 65);
       doc.setFont('helvetica', 'bold');
@@ -179,5 +181,6 @@ export async function generateClientSheetPdf(client, appointments, salon, sectio
     });
   }
 
+  addFooterToAllPages(doc, salon, themeColor);
   doc.save(`fiche-cliente-${slug(fullName(client))}.pdf`);
 }

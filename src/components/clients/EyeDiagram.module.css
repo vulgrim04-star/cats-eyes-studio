@@ -21,7 +21,6 @@
 
 .zoneInput {
   position: absolute;
-  width: 48px;
   padding: 7px 2px;
   text-align: center;
   border-radius: 9px;
@@ -31,10 +30,13 @@
   font-weight: 600;
   color: var(--color-rose-dark);
   transform: translateX(-50%);
+  box-shadow: var(--shadow-sm);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .zoneInput:focus {
   outline: none;
   border-color: var(--color-rose);
+  box-shadow: 0 0 0 3px var(--color-rose-light);
 }
 
 .zoneValue {
