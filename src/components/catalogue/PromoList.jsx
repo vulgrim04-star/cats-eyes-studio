@@ -39,19 +39,23 @@ export default function PromoList() {
       )}
       {promoCodes.map((promo) => (
         <div key={promo.id} className={styles.row}>
-          <span className={styles.code}>{promo.code}</span>
-          <span className={styles.desc}>{promo.label} · -{promo.discountPercent}%</span>
-          <Toggle
-            active={promo.active}
-            onChange={() => togglePromo(promo.id)}
-            label={promo.active ? 'Désactiver' : 'Activer'}
-          />
-          <button type="button" className={styles.iconBtn} onClick={() => openEdit(promo)} title="Modifier">
-            <Icon name="edit" size={14} />
-          </button>
-          <button type="button" className={styles.iconBtn} onClick={() => handleDelete(promo)} title="Supprimer">
-            <Icon name="trash" size={14} />
-          </button>
+          <div className={styles.headRow}>
+            <span className={styles.code}>{promo.code}</span>
+            <div className={styles.actions}>
+              <Toggle
+                active={promo.active}
+                onChange={() => togglePromo(promo.id)}
+                label={promo.active ? 'Désactiver' : 'Activer'}
+              />
+              <button type="button" className={styles.iconBtn} onClick={() => openEdit(promo)} title="Modifier">
+                <Icon name="edit" size={14} />
+              </button>
+              <button type="button" className={styles.iconBtn} onClick={() => handleDelete(promo)} title="Supprimer">
+                <Icon name="trash" size={14} />
+              </button>
+            </div>
+          </div>
+          <p className={styles.desc}>{promo.label} · -{promo.discountPercent}%</p>
         </div>
       ))}
 

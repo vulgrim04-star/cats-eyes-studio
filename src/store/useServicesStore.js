@@ -9,8 +9,6 @@ export const useServicesStore = create(
       services: [],
       promoCodes: [
         { id: 'promo_1', code: 'BIENVENUE10', label: '10% de réduction — première visite', discountPercent: 10, active: true },
-        { id: 'promo_2', code: 'FIDELITE15', label: '15% de réduction — cliente fidèle', discountPercent: 15, active: true },
-        { id: 'promo_3', code: 'ETE2026', label: 'Offre spéciale été', discountPercent: 20, active: false },
       ],
 
       addService: (data) => {
