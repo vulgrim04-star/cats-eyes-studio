@@ -4,7 +4,7 @@ import Icon from '../common/Icon';
 import { buildClientSheetPdf, generateClientSheetPdf } from '../../utils/clientSheetPdf';
 
 const SECTIONS = [
-  { key: 'identity', label: 'Informations générales', hint: "Coordonnées, Instagram, préférences, type de cils…" },
+  { key: 'identity', label: 'Informations générales', hint: "Photo de profil, coordonnées, Instagram, préférences, type de cils…" },
   { key: 'notes', label: 'Notes' },
   { key: 'history', label: 'Historique des rendez-vous' },
   { key: 'lashMaps', label: 'Lash Maps' },

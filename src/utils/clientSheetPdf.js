@@ -52,9 +52,19 @@ export async function buildClientSheetPdf(client, appointments, salon, sections,
   doc.setTextColor(35, 30, 32);
   doc.text(fullName(client), MARGIN, y + 2);
   doc.setTextColor(0);
+  const nameLineY = y;
   y += 11;
 
   if (sections.identity) {
+    if (client.photoUrl) {
+      try {
+        const size = 26;
+        doc.addImage(client.photoUrl, imageFormatOf(client.photoUrl), PAGE_WIDTH - MARGIN - size, nameLineY - 6, size, size, undefined, 'FAST');
+        y = Math.max(y, nameLineY - 6 + size + 4);
+      } catch {
+        // Photo illisible : on continue sans bloquer la génération du PDF.
+      }
+    }
     y = addSectionBand(doc, 'Informations générales', y, themeColor);
     y = addLabelValueGrid(doc, [
       ['Téléphone', client.phone],
