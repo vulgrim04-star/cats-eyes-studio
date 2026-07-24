@@ -1,10 +1,14 @@
 import { useState } from 'react';
 import Icon from '../common/Icon';
 import { useClients } from '../../hooks/useClients';
+import { useSettings } from '../../hooks/useSettings';
 import { formatDateLong } from '../../utils/date';
+import { generateGdprConsentPdf, generateHealthFormPdf } from '../../utils/consentPdf';
+import { HEALTH_FORM_TITLE } from '../../data/consentText';
 
-export default function ProfileTab({ client, onOpenConsent }) {
+export default function ProfileTab({ client, onOpenConsent, onOpenHealthForm }) {
   const { updateClient } = useClients();
+  const { salon } = useSettings();
   const [form, setForm] = useState({
     phone: client.phone,
     email: client.email,
@@ -53,9 +57,12 @@ export default function ProfileTab({ client, onOpenConsent }) {
               <img
                 src={client.consentSignatureUrl}
                 alt="Signature"
-                style={{ height: 60, background: 'var(--color-cream)', borderRadius: 'var(--radius-sm)', padding: 8 }}
+                style={{ height: 60, background: 'var(--color-cream)', borderRadius: 'var(--radius-sm)', padding: 8, marginBottom: 10, display: 'block' }}
               />
             )}
+            <button type="button" className="btn btn-secondary btn-sm" onClick={() => generateGdprConsentPdf(client, salon)}>
+              <Icon name="download" size={14} /> Télécharger le PDF
+            </button>
           </div>
         ) : (
           <>
@@ -63,6 +70,47 @@ export default function ProfileTab({ client, onOpenConsent }) {
               Le consentement RGPD n'a pas encore été signé par cette cliente.
             </p>
             <button type="button" className="btn btn-secondary btn-sm" onClick={onOpenConsent}>
+              <Icon name="edit" size={14} /> Faire signer
+            </button>
+          </>
+        )}
+      </div>
+
+      <div className="card">
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-2)' }}>
+          <h3 className="card-title">{HEALTH_FORM_TITLE}</h3>
+          <span
+            className="badge"
+            style={{
+              background: client.healthFormSigned ? 'var(--color-success-bg)' : 'var(--color-warning-bg)',
+              color: client.healthFormSigned ? 'var(--color-success)' : 'var(--color-warning)',
+            }}
+          >
+            {client.healthFormSigned ? 'Signée' : 'Non signée'}
+          </span>
+        </div>
+        {client.healthFormSigned ? (
+          <div>
+            <p style={{ fontSize: '0.86rem', color: 'var(--color-text-soft)', marginBottom: client.healthFormSignatureUrl ? 10 : 0 }}>
+              Signée le {formatDateLong(client.healthFormDate)}.
+            </p>
+            {client.healthFormSignatureUrl && (
+              <img
+                src={client.healthFormSignatureUrl}
+                alt="Signature"
+                style={{ height: 60, background: 'var(--color-cream)', borderRadius: 'var(--radius-sm)', padding: 8, marginBottom: 10, display: 'block' }}
+              />
+            )}
+            <button type="button" className="btn btn-secondary btn-sm" onClick={() => generateHealthFormPdf(client, salon)}>
+              <Icon name="download" size={14} /> Télécharger le PDF
+            </button>
+          </div>
+        ) : (
+          <>
+            <p style={{ fontSize: '0.86rem', color: 'var(--color-text-soft)', marginBottom: 'var(--space-3)' }}>
+              La fiche de santé n'a pas encore été remplie et signée par cette cliente.
+            </p>
+            <button type="button" className="btn btn-secondary btn-sm" onClick={onOpenHealthForm}>
               <Icon name="edit" size={14} /> Faire signer
             </button>
           </>

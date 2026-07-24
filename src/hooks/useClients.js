@@ -14,6 +14,7 @@ export function useClients() {
   const showToast = useUIStore((s) => s.showToast);
   const signConsent = useClientsStore((s) => s.signConsent);
   const signLashMapConsent = useClientsStore((s) => s.signLashMapConsent);
+  const signHealthForm = useClientsStore((s) => s.signHealthForm);
   const addNote = useClientsStore((s) => s.addNote);
   const addPhotoSession = useClientsStore((s) => s.addPhotoSession);
   const updatePhotoSession = useClientsStore((s) => s.updatePhotoSession);
@@ -34,6 +35,7 @@ export function useClients() {
     removeClient,
     signConsent,
     signLashMapConsent,
+    signHealthForm,
     addNote,
     addPhotoSession,
     updatePhotoSession,

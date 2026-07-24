@@ -15,6 +15,8 @@ const Finances = lazy(() => import('./pages/Finances'));
 const Catalogue = lazy(() => import('./pages/Catalogue'));
 const Settings = lazy(() => import('./pages/Settings'));
 const Booking = lazy(() => import('./pages/Booking'));
+const ResetPassword = lazy(() => import('./pages/ResetPassword'));
+const ConfirmDeleteAccount = lazy(() => import('./pages/ConfirmDeleteAccount'));
 
 export default function App() {
   return (
@@ -24,6 +26,8 @@ export default function App() {
         <Routes>
           <Route path="/reservation" element={<Booking />} />
           <Route path="/r/:ownerId" element={<Booking />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/confirmer-suppression" element={<ConfirmDeleteAccount />} />
           <Route element={<RequireAuth />}>
             <Route element={<Layout />}>
               <Route path="/" element={<Dashboard />} />

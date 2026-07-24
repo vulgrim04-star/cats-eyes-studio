@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom';
 import Icon from '../components/common/Icon';
 import EmptyState from '../components/common/EmptyState';
 import ConsentModal from '../components/clients/ConsentModal';
+import HealthConsentModal from '../components/clients/HealthConsentModal';
 import LoyaltyBadge from '../components/clients/LoyaltyBadge';
 import ProfileTab from '../components/clients/ProfileTab';
 import HistoryTab from '../components/clients/HistoryTab';
@@ -37,6 +38,7 @@ export default function ClientDetail() {
   const { salon } = useSettings();
   const [tab, setTab] = useState('profil');
   const [consentOpen, setConsentOpen] = useState(false);
+  const [healthFormOpen, setHealthFormOpen] = useState(false);
   const [printing, setPrinting] = useState(false);
 
   useEffect(() => {
@@ -134,13 +136,16 @@ export default function ClientDetail() {
         ))}
       </div>
 
-      {tab === 'profil' && <ProfileTab client={client} onOpenConsent={() => setConsentOpen(true)} />}
+      {tab === 'profil' && (
+        <ProfileTab client={client} onOpenConsent={() => setConsentOpen(true)} onOpenHealthForm={() => setHealthFormOpen(true)} />
+      )}
       {tab === 'historique' && <HistoryTab client={client} appointments={appointments} />}
       {tab === 'lashmap' && <LashMapTab client={client} />}
       {tab === 'photos' && <PhotosTab client={client} />}
       {tab === 'notes' && <NotesTab client={client} appointments={appointments} />}
 
       <ConsentModal open={consentOpen} onClose={() => setConsentOpen(false)} client={client} />
+      <HealthConsentModal open={healthFormOpen} onClose={() => setHealthFormOpen(false)} client={client} />
       <ClientSheetPrint
         client={printing ? client : null}
         history={getAppointmentsByClient(appointments, client.id).map(enrich)}

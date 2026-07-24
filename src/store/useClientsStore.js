@@ -15,6 +15,10 @@ export const useClientsStore = create(
           consentDate: null,
           lashMapConsentSigned: false,
           lashMapConsentDate: null,
+          healthFormSigned: false,
+          healthFormDate: null,
+          healthFormSignatureUrl: null,
+          healthFormAnswers: null,
           notes: '',
           photos: [],
           lashMaps: [],
@@ -47,6 +51,10 @@ export const useClientsStore = create(
 
       signLashMapConsent: (id, date, signatureUrl) => {
         get().updateClient(id, { lashMapConsentSigned: true, lashMapConsentDate: date, lashMapConsentSignatureUrl: signatureUrl });
+      },
+
+      signHealthForm: (id, date, signatureUrl, answers) => {
+        get().updateClient(id, { healthFormSigned: true, healthFormDate: date, healthFormSignatureUrl: signatureUrl, healthFormAnswers: answers });
       },
 
       addNote: (id, note) => {
@@ -114,11 +122,20 @@ export const useClientsStore = create(
     }),
     {
       name: 'ces-clients',
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => supabaseSyncStorage),
       skipHydration: true,
-      // v1 -> v2 : les fiches persistées avant la Lash Map n'ont pas le champ lashMaps.
-      migrate: (persisted) => ({ clients: (persisted?.clients ?? []).map((c) => ({ lashMaps: [], ...c })) }),
+      // Complète les fiches persistées avant l'ajout de la Lash Map / fiche de santé.
+      migrate: (persisted) => ({
+        clients: (persisted?.clients ?? []).map((c) => ({
+          lashMaps: [],
+          healthFormSigned: false,
+          healthFormDate: null,
+          healthFormSignatureUrl: null,
+          healthFormAnswers: null,
+          ...c,
+        })),
+      }),
     }
   )
 );

@@ -9,6 +9,7 @@ import { fileToResizedDataUrl } from '../utils/image';
 import { CURRENCIES } from '../utils/format';
 import { downloadBackup, restoreBackup } from '../utils/backup';
 import { signOut, useAuthStore } from '../store/useAuthStore';
+import DeleteAccountModal from '../components/settings/DeleteAccountModal';
 import styles from './Settings.module.css';
 
 const DAY_LABELS = { lun: 'Lun', mar: 'Mar', mer: 'Mer', jeu: 'Jeu', ven: 'Ven', sam: 'Sam', dim: 'Dim' };
@@ -28,6 +29,7 @@ export default function Settings() {
   const ownerId = useAuthStore((s) => s.session?.user?.id);
   const [form, setForm] = useState(salon);
   const [dirty, setDirty] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   const bookingLink = ownerId ? `${window.location.origin}/r/${ownerId}` : '';
 
@@ -316,6 +318,19 @@ export default function Settings() {
           />
         </div>
       </div>
+
+      <div className="card" style={{ marginTop: 'var(--space-5)', borderColor: 'var(--color-danger)' }}>
+        <h3 className="card-title" style={{ marginBottom: 'var(--space-2)', color: 'var(--color-danger)' }}>Zone dangereuse</h3>
+        <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
+          Supprime définitivement ton compte et toutes tes données (clientes, rendez-vous, prestations, stock,
+          finances, paramètres). Une confirmation par email est requise avant que la suppression ait lieu.
+        </p>
+        <button type="button" className="btn btn-danger btn-sm" onClick={() => setDeleteModalOpen(true)}>
+          <Icon name="trash" size={14} /> Supprimer mon compte
+        </button>
+      </div>
+
+      <DeleteAccountModal open={deleteModalOpen} onClose={() => setDeleteModalOpen(false)} />
     </>
   );
 }
