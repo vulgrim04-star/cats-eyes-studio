@@ -2,8 +2,24 @@ import { useAppointmentsStore } from '../store/useAppointmentsStore';
 import { useUIStore } from '../store/useUIStore';
 import { useClientsStore } from '../store/useClientsStore';
 import { useSettingsStore } from '../store/useSettingsStore';
+import { useAuthStore } from '../store/useAuthStore';
 import { getServiceById } from '../data/services';
 import { todayISO, timeToMinutes } from '../utils/date';
+
+// Best-effort : ne doit jamais faire échouer la création du RDV en cas de souci d'envoi.
+function sendConfirmationEmail(ownerId, appointment, serviceName) {
+  fetch('/api/send-confirmation-email', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      ownerId,
+      clientId: appointment.clientId,
+      serviceName,
+      date: appointment.date,
+      time: appointment.time,
+    }),
+  }).catch((err) => console.error('[useAppointments] sendConfirmationEmail failed', err));
+}
 
 // Les clientes peuvent être créées dynamiquement (réservation en ligne, nouvelle fiche) :
 // on résout toujours via le store live plutôt que le jeu de données statique.
@@ -24,6 +40,7 @@ export function useAppointments() {
   const findOverlap = useAppointmentsStore((s) => s.findOverlap);
   const showToast = useUIStore((s) => s.showToast);
   const notifications = useSettingsStore((s) => s.notifications);
+  const ownerId = useAuthStore((s) => s.session?.user?.id);
 
   const create = (data) => {
     const overlap = findOverlap(data);
@@ -34,9 +51,15 @@ export function useAppointments() {
     }
     const appointment = addAppointment(data);
     const client = getClientById(appointment.clientId);
-    const confirmationNote = notifications.autoConfirm
-      ? '— confirmation envoyée par SMS/e-mail'
-      : '(confirmation automatique désactivée dans les paramètres)';
+    const willEmail = notifications.autoConfirm && !!client?.email;
+    if (willEmail) {
+      sendConfirmationEmail(ownerId, appointment, getServiceById(appointment.serviceId)?.name);
+    }
+    const confirmationNote = willEmail
+      ? '— confirmation envoyée par e-mail'
+      : notifications.autoConfirm
+        ? '(pas d\'e-mail enregistré pour cette cliente)'
+        : '(confirmation automatique désactivée dans les paramètres)';
     showToast(`RDV créé pour ${client?.firstName ?? 'la cliente'} ${confirmationNote}`, 'success');
     return appointment;
   };

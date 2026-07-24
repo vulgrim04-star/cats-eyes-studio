@@ -18,7 +18,7 @@ const DAY_LABELS = { lun: 'Lun', mar: 'Mar', mer: 'Mer', jeu: 'Jeu', ven: 'Ven',
 const NOTIFICATION_ROWS = [
   { key: 'newBookingAlert', title: 'Pop-up nouvelle réservation', subtitle: "Afficher un toast/une notification dans l'app dès qu'une cliente réserve via le lien en ligne" },
   { key: 'newBookingEmail', title: 'E-mail nouvelle réservation', subtitle: "Recevoir un e-mail à l'adresse du salon dès qu'une cliente réserve via le lien en ligne" },
-  { key: 'autoConfirm', title: 'Confirmation automatique', subtitle: 'Envoyer un SMS/e-mail de confirmation à la création du RDV (simulation)' },
+  { key: 'autoConfirm', title: 'Confirmation automatique', subtitle: "Envoyer un e-mail de confirmation à la cliente dès qu'un RDV est créé (si son adresse e-mail est enregistrée)" },
   { key: 'reminder24h', title: 'Rappel 24h avant', subtitle: 'Envoyer un rappel automatique la veille du rendez-vous (simulation)' },
   { key: 'reminder2h', title: 'Rappel 2h avant', subtitle: 'Envoyer un rappel automatique quelques heures avant le rendez-vous (simulation)' },
 ];
