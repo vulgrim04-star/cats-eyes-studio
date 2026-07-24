@@ -9,8 +9,9 @@ dashboard.
 
 ## Contenu
 
-- `schema.sql` — définition des deux tables applicatives (`app_state`, `booking_requests`).
-- `policies.sql` — toutes les policies RLS actives sur ces deux tables.
+- `schema.sql` — définition des tables applicatives (`app_state`, `booking_requests`,
+  `push_subscriptions`).
+- `policies.sql` — toutes les policies RLS actives sur ces tables.
 - `functions.sql` — la fonction `SECURITY DEFINER` utilisée par la page de réservation publique.
 
 Extrait le 2026-07-24 par introspection directe (`pg_policies`, `information_schema.columns`,
@@ -34,6 +35,9 @@ Extrait le 2026-07-24 par introspection directe (`pg_policies`, `information_sch
   créneaux déjà pris pour une date donnée sans jamais exposer les données privées des rendez-vous
   (nom de cliente, notes...) à une visiteuse anonyme — seuls `staffId`, `date`, `time`, `duration`
   et `status` sont renvoyés.
+- **`push_subscriptions`** stocke, par appareil/navigateur, l'abonnement Web Push (endpoint +
+  clés de chiffrement) qui permet d'envoyer une vraie notification système même app fermée.
+  Chaque salon ne doit voir/gérer que ses propres abonnements.
 
 ## Comment vérifier que ce fichier est à jour
 
@@ -49,11 +53,42 @@ order by tablename, policyname;
 Comparer le résultat à `policies.sql`. En cas d'écart, mettre à jour ce dossier pour qu'il
 reste la source de vérité versionnée.
 
+## Étape manuelle requise : créer la table `push_subscriptions`
+
+Contrairement à `app_state` et `booking_requests` (déjà en place), la table
+`push_subscriptions` (notifications push, voir plus bas) doit être créée une fois dans le
+SQL Editor du dashboard Supabase — copier-coller et exécuter :
+
+```sql
+create table if not exists public.push_subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  endpoint text not null unique,
+  p256dh text not null,
+  auth text not null,
+  created_at timestamptz not null default now()
+);
+
+alter table public.push_subscriptions enable row level security;
+
+create policy owner_select_push_subscriptions on public.push_subscriptions
+  for select using (auth.uid() = user_id);
+create policy owner_insert_push_subscriptions on public.push_subscriptions
+  for insert with check (auth.uid() = user_id);
+create policy owner_update_push_subscriptions on public.push_subscriptions
+  for update using (auth.uid() = user_id);
+create policy owner_delete_push_subscriptions on public.push_subscriptions
+  for delete using (auth.uid() = user_id);
+```
+
+Sans cette table, activer les notifications dans Paramètres ne provoquera pas d'erreur visible,
+mais aucun abonnement ne sera enregistré et aucune notification ne sera reçue app fermée.
+
 ## Variables d'environnement Vercel requises
 
 `api/ics.js` (flux d'abonnement calendrier Google/Apple, voir Paramètres → "Synchronisation
-avec Google / Apple Agenda"), `api/notify-booking.js` (e-mail au salon à la réception d'une
-nouvelle réservation en ligne) et `api/send-confirmation-email.js` (e-mail à la cliente dès
+avec Google / Apple Agenda"), `api/notify-booking.js` (e-mail + notification push au salon à
+la réception d'une nouvelle réservation en ligne) et `api/send-confirmation-email.js` (e-mail à la cliente dès
 qu'un RDV est créé, si "Confirmation automatique" est activé) tournent côté serveur sur
 Vercel, pas sur Supabase — il n'y a donc rien à déployer dans Supabase pour ces
 fonctionnalités. Il faut en revanche ajouter, une seule fois, ces variables d'environnement
@@ -72,7 +107,23 @@ dans le tableau de bord Vercel du projet (Project Settings → Environment Varia
   un meilleur taux de délivrabilité et un expéditeur à votre propre nom de domaine, vous pouvez
   plus tard vérifier votre propre domaine dans le dashboard Resend (Domains → Add Domain) sans
   rien changer côté code.
+- `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` — paire de clés Web Push (norme ouverte, aucun compte
+  tiers à créer) générée pour ce projet le 2026-07-24 :
+  ```
+  VAPID_PUBLIC_KEY=BF5oBDKEgzKt5C_R2XkRsBqgAbTRe6RlldlFrzwYY--wdw0dSKucIWPu9w9JPXsy5uVKHyvrPASW85v5HpLQdqQ
+  VAPID_PRIVATE_KEY=EkCbiatB5UuCI0tj9Exxwre6LVex3hsS0Tjy71UtKC8
+  ```
+  Utilisées par `api/notify-booking.js` pour envoyer une vraie notification système (même
+  app fermée) quand "Notification nouvelle réservation" est activé dans Paramètres.
+  **`VAPID_PRIVATE_KEY` ne doit jamais avoir le préfixe `VITE_`** (elle reste côté serveur).
+- `VITE_VAPID_PUBLIC_KEY` — **la même clé publique que `VAPID_PUBLIC_KEY` ci-dessus**, mais
+  avec le préfixe `VITE_` cette fois : c'est la variante que le navigateur doit lire pour
+  s'abonner (`import.meta.env.VITE_VAPID_PUBLIC_KEY`, voir `src/utils/push.js`). Sans elle,
+  le bouton "Activer" des notifications dans Paramètres n'abonne pas l'appareil au push.
 
 Sans les deux premières variables, le lien de calendrier renvoie une erreur 500 au lieu du
 flux `.ics`. Sans `RESEND_API_KEY`, les réservations continuent de fonctionner normalement
-(la demande est bien enregistrée) — seul l'e-mail de notification ne part pas.
+(la demande est bien enregistrée) — seul l'e-mail de notification ne part pas. Sans les
+variables VAPID (et sans la table `push_subscriptions` ci-dessus), les notifications
+continuent de fonctionner comme avant *uniquement quand l'app est ouverte au premier plan* —
+elles ne seront simplement jamais reçues app fermée/téléphone verrouillé.

@@ -8,6 +8,7 @@ import { useToast } from '../hooks/useToast';
 import { fileToResizedDataUrl } from '../utils/image';
 import { CURRENCIES } from '../utils/format';
 import { downloadBackup, restoreBackup } from '../utils/backup';
+import { subscribeToPush, isPushSupported } from '../utils/push';
 import { signOut, useAuthStore } from '../store/useAuthStore';
 import DeleteAccountModal from '../components/settings/DeleteAccountModal';
 import ResetDataModal from '../components/settings/ResetDataModal';
@@ -16,7 +17,7 @@ import styles from './Settings.module.css';
 const DAY_LABELS = { lun: 'Lun', mar: 'Mar', mer: 'Mer', jeu: 'Jeu', ven: 'Ven', sam: 'Sam', dim: 'Dim' };
 
 const NOTIFICATION_ROWS = [
-  { key: 'newBookingAlert', title: 'Pop-up nouvelle réservation', subtitle: "Afficher un toast/une notification dans l'app dès qu'une cliente réserve via le lien en ligne" },
+  { key: 'newBookingAlert', title: 'Notification nouvelle réservation', subtitle: "Notification sur ton téléphone/ordinateur dès qu'une cliente réserve via le lien en ligne, même app fermée (nécessite d'activer les notifications ci-dessus)" },
   { key: 'newBookingEmail', title: 'E-mail nouvelle réservation', subtitle: "Recevoir un e-mail à l'adresse du salon dès qu'une cliente réserve via le lien en ligne" },
   { key: 'autoConfirm', title: 'Confirmation automatique', subtitle: "Envoyer un e-mail de confirmation à la cliente dès qu'un RDV est créé (si son adresse e-mail est enregistrée)" },
   { key: 'reminder24h', title: 'Rappel 24h avant', subtitle: 'Envoyer un rappel automatique la veille du rendez-vous (simulation)' },
@@ -47,7 +48,15 @@ export default function Settings() {
     if (typeof Notification === 'undefined') return;
     const result = await Notification.requestPermission();
     setNotifPermission(result);
-    if (result === 'granted') showToast('Notifications activées', 'success');
+    if (result === 'granted') {
+      const subscribed = ownerId && (await subscribeToPush(ownerId));
+      showToast(
+        subscribed
+          ? 'Notifications activées — tu les recevras même app fermée'
+          : 'Notifications activées (uniquement app ouverte sur cet appareil)',
+        'success'
+      );
+    }
   };
 
   const bookingLink = ownerId ? `${window.location.origin}/r/${ownerId}` : '';
@@ -334,7 +343,7 @@ export default function Settings() {
             <div className={styles.prefTitle}>Alertes nouvelles demandes de réservation</div>
             <div className={styles.prefSubtitle}>
               {notifPermission === 'granted'
-                ? "Activées — tu reçois une alerte dès qu'une cliente demande un rendez-vous depuis le lien en ligne."
+                ? "Activées — tu reçois une alerte dès qu'une cliente demande un rendez-vous depuis le lien en ligne, même app fermée sur cet appareil."
                 : notifPermission === 'denied'
                   ? 'Bloquées dans les réglages de ton navigateur/téléphone — réactive-les manuellement pour les recevoir.'
                   : notifPermission === 'unsupported'
@@ -348,6 +357,13 @@ export default function Settings() {
             </button>
           )}
         </div>
+        {!isPushSupported() && (
+          <p style={{ fontSize: '0.76rem', color: 'var(--color-text-soft)', margin: '0 0 var(--space-3)' }}>
+            Sur iPhone/iPad : ajoute d'abord l'app à l'écran d'accueil (bouton Partager → "Sur l'écran
+            d'accueil") et ouvre-la depuis cette icône — Safari seul ne permet pas les notifications
+            app fermée.
+          </p>
+        )}
         {NOTIFICATION_ROWS.map((row) => (
           <div key={row.key} className={styles.prefRow}>
             <div className={styles.prefText}>

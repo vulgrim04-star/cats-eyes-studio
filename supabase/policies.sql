@@ -46,3 +46,21 @@ create policy owner_update_booking_requests on public.booking_requests
 create policy owner_delete_booking_requests on public.booking_requests
   for delete
   using (auth.uid() = owner_id);
+
+-- ── push_subscriptions ──────────────────────────────────────────────────────
+-- Chaque salon ne peut voir/gérer que les abonnements push de ses propres appareils.
+create policy owner_select_push_subscriptions on public.push_subscriptions
+  for select
+  using (auth.uid() = user_id);
+
+create policy owner_insert_push_subscriptions on public.push_subscriptions
+  for insert
+  with check (auth.uid() = user_id);
+
+create policy owner_update_push_subscriptions on public.push_subscriptions
+  for update
+  using (auth.uid() = user_id);
+
+create policy owner_delete_push_subscriptions on public.push_subscriptions
+  for delete
+  using (auth.uid() = user_id);

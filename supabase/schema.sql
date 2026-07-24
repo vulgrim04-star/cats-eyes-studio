@@ -40,3 +40,17 @@ create table if not exists public.booking_requests (
 );
 
 alter table public.booking_requests enable row level security;
+
+-- Abonnements Web Push (un par appareil/navigateur) — permet d'envoyer une vraie
+-- notification système (même app fermée / téléphone verrouillé) quand une nouvelle
+-- réservation arrive, voir api/notify-booking.js et src/utils/push.js.
+create table if not exists public.push_subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  endpoint text not null unique,
+  p256dh text not null,
+  auth text not null,
+  created_at timestamptz not null default now()
+);
+
+alter table public.push_subscriptions enable row level security;
