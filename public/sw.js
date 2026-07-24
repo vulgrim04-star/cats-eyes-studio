@@ -14,7 +14,7 @@ self.addEventListener('push', (event) => {
   try {
     data = event.data ? event.data.json() : {};
   } catch {
-    data = { title: 'Cats Eyes Studio', body: event.data ? event.data.text() : '' };
+    data = { title: "Cat's Eyes Manager", body: event.data ? event.data.text() : '' };
   }
 
   event.waitUntil(

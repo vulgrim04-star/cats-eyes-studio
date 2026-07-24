@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BrandMark from '../components/common/BrandMark';
+import { APP_NAME } from '../data/brand';
 import { updatePassword, useAuthStore, clearAuthError } from '../store/useAuthStore';
 import styles from './Login.module.css';
 
@@ -46,7 +47,7 @@ export default function ResetPassword() {
         <div className={styles.card}>
           <div className={styles.brand}>
             <BrandMark size={48} radius="var(--radius-md)" iconSize={22} />
-            <h1>Cats Eyes Studio</h1>
+            <h1>{APP_NAME}</h1>
           </div>
           <p className={styles.subtitle}>Ce lien de réinitialisation n'est plus valide ou a déjà été utilisé.</p>
           <button type="button" className="btn btn-primary" onClick={() => navigate('/')}>Retour à la connexion</button>
@@ -61,7 +62,7 @@ export default function ResetPassword() {
         <div className={styles.card}>
           <div className={styles.brand}>
             <BrandMark size={48} radius="var(--radius-md)" iconSize={22} />
-            <h1>Cats Eyes Studio</h1>
+            <h1>{APP_NAME}</h1>
           </div>
           <p className={styles.subtitle}>Mot de passe mis à jour avec succès.</p>
           <button type="button" className="btn btn-primary" onClick={() => navigate('/')}>Continuer</button>
@@ -75,7 +76,7 @@ export default function ResetPassword() {
       <form className={styles.card} onSubmit={handleSubmit}>
         <div className={styles.brand}>
           <BrandMark size={48} radius="var(--radius-md)" iconSize={22} />
-          <h1>Cats Eyes Studio</h1>
+          <h1>{APP_NAME}</h1>
         </div>
         <p className={styles.subtitle}>Choisis un nouveau mot de passe.</p>
 

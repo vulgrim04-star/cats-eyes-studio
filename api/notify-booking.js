@@ -17,13 +17,13 @@ async function sendEmail(salon, clientName, { phone, serviceName, date, time }) 
       <li><strong>Date :</strong> ${escapeHtml(date) || '—'} à ${escapeHtml(time) || '—'}</li>
       ${phone ? `<li><strong>Téléphone :</strong> ${escapeHtml(phone)}</li>` : ''}
     </ul>
-    <p>Connectez-vous à Cat's Eyes Studio pour confirmer ou refuser cette demande.</p>
+    <p>Connectez-vous à Cat's Eyes Manager pour confirmer ou refuser cette demande.</p>
   `;
 
   const resendRes = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: `${salon?.name || "Cat's Eyes Studio"} <onboarding@resend.dev>`, to: [salon.email], subject, html }),
+    body: JSON.stringify({ from: `${salon?.name || "Votre institut"} <onboarding@resend.dev>`, to: [salon.email], subject, html }),
   });
 
   if (!resendRes.ok) {
@@ -41,7 +41,7 @@ async function sendPush(supabase, ownerId, clientName, { serviceName, date, time
   const { data: subs, error } = await supabase.from('push_subscriptions').select('*').eq('user_id', ownerId);
   if (error || !subs?.length) return { sent: false, reason: error ? 'query-error' : 'no-subscription' };
 
-  webpush.setVapidDetails(process.env.VAPID_SUBJECT || 'mailto:support@catseyesstudio.fr', process.env.VAPID_PUBLIC_KEY, process.env.VAPID_PRIVATE_KEY);
+  webpush.setVapidDetails(process.env.VAPID_SUBJECT || 'mailto:contact@cats-eyes-studio.vercel.app', process.env.VAPID_PUBLIC_KEY, process.env.VAPID_PRIVATE_KEY);
 
   const payload = JSON.stringify({
     title: 'Nouvelle réservation en ligne',

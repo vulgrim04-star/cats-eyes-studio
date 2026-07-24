@@ -37,3 +37,64 @@
   font-size: 0.82rem;
   margin: 2px 0 0;
 }
+
+.optionGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+}
+
+.option {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  text-align: left;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-white);
+}
+
+.optionActive {
+  border-color: var(--color-rose);
+  background: var(--color-rose-light);
+}
+
+.optionLabel {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.optionHint {
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}
+
+.dayRow {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.dayChip {
+  padding: 8px 12px;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-white);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-soft);
+}
+
+.dayChipActive {
+  border-color: var(--color-rose);
+  background: var(--color-rose-light);
+  color: var(--color-rose-dark);
+}
+
+.helpText {
+  font-size: 0.74rem;
+  color: var(--color-text-muted);
+  margin: 8px 0 0;
+}

@@ -68,7 +68,7 @@ export function addHeader(doc, title, salon, { themeColor = DEFAULT_THEME } = {}
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(16);
   doc.setTextColor(35, 30, 32);
-  doc.text(salon?.name || 'Cats Eyes Studio', textX, hasLogo ? 17 : 18);
+  doc.text(salon?.name || 'Votre institut', textX, hasLogo ? 17 : 18);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(8.5);
@@ -128,7 +128,7 @@ export function addFooterToAllPages(doc, salon, themeColor = DEFAULT_THEME) {
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7.5);
     doc.setTextColor(140);
-    doc.text(salon?.name || 'Cats Eyes Studio', MARGIN, 290);
+    doc.text(salon?.name || 'Votre institut', MARGIN, 290);
     doc.text(`Page ${i} / ${pageCount}`, PAGE_WIDTH - MARGIN, 290, { align: 'right' });
     doc.setTextColor(0);
   }

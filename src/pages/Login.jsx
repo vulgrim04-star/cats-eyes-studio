@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import BrandMark from '../components/common/BrandMark';
+import { APP_NAME } from '../data/brand';
 import { signIn, signUp, requestPasswordReset, useAuthStore, clearAuthError } from '../store/useAuthStore';
 import styles from './Login.module.css';
 
@@ -55,7 +56,7 @@ export default function Login() {
       <form className={styles.card} onSubmit={handleSubmit}>
         <div className={styles.brand}>
           <BrandMark size={48} radius="var(--radius-md)" iconSize={22} />
-          <h1>Cats Eyes Studio</h1>
+          <h1>{APP_NAME}</h1>
         </div>
         <p className={styles.subtitle}>{TITLES[mode]}</p>
 

@@ -1,7 +1,7 @@
 {
-  "name": "Cats Eyes Studio",
-  "short_name": "Cats Eyes",
-  "description": "Gestion de salon de beauté — extensions de cils & sourcils",
+  "name": "Cat's Eyes Manager",
+  "short_name": "Cat's Eyes",
+  "description": "Gestion complète pour les professionnelles des extensions de cils & sourcils : agenda, fiches clientes, Lash Maps, stock et finances.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

@@ -1,7 +1,7 @@
 import { fullName } from './format';
 import { MARGIN, PAGE_WIDTH, CONTENT_WIDTH, slug, addHeader, addParagraph, addBulletList, ensureSpace, addSignatureBlock } from './pdfHelpers';
 import {
-  GDPR_INTRO,
+  gdprIntro,
   GDPR_CLAUSES,
   GDPR_AGREEMENT_LABEL,
   HEALTH_FORM_TITLE,
@@ -22,7 +22,7 @@ export async function generateGdprConsentPdf(client, salon, themeColor) {
 
   y = addParagraph(doc, `Cliente : ${fullName(client)}`, y, { bold: true });
   y += 3;
-  y = addParagraph(doc, GDPR_INTRO, y);
+  y = addParagraph(doc, gdprIntro(salon?.name), y);
   y += 2;
   y = addBulletList(doc, GDPR_CLAUSES, y);
   y += 3;

@@ -2,8 +2,13 @@
 // (ConsentModal, HealthConsentModal) et la génération PDF (utils/consentPdf.js),
 // pour que le PDF signé corresponde toujours exactement à ce que la cliente a lu.
 
-export const GDPR_INTRO =
-  "Cats Eyes Studio collecte et conserve les données personnelles et de santé nécessaires à la réalisation des prestations (allergies, contre-indications, historique de pose, photos avant/après).";
+// Le responsable du traitement est l'institut qui fait signer le formulaire — jamais
+// l'éditeur du logiciel. Le nom est donc toujours injecté depuis les paramètres du compte
+// connecté (`salon.name`), sinon une cliente signerait un consentement au nom d'un autre salon.
+export function gdprIntro(salonName) {
+  const name = salonName?.trim() || "L'institut";
+  return `${name} collecte et conserve les données personnelles et de santé nécessaires à la réalisation des prestations (allergies, contre-indications, historique de pose, photos avant/après).`;
+}
 
 export const GDPR_CLAUSES = [
   'Les données sont utilisées uniquement pour le suivi de votre dossier client.',

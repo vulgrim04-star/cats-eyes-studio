@@ -2,12 +2,14 @@ import { useState } from 'react';
 import Modal from '../common/Modal';
 import SignaturePad from '../common/SignaturePad';
 import { useClients } from '../../hooks/useClients';
+import { useSettings } from '../../hooks/useSettings';
 import { todayISO, formatDateLong } from '../../utils/date';
-import { GDPR_INTRO, GDPR_CLAUSES, GDPR_AGREEMENT_LABEL } from '../../data/consentText';
+import { gdprIntro, GDPR_CLAUSES, GDPR_AGREEMENT_LABEL } from '../../data/consentText';
 import styles from './ConsentModal.module.css';
 
 export default function ConsentModal({ open, onClose, client }) {
   const { signConsent } = useClients();
+  const { salon } = useSettings();
   const [agreed, setAgreed] = useState(false);
   const [signatureUrl, setSignatureUrl] = useState(null);
 
@@ -34,7 +36,7 @@ export default function ConsentModal({ open, onClose, client }) {
       }
     >
       <div className={styles.clauses}>
-        {GDPR_INTRO}
+        {gdprIntro(salon?.name)}
         <ul>
           {GDPR_CLAUSES.map((clause) => (
             <li key={clause}>{clause}</li>

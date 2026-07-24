@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import { useSettingsStore } from '../../store/useSettingsStore';
+import { APP_NAME } from '../../data/brand';
 import { deriveThemeShades } from '../../utils/color';
 
 /** Applique la couleur de thème, le mode sombre et le nom du salon (Paramètres) aux éléments globaux de la page. */
@@ -18,7 +19,7 @@ export default function ThemeEffect() {
   }, [themeColor, darkMode]);
 
   useEffect(() => {
-    document.title = salonName || 'Cats Eyes Studio';
+    document.title = salonName || APP_NAME;
   }, [salonName]);
 
   return null;

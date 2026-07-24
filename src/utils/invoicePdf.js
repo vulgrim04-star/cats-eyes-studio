@@ -92,7 +92,7 @@ export async function generateInvoicePdf(appointment, salon, themeColor) {
   doc.setFont('helvetica', 'italic');
   doc.setFontSize(9.5);
   doc.setTextColor(130);
-  doc.text(`Merci de votre confiance — ${salon?.name || "Cat's Eyes Studio"}`, PAGE_WIDTH / 2, y, { align: 'center' });
+  doc.text(`Merci de votre confiance — ${salon?.name || "Votre institut"}`, PAGE_WIDTH / 2, y, { align: 'center' });
   doc.setTextColor(0);
 
   addFooterToAllPages(doc, salon, themeColor);

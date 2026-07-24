@@ -59,7 +59,7 @@ export default async function handler(req, res) {
 
     const clientName = `${client.firstName ?? ''} ${client.lastName ?? ''}`.trim() || 'Bonjour';
     const dateLabel = date ? formatDateLong(date) : '';
-    const subject = `Rendez-vous confirmé — ${salon?.name || "Cat's Eyes Studio"}`;
+    const subject = `Rendez-vous confirmé — ${salon?.name || "Votre institut"}`;
     const html = `
       <p>Bonjour ${escapeHtml(client.firstName || clientName)},</p>
       <p>Votre rendez-vous est confirmé :</p>
@@ -69,7 +69,7 @@ export default async function handler(req, res) {
         ${salon?.address ? `<li><strong>Adresse :</strong> ${escapeHtml(salon.address)}</li>` : ''}
       </ul>
       ${salon?.cancellationPolicy ? `<p style="color:#888;font-size:0.9em;">${escapeHtml(salon.cancellationPolicy)}</p>` : ''}
-      <p>À bientôt !<br>${escapeHtml(salon?.name || "Cat's Eyes Studio")}</p>
+      <p>À bientôt !<br>${escapeHtml(salon?.name || "Votre institut")}</p>
     `;
 
     const resendRes = await fetch('https://api.resend.com/emails', {
@@ -79,7 +79,7 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: `${salon?.name || "Cat's Eyes Studio"} <onboarding@resend.dev>`,
+        from: `${salon?.name || "Votre institut"} <onboarding@resend.dev>`,
         to: [client.email],
         subject,
         html,

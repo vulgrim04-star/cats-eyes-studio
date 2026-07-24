@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import BrandMark from '../components/common/BrandMark';
+import { APP_NAME } from '../data/brand';
 import { useAuthStore } from '../store/useAuthStore';
 import { supabase } from '../lib/supabaseClient';
 import styles from './Login.module.css';
@@ -49,7 +50,7 @@ export default function ConfirmDeleteAccount() {
         <div className={styles.card}>
           <div className={styles.brand}>
             <BrandMark size={48} radius="var(--radius-md)" iconSize={22} />
-            <h1>Cats Eyes Studio</h1>
+            <h1>{APP_NAME}</h1>
           </div>
           <p className={styles.subtitle}>Ce lien de confirmation n'est plus valide ou a déjà été utilisé.</p>
           <button type="button" className="btn btn-primary" onClick={() => navigate('/')}>Retour à la connexion</button>
@@ -64,10 +65,10 @@ export default function ConfirmDeleteAccount() {
         <div className={styles.card}>
           <div className={styles.brand}>
             <BrandMark size={48} radius="var(--radius-md)" iconSize={22} />
-            <h1>Cats Eyes Studio</h1>
+            <h1>{APP_NAME}</h1>
           </div>
           <p className={styles.subtitle}>
-            Ton compte et toutes tes données ont été supprimés définitivement. Merci d'avoir utilisé Cat's Eyes Studio.
+            Ton compte et toutes tes données ont été supprimés définitivement. Merci d'avoir utilisé {APP_NAME}.
           </p>
           <button type="button" className="btn btn-primary" onClick={() => navigate('/')}>Retour à l'accueil</button>
         </div>
@@ -80,7 +81,7 @@ export default function ConfirmDeleteAccount() {
       <div className={styles.card}>
         <div className={styles.brand}>
           <BrandMark size={48} radius="var(--radius-md)" iconSize={22} />
-          <h1>Cats Eyes Studio</h1>
+          <h1>{APP_NAME}</h1>
         </div>
         <p className={styles.subtitle}>
           Dernière étape : confirmer la suppression définitive du compte {session.user?.email} et de toutes ses

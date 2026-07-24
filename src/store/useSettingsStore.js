@@ -14,17 +14,20 @@ const DEFAULT_HOURS = {
   dim: { open: '09:00', close: '18:30', closed: true },
 };
 
+// Valeurs neutres : chaque compte remplit les siennes à l'onboarding. Ne jamais y
+// remettre de données d'exemple (nom, adresse, e-mail) — elles apparaîtraient telles
+// quelles sur les reçus et consentements d'un compte qui n'aurait pas fini l'onboarding.
 const DEFAULT_SALON = {
-  name: 'Cats Eyes Studio',
-  managerName: 'Léa Moreau',
-  address: '12 rue des Lilas, 75011 Paris',
-  phone: '01 23 45 67 89',
-  email: 'contact@catseyesstudio.fr',
+  name: '',
+  managerName: '',
+  address: '',
+  phone: '',
+  email: '',
   currency: 'EUR',
   hours: DEFAULT_HOURS,
   logoUrl: '',
   bufferMinutes: 10,
-  vatRate: 20,
+  vatRate: 0,
   cancellationPolicy: "Toute annulation doit être effectuée au moins 24h à l'avance. En cas d'annulation tardive ou de no-show, un acompte pourra être demandé lors de la prochaine réservation.",
 };
 
