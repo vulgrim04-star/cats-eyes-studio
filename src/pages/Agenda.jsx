@@ -8,8 +8,9 @@ import AppointmentCard from '../components/agenda/AppointmentCard';
 import WeekView from '../components/agenda/WeekView';
 import NewAppointmentModal from '../components/agenda/NewAppointmentModal';
 import PaymentModal from '../components/agenda/PaymentModal';
-import DayPlanningPrint from '../components/agenda/DayPlanningPrint';
 import { generateInvoicePdf } from '../utils/invoicePdf';
+import { generateDayPlanningPdf } from '../utils/dayPlanningPdf';
+import { generateWeekPlanningPdf } from '../utils/weekPlanningPdf';
 import { useAppointments, enrich, getAppointmentsByDate } from '../hooks/useAppointments';
 import { useSettings } from '../hooks/useSettings';
 import { addDaysISO, todayISO, formatDateLong, getWeekDays, getWeekStart } from '../utils/date';
@@ -30,7 +31,6 @@ export default function Agenda() {
   const [prefill, setPrefill] = useState(null);
   const [editingAppointment, setEditingAppointment] = useState(null);
   const [completingAppointment, setCompletingAppointment] = useState(null);
-  const [printPlanning, setPrintPlanning] = useState(false);
 
   const days = useMemo(() => getWeekDays(addDaysISO(todayISO(), -3), 21), []);
 
@@ -54,6 +54,11 @@ export default function Agenda() {
 
   const weekDays = useMemo(() => getWeekDays(getWeekStart(selectedDate), 7), [selectedDate]);
 
+  const weekAppointmentsByDay = useMemo(
+    () => weekDays.map((d) => ({ date: d, appointments: getAppointmentsByDate(appointments, d).map(enrich) })),
+    [appointments, weekDays]
+  );
+
   const closeModal = () => {
     setModalOpen(false);
     setPrefill(null);
@@ -74,12 +79,13 @@ export default function Agenda() {
     generateInvoicePdf(appointment, salon, appearance.themeColor);
   };
 
-  useEffect(() => {
-    if (printPlanning) {
-      window.print();
-      setPrintPlanning(false);
+  const handlePrintPlanning = () => {
+    if (viewMode === 'week') {
+      generateWeekPlanningPdf(weekAppointmentsByDay, salon, appearance.themeColor);
+    } else {
+      generateDayPlanningPdf(selectedDate, dayAppointments, salon, appearance.themeColor);
     }
-  }, [printPlanning]);
+  };
 
   return (
     <>
@@ -96,8 +102,8 @@ export default function Agenda() {
                 Semaine
               </button>
             </div>
-            <button type="button" className="btn btn-ghost" onClick={() => setPrintPlanning(true)}>
-              <Icon name="printer" size={16} /> Imprimer
+            <button type="button" className="btn btn-ghost" onClick={handlePrintPlanning}>
+              <Icon name="download" size={16} /> Télécharger le PDF
             </button>
             <button type="button" className="btn btn-ghost" onClick={handleExportICS}>
               <Icon name="download" size={16} /> iCal
@@ -153,8 +159,6 @@ export default function Agenda() {
       />
 
       <PaymentModal appointment={completingAppointment} onClose={() => setCompletingAppointment(null)} />
-
-      <DayPlanningPrint date={printPlanning ? selectedDate : null} appointments={dayAppointments} salon={salon} />
     </>
   );
 }
