@@ -94,3 +94,18 @@
 .legalLink:hover {
   text-decoration: underline;
 }
+
+.demoLink {
+  display: block;
+  text-align: center;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--color-rose-dark);
+  background: var(--color-rose-light);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  text-decoration: none;
+}
+.demoLink:hover {
+  filter: brightness(0.97);
+}

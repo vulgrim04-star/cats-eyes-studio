@@ -129,6 +129,10 @@ export default function Login() {
           {mode === 'signin' ? "Pas encore de compte ? Crée-en un" : mode === 'signup' ? 'Déjà un compte ? Connecte-toi' : 'Retour à la connexion'}
         </button>
 
+        <Link to="/demo" className={styles.demoLink}>
+          Essayer sans créer de compte →
+        </Link>
+
         <div className={styles.legalFooter}>
           <Link to="/confidentialite" className={styles.legalLink}>Confidentialité</Link>
           <span aria-hidden="true">·</span>

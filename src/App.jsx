@@ -19,6 +19,7 @@ const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const ConfirmDeleteAccount = lazy(() => import('./pages/ConfirmDeleteAccount'));
 const Privacy = lazy(() => import('./pages/Privacy'));
 const Terms = lazy(() => import('./pages/Terms'));
+const DemoEntry = lazy(() => import('./pages/DemoEntry'));
 
 export default function App() {
   return (
@@ -32,6 +33,7 @@ export default function App() {
           <Route path="/confirmer-suppression" element={<ConfirmDeleteAccount />} />
           <Route path="/confidentialite" element={<Privacy />} />
           <Route path="/conditions" element={<Terms />} />
+          <Route path="/demo" element={<DemoEntry />} />
           <Route element={<RequireAuth />}>
             <Route element={<Layout />}>
               <Route path="/" element={<Dashboard />} />

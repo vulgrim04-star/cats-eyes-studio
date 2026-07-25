@@ -31,11 +31,23 @@
   font-weight: 500;
 }
 
+/* La valeur doit s'adapter à sa carte : selon la devise et le montant, le libellé va de
+   « 4 » à « 12'450.00 CHF ». Une taille fixe tronquait le chiffre d'affaires sur mobile
+   (deux cartes par ligne = ~120px utiles), ce qui est le pire endroit pour couper un
+   nombre. On laisse donc la police se réduire, et le texte passer à la ligne au besoin. */
 .value {
   font-family: var(--font-title);
-  font-size: 1.9rem;
+  font-size: clamp(1.25rem, 6.5vw, 1.9rem);
   color: var(--color-rose-dark);
-  line-height: 1;
+  line-height: 1.1;
+  min-width: 0;
+  overflow-wrap: break-word;
+}
+
+@media (min-width: 640px) {
+  .value {
+    font-size: 1.9rem;
+  }
 }
 
 .trend {
