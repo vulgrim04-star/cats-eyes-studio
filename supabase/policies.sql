@@ -76,3 +76,31 @@ create policy feedback_insert on public.feedback
 create policy feedback_select_own on public.feedback
   for select
   using (auth.uid() = user_id);
+
+-- ── storage.objects — bucket « client-photos » ──────────────────────────────
+-- Les photos avant/après ne sont pas dans une table mais dans un bucket privé, dont les
+-- policies vivent sur storage.objects. Elles étaient jusqu'ici décrites uniquement en prose
+-- dans le README, alors que ce fichier se présente comme le reflet des règles actives.
+--
+-- Isolation par compte : le premier segment du chemin est l'uuid du compte, d'où la
+-- convention `{user_id}/{client_id}/{photo_id}-{before|after}.jpg`. Le bucket étant privé,
+-- l'affichage passe par des URL signées (voir src/utils/photoStorage.js).
+insert into storage.buckets (id, name, public)
+values ('client-photos', 'client-photos', false)
+on conflict (id) do nothing;
+
+create policy photos_select_own on storage.objects
+  for select
+  using (bucket_id = 'client-photos' and (storage.foldername(name))[1] = auth.uid()::text);
+
+create policy photos_insert_own on storage.objects
+  for insert
+  with check (bucket_id = 'client-photos' and (storage.foldername(name))[1] = auth.uid()::text);
+
+create policy photos_update_own on storage.objects
+  for update
+  using (bucket_id = 'client-photos' and (storage.foldername(name))[1] = auth.uid()::text);
+
+create policy photos_delete_own on storage.objects
+  for delete
+  using (bucket_id = 'client-photos' and (storage.foldername(name))[1] = auth.uid()::text);

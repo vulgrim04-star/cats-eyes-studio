@@ -8,12 +8,13 @@ import { useClients } from '../../hooks/useClients';
 import { useToast } from '../../hooks/useToast';
 import { uploadClientPhoto, deleteStoredPhotos, UPLOAD_DEMO } from '../../utils/photoStorage';
 import { formatDateShort } from '../../utils/date';
+import { newUuid } from '../../utils/id';
 import styles from './PhotosTab.module.css';
 
 // Identifiant de séance généré côté client pour pouvoir téléverser les fichiers AVANT
 // d'enregistrer la séance : le chemin de stockage a besoin d'un id stable.
 function newPhotoId() {
-  return crypto.randomUUID();
+  return newUuid();
 }
 
 function PhotoSlot({ label, previewUrl, uploading, onFile, styleClass }) {
@@ -123,8 +124,14 @@ export default function PhotosTab({ client }) {
     // On efface aussi l'éventuelle data URL héritée, sinon elle continuerait d'alourdir
     // la fiche et de masquer la nouvelle photo à l'affichage.
     const legacyKey = key === 'beforePath' ? 'beforeUrl' : 'afterUrl';
-    updatePhotoSession(client.id, viewingPhoto.id, { [key]: path, [legacyKey]: '' });
-    setViewingPhoto((p) => ({ ...p, [key]: path, [legacyKey]: '' }));
+    // En démo rien n'est téléversé : enregistrer le marqueur comme chemin de stockage
+    // laisserait une image irrésolvable. L'aperçu local tient lieu d'image, comme à l'ajout.
+    const patch =
+      path === UPLOAD_DEMO
+        ? { [key]: '', [legacyKey]: URL.createObjectURL(file) }
+        : { [key]: path, [legacyKey]: '' };
+    updatePhotoSession(client.id, viewingPhoto.id, patch);
+    setViewingPhoto((p) => ({ ...p, ...patch }));
   };
 
   const handleDeleteSession = async () => {

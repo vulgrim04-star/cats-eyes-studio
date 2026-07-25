@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { supabaseSyncStorage } from '../utils/supabaseSyncStorage';
+import { newUuid } from '../utils/id';
 
 const DAYS = ['lun', 'mar', 'mer', 'jeu', 'ven', 'sam', 'dim'];
 
@@ -51,7 +52,7 @@ export const useSettingsStore = create(
 
       ensureCalendarToken: () => {
         if (get().calendarToken) return get().calendarToken;
-        const token = crypto.randomUUID();
+        const token = newUuid();
         set({ calendarToken: token });
         return token;
       },

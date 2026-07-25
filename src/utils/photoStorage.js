@@ -11,6 +11,27 @@ const SIGNED_URL_TTL_SECONDS = 3600;
 const CACHE_MARGIN_MS = 60_000;
 const urlCache = new Map(); // path -> { url, expiresAt }
 
+// Remplacer une photo réécrit le MÊME fichier, au même chemin : rien dans les props des
+// composants ne change, donc rien ne les pousse à réafficher — l'ancienne image reste à
+// l'écran alors que la nouvelle est déjà en ligne. Ce compteur leur donne le signal
+// d'invalidation qui manque, sans avoir à faire circuler une version dans tout l'arbre.
+let cacheGeneration = 0;
+const cacheListeners = new Set();
+
+function invalidatePhotoCache() {
+  cacheGeneration += 1;
+  cacheListeners.forEach((listener) => listener());
+}
+
+export function subscribeToPhotoCache(listener) {
+  cacheListeners.add(listener);
+  return () => cacheListeners.delete(listener);
+}
+
+export function getPhotoCacheGeneration() {
+  return cacheGeneration;
+}
+
 function currentUserId() {
   return useAuthStore.getState().session?.user?.id ?? null;
 }
@@ -44,6 +65,7 @@ export async function uploadClientPhoto(file, { clientId, photoId, side }) {
       return null;
     }
     urlCache.delete(path);
+    invalidatePhotoCache();
     return path;
   } catch (err) {
     console.error('[photoStorage] upload threw', err);
@@ -81,6 +103,7 @@ export async function deleteStoredPhotos(paths) {
   const valid = paths.filter(Boolean);
   if (valid.length === 0) return true;
   valid.forEach((p) => urlCache.delete(p));
+  invalidatePhotoCache();
   const { error } = await supabase.storage.from(PHOTO_BUCKET).remove(valid);
   if (error) {
     console.error('[photoStorage] remove failed', error);
@@ -121,7 +144,13 @@ export async function pathToDataUrl(path) {
 /** Source affichable d'une photo, quelle que soit sa génération : chemin de stockage
  * (nouveau) ou data URL intégrée (données créées avant la migration). */
 export async function resolvePhotoSrc({ path, legacyUrl }) {
-  if (path) return getPhotoUrl(path);
+  if (path) {
+    const url = await getPhotoUrl(path);
+    // Un chemin peut être irrésolvable : fichier supprimé, hors ligne, ou sauvegarde importée
+    // depuis un autre compte. Tant qu'une image héritée valide existe, mieux vaut l'afficher
+    // qu'une vignette grise dont la seule trace est un console.error.
+    if (url) return url;
+  }
   return legacyUrl || null;
 }
 
