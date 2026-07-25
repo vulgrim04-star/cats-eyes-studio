@@ -6,7 +6,7 @@ import StoredImage from '../common/StoredImage';
 import PhotoLightbox from './PhotoLightbox';
 import { useClients } from '../../hooks/useClients';
 import { useToast } from '../../hooks/useToast';
-import { uploadClientPhoto, deleteStoredPhotos } from '../../utils/photoStorage';
+import { uploadClientPhoto, deleteStoredPhotos, UPLOAD_DEMO } from '../../utils/photoStorage';
 import { formatDateShort } from '../../utils/date';
 import styles from './PhotosTab.module.css';
 
@@ -69,14 +69,19 @@ export default function PhotosTab({ client }) {
       showToast("L'envoi de la photo a échoué. Vérifie ta connexion et réessaie.", 'error');
       return;
     }
-    setPaths((p) => ({ ...p, [key]: path }));
+    // En démo, rien n'est téléversé : l'aperçu local sert directement d'image affichée.
+    setPaths((p) => ({ ...p, [key]: path === UPLOAD_DEMO ? '' : path }));
     setPreviews((p) => {
       if (p[key]) URL.revokeObjectURL(p[key]);
       return { ...p, [key]: localPreview };
     });
   };
 
+  // Annuler après avoir choisi des photos : elles sont déjà dans le bucket alors que la
+  // séance ne sera jamais enregistrée. Sans ce nettoyage, ces fichiers resteraient
+  // définitivement introuvables (l'identifiant de séance est régénéré juste après).
   const resetModal = () => {
+    deleteStoredPhotos([paths.beforePath, paths.afterPath]);
     Object.values(previews).forEach((url) => url && URL.revokeObjectURL(url));
     setLabel('');
     setPaths({ beforePath: '', afterPath: '' });
@@ -93,8 +98,18 @@ export default function PhotosTab({ client }) {
       label,
       beforePath: paths.beforePath || '',
       afterPath: paths.afterPath || '',
+      // En démo, l'aperçu local tient lieu d'image : on le range dans le champ hérité, que
+      // StoredImage sait afficher quand aucun chemin de stockage n'est présent.
+      beforeUrl: paths.beforePath ? '' : previews.beforePath || '',
+      afterUrl: paths.afterPath ? '' : previews.afterPath || '',
     });
-    resetModal();
+    // Les aperçus sont désormais référencés par la séance enregistrée : les révoquer ici les
+    // rendrait illisibles, on relâche donc simplement l'état local.
+    setLabel('');
+    setPaths({ beforePath: '', afterPath: '' });
+    setPreviews({ beforePath: '', afterPath: '' });
+    setPhotoId(newPhotoId());
+    setModalOpen(false);
   };
 
   const handleReplace = async (file, key) => {

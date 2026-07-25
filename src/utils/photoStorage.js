@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabaseClient';
 import { useAuthStore } from '../store/useAuthStore';
+import { isDemoActive } from './demoFlag';
 import { fileToResizedBlob } from './image';
 
 export const PHOTO_BUCKET = 'client-photos';
@@ -21,8 +22,15 @@ function buildPath(userId, clientId, photoId, side) {
   return `${userId}/${clientId}/${photoId}-${side}.jpg`;
 }
 
-/** Téléverse une photo de séance et renvoie son chemin de stockage, ou null en cas d'échec. */
+/** Téléverse une photo de séance et renvoie son chemin de stockage, ou null en cas d'échec.
+ *
+ * En démonstration il n'y a pas de session : on ne tente aucun téléversement et on le signale
+ * par un code dédié, pour que l'appelant affiche un message juste au lieu d'un faux
+ * « vérifie ta connexion ». */
+export const UPLOAD_DEMO = 'demo';
+
 export async function uploadClientPhoto(file, { clientId, photoId, side }) {
+  if (isDemoActive()) return UPLOAD_DEMO;
   const userId = currentUserId();
   if (!userId) return null;
   try {

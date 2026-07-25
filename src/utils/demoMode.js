@@ -5,6 +5,7 @@ import { useServicesStore } from '../store/useServicesStore';
 import { useSettingsStore } from '../store/useSettingsStore';
 import { useExpensesStore } from '../store/useExpensesStore';
 import { useWaitlistStore } from '../store/useWaitlistStore';
+import { isDemoActive, setDemoFlag, clearDemoFlag } from './demoFlag';
 import {
   DEMO_SALON,
   DEMO_SERVICES,
@@ -15,7 +16,11 @@ import {
   DEMO_EXPENSES,
 } from '../data/demoData';
 
-const FLAG_KEY = 'ces-demo-mode';
+export { isDemoActive };
+
+// Clés des stores persistés, nettoyées en sortie de démo. Nécessaire pour les navigateurs
+// qui ont subi la version antérieure du mode démo, laquelle écrivait le jeu fictif dans
+// localStorage sous ces mêmes clés.
 const PERSISTED_KEYS = [
   'ces-clients',
   'ces-appointments',
@@ -26,28 +31,7 @@ const PERSISTED_KEYS = [
   'ces-waitlist',
 ];
 
-/** Le mode démo vit en sessionStorage : il disparaît à la fermeture de l'onglet, et ne
- * suit pas quelqu'un qui reviendrait plus tard pour créer un vrai compte. */
-export function isDemoActive() {
-  try {
-    return sessionStorage.getItem(FLAG_KEY) === '1';
-  } catch {
-    return false;
-  }
-}
-
-/** Charge le jeu de démonstration directement dans les stores.
- *
- * Aucune écriture Supabase n'est possible ici : `setSyncUserId` n'est appelé que depuis
- * initAuth avec l'identifiant d'une session réelle, et le mode démo n'ouvre jamais de
- * session. Les données restent donc purement locales à l'onglet. */
-export function enterDemo() {
-  try {
-    sessionStorage.setItem(FLAG_KEY, '1');
-  } catch {
-    // Navigation privée très restrictive : la démo fonctionnera le temps de la page.
-  }
-
+function seedStores() {
   useSettingsStore.setState({ salon: DEMO_SALON, onboarded: true });
   useServicesStore.setState({ services: DEMO_SERVICES });
   useClientsStore.setState({ clients: DEMO_CLIENTS });
@@ -57,14 +41,38 @@ export function enterDemo() {
   useWaitlistStore.setState({ entries: [] });
 }
 
-/** Quitte la démo et efface ses traces locales, pour qu'un compte réel créé ensuite sur
- * ce navigateur ne récupère jamais des clientes fictives. */
+/** Charge le jeu de démonstration dans les stores.
+ *
+ * Le drapeau est posé AVANT toute écriture de state, et c'est essentiel : le middleware
+ * `persist` de zustand enveloppe `api.setState`, donc chaque `setState` ci-dessous
+ * déclencherait une écriture. `supabaseSyncStorage` consulte ce drapeau et neutralise
+ * l'intégralité de ses opérations tant qu'il est posé — c'est ce qui garantit qu'une
+ * gérante connectée qui ouvre la démo ne voit pas ses vraies données écrasées. */
+export function enterDemo() {
+  setDemoFlag();
+  seedStores();
+}
+
+/** Recharge le jeu fictif si la démo est active mais que les stores sont vides.
+ *
+ * Cas visé : rechargement de page pendant la démo. La persistance étant neutralisée,
+ * les stores repartent de leurs valeurs par défaut ; sans ce ré-amorçage, l'utilisatrice
+ * retomberait sur une application vide au lieu de sa démo. */
+export function ensureDemoLoaded() {
+  if (!isDemoActive()) return;
+  if (useClientsStore.getState().clients.length > 0) return;
+  seedStores();
+}
+
+/** Quitte la démo et efface ses traces locales, pour qu'un compte réel créé ensuite sur ce
+ * navigateur ne récupère jamais de clientes fictives. */
 export function exitDemo() {
   try {
-    sessionStorage.removeItem(FLAG_KEY);
     PERSISTED_KEYS.forEach((key) => localStorage.removeItem(key));
   } catch {
-    // Rien à faire : le rechargement ci-dessous repart de toute façon sur un état propre.
+    // Rien à faire : le rechargement ci-dessous repart de toute façon d'un état propre.
   }
+  // Drapeau retiré en dernier : tant qu'il est posé, aucune écriture n'est possible.
+  clearDemoFlag();
   window.location.href = '/';
 }

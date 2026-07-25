@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabaseClient';
 import { useUIStore } from '../store/useUIStore';
+import { isDemoActive } from './demoFlag';
 
 let currentUserId = null;
 
@@ -51,9 +52,21 @@ if (typeof window !== 'undefined') {
 }
 
 /** Storage compatible avec zustand `createJSONStorage` : écrit en localStorage (instantané)
- * et, si une session est active, synchronise la même valeur dans Supabase (table app_state). */
+ * et, si une session est active, synchronise la même valeur dans Supabase (table app_state).
+ *
+ * ⚠️ En mode démonstration, TOUTES les opérations sont neutralisées. C'est indispensable et
+ * non cosmétique : le middleware `persist` de zustand enveloppe `api.setState`, si bien que
+ * le simple chargement du jeu fictif déclenche une écriture par store. Sans ce garde-fou, une
+ * gérante déjà connectée qui ouvre `/demo` voyait ses vraies clientes, rendez-vous et
+ * paramètres écrasés dans Supabase — et les données fictives restaient en localStorage sous
+ * les mêmes clés, contaminant ensuite tout compte créé depuis ce navigateur.
+ *
+ * Le garde-fou est ici, au point de passage unique de la persistance, plutôt que dans le mode
+ * démo : c'est structurellement impossible d'écrire, au lieu de dépendre du fait qu'on ait
+ * pensé à se déconnecter avant. */
 export const supabaseSyncStorage = {
   getItem: async (name) => {
+    if (isDemoActive()) return null;
     if (!currentUserId) return localStorage.getItem(name);
     const { data, error } = await supabase
       .from('app_state')
@@ -72,6 +85,7 @@ export const supabaseSyncStorage = {
   },
 
   setItem: async (name, value) => {
+    if (isDemoActive()) return;
     localStorage.setItem(name, value);
     if (!currentUserId) return;
     pendingWrites.set(name, value);
@@ -88,6 +102,7 @@ export const supabaseSyncStorage = {
   },
 
   removeItem: async (name) => {
+    if (isDemoActive()) return;
     localStorage.removeItem(name);
     if (pendingTimers.has(name)) {
       clearTimeout(pendingTimers.get(name));
