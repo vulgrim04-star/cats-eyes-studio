@@ -84,6 +84,38 @@ create policy owner_delete_push_subscriptions on public.push_subscriptions
 Sans cette table, activer les notifications dans Paramètres ne provoquera pas d'erreur visible,
 mais aucun abonnement ne sera enregistré et aucune notification ne sera reçue app fermée.
 
+## Stockage des photos (bucket `client-photos`)
+
+Les photos de séance vivaient à l'origine en data URL base64 **à l'intérieur** du blob
+`app_state`, qui est réécrit intégralement à chaque enregistrement — quelques dizaines de
+photos suffisaient à rendre chaque sauvegarde très lourde sur mobile. Elles sont désormais
+dans un bucket Storage privé.
+
+Créé le 2026-07-25 via le SQL Editor :
+
+```sql
+insert into storage.buckets (id, name, public)
+values ('client-photos', 'client-photos', false)
+on conflict (id) do nothing;
+
+-- Isolation par compte : le premier segment du chemin est l'uuid du compte.
+create policy photos_select_own on storage.objects for select
+  using (bucket_id = 'client-photos' and (storage.foldername(name))[1] = auth.uid()::text);
+create policy photos_insert_own on storage.objects for insert
+  with check (bucket_id = 'client-photos' and (storage.foldername(name))[1] = auth.uid()::text);
+create policy photos_update_own on storage.objects for update
+  using (bucket_id = 'client-photos' and (storage.foldername(name))[1] = auth.uid()::text);
+create policy photos_delete_own on storage.objects for delete
+  using (bucket_id = 'client-photos' and (storage.foldername(name))[1] = auth.uid()::text);
+```
+
+Convention de chemin : `{user_id}/{client_id}/{photo_id}-{before|after}.jpg`. Le bucket
+étant privé, l'affichage passe par des URL signées (voir `src/utils/photoStorage.js`).
+
+Compatibilité : une photo peut porter soit `beforePath`/`afterPath` (Storage), soit
+`beforeUrl`/`afterUrl` (ancienne data URL). Les deux s'affichent ; Paramètres →
+« Optimisation des photos » déplace les anciennes vers le bucket quand il en reste.
+
 ## Variables d'environnement Vercel requises
 
 Toutes les fonctions serveur du projet tournent sur **Vercel**, pas sur Supabase — il n'y a

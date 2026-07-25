@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useClientsStore } from '../store/useClientsStore';
 import { useUIStore } from '../store/useUIStore';
+import { deleteStoredPhotos } from '../utils/photoStorage';
 
 /**
  * Couche d'accès aux données clientes. Découplée du store interne (zustand)
@@ -24,6 +25,12 @@ export function useClients() {
   const removeLashMap = useClientsStore((s) => s.removeLashMap);
 
   const removeClient = (id) => {
+    // Les photos vivent dans Supabase Storage : supprimer la fiche ne les efface pas
+    // automatiquement, il faut le faire explicitement sous peine de laisser des fichiers
+    // orphelins (et des données personnelles) derrière soi.
+    const client = useClientsStore.getState().clients.find((c) => c.id === id);
+    const paths = (client?.photos ?? []).flatMap((p) => [p.beforePath, p.afterPath]);
+    deleteStoredPhotos(paths);
     removeClientRaw(id);
     showToast('Fiche cliente supprimée', 'warning');
   };

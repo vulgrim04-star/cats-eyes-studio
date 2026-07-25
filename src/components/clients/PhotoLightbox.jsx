@@ -1,18 +1,21 @@
 import Modal from '../common/Modal';
 import Icon from '../common/Icon';
+import StoredImage from '../common/StoredImage';
 import { formatDateLong } from '../../utils/date';
 import styles from './PhotoLightbox.module.css';
 
-function Slot({ label, url, styleClass, onReplace, inputId }) {
+function Slot({ label, path, legacyUrl, styleClass, onReplace, inputId }) {
   return (
     <div className={styles.slot}>
       <span className={styles.slotLabel}>{label}</span>
       <div className={styles.imgWrap}>
-        {url ? (
-          <img src={url} alt={label} className={styles.img} />
-        ) : (
-          <span className={`${styles.placeholder} ${styleClass}`}>{label}</span>
-        )}
+        <StoredImage
+          path={path}
+          legacyUrl={legacyUrl}
+          alt={label}
+          className={styles.img}
+          placeholder={<span className={`${styles.placeholder} ${styleClass}`}>{label}</span>}
+        />
       </div>
       <label htmlFor={inputId} className="btn btn-secondary btn-sm" style={{ justifyContent: 'center', cursor: 'pointer' }}>
         <Icon name="camera" size={13} /> Remplacer
@@ -54,8 +57,8 @@ export default function PhotoLightbox({ photo, onClose, onReplaceBefore, onRepla
         <div className={styles.date}>{formatDateLong(photo.sessionDate)}</div>
       </div>
       <div className={styles.pair}>
-        <Slot label="Avant" url={photo.beforeUrl} styleClass={styles.before} onReplace={onReplaceBefore} inputId="lightbox-before-input" />
-        <Slot label="Après" url={photo.afterUrl} styleClass={styles.after} onReplace={onReplaceAfter} inputId="lightbox-after-input" />
+        <Slot label="Avant" path={photo.beforePath} legacyUrl={photo.beforeUrl} styleClass={styles.before} onReplace={onReplaceBefore} inputId="lightbox-before-input" />
+        <Slot label="Après" path={photo.afterPath} legacyUrl={photo.afterUrl} styleClass={styles.after} onReplace={onReplaceAfter} inputId="lightbox-after-input" />
       </div>
     </Modal>
   );

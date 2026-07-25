@@ -5,7 +5,9 @@ import Icon from '../components/common/Icon';
 import BrandMark from '../components/common/BrandMark';
 import Toggle from '../components/common/Toggle';
 import { useSettings, WEEK_DAYS } from '../hooks/useSettings';
+import { useClients } from '../hooks/useClients';
 import { useToast } from '../hooks/useToast';
+import { countInlinePhotos, migrateInlinePhotos } from '../utils/photoStorage';
 import { fileToResizedDataUrl } from '../utils/image';
 import { CURRENCIES } from '../utils/format';
 import { downloadBackup, restoreBackup } from '../utils/backup';
@@ -43,6 +45,20 @@ export default function Settings() {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [resetModalOpen, setResetModalOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
+  const [migrating, setMigrating] = useState(false);
+  const { clients, updatePhotoSession } = useClients();
+  const inlinePhotoCount = countInlinePhotos(clients);
+
+  const handleMigratePhotos = async () => {
+    setMigrating(true);
+    const { migrated, failed } = await migrateInlinePhotos(clients, updatePhotoSession);
+    setMigrating(false);
+    if (failed > 0) {
+      showToast(`${migrated} photo(s) optimisée(s), ${failed} en échec. Réessaie plus tard.`, 'warning');
+    } else {
+      showToast(`${migrated} photo(s) optimisée(s).`, 'success');
+    }
+  };
   const [notifPermission, setNotifPermission] = useState(
     typeof Notification !== 'undefined' ? Notification.permission : 'unsupported'
   );
@@ -411,6 +427,21 @@ export default function Settings() {
           </div>
         </div>
       </div>
+
+      {inlinePhotoCount > 0 && (
+        <div className="card" style={{ marginTop: 'var(--space-5)' }}>
+          <h3 className="card-title" style={{ marginBottom: 'var(--space-2)' }}>Optimisation des photos</h3>
+          <p style={{ fontSize: '0.82rem', color: 'var(--color-text-soft)', marginBottom: 'var(--space-4)' }}>
+            {inlinePhotoCount} photo{inlinePhotoCount > 1 ? 's' : ''} {inlinePhotoCount > 1 ? 'sont' : 'est'} encore
+            stockée{inlinePhotoCount > 1 ? 's' : ''} dans la fiche cliente elle-même. Les déplacer vers l'espace
+            photo dédié rend l'application nettement plus rapide, surtout sur mobile. Vos photos restent privées et
+            accessibles exactement comme aujourd'hui.
+          </p>
+          <button type="button" className="btn btn-primary btn-sm" onClick={handleMigratePhotos} disabled={migrating}>
+            {migrating ? 'Optimisation en cours…' : 'Optimiser maintenant'}
+          </button>
+        </div>
+      )}
 
       <div className="card" style={{ marginTop: 'var(--space-5)' }}>
         <h3 className="card-title" style={{ marginBottom: 'var(--space-2)' }}>Sauvegarde des données</h3>

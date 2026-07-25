@@ -14,6 +14,7 @@ import {
   hexToRgb,
   shade,
 } from './pdfHelpers';
+import { pathToDataUrl } from './photoStorage';
 
 function addLabelValueGrid(doc, pairs, y, rgb) {
   const visible = pairs.filter(([, value]) => value);
@@ -160,6 +161,20 @@ export async function buildClientSheetPdf(client, appointments, salon, sections,
 
   if (sections.photos && (client.photos ?? []).length > 0) {
     y = addSectionBand(doc, 'Photos avant / après', y, themeColor);
+
+    // jsPDF ne sait pas charger une URL distante : on résout d'abord toutes les photos
+    // stockées en data URL, en parallèle, avant de commencer à dessiner.
+    const resolved = new Map();
+    await Promise.all(
+      client.photos.flatMap((photo) =>
+        [photo.beforePath, photo.afterPath].filter(Boolean).map(async (path) => {
+          const dataUrl = await pathToDataUrl(path);
+          if (dataUrl) resolved.set(path, dataUrl);
+        })
+      )
+    );
+    const srcFor = (path, legacyUrl) => (path ? resolved.get(path) : legacyUrl) || null;
+
     client.photos.forEach((photo) => {
       y = ensureSpace(doc, y, 65);
       doc.setFont('helvetica', 'bold');
@@ -169,16 +184,18 @@ export async function buildClientSheetPdf(client, appointments, salon, sections,
 
       const imgW = (CONTENT_WIDTH - 6) / 2;
       const imgH = 50;
-      if (photo.beforeUrl) {
+      const beforeSrc = srcFor(photo.beforePath, photo.beforeUrl);
+      const afterSrc = srcFor(photo.afterPath, photo.afterUrl);
+      if (beforeSrc) {
         try {
-          doc.addImage(photo.beforeUrl, imageFormatOf(photo.beforeUrl), MARGIN, y, imgW, imgH, undefined, 'FAST');
+          doc.addImage(beforeSrc, imageFormatOf(beforeSrc), MARGIN, y, imgW, imgH, undefined, 'FAST');
         } catch {
           // Photo illisible : on continue sans bloquer la génération du PDF.
         }
       }
-      if (photo.afterUrl) {
+      if (afterSrc) {
         try {
-          doc.addImage(photo.afterUrl, imageFormatOf(photo.afterUrl), MARGIN + imgW + 6, y, imgW, imgH, undefined, 'FAST');
+          doc.addImage(afterSrc, imageFormatOf(afterSrc), MARGIN + imgW + 6, y, imgW, imgH, undefined, 'FAST');
         } catch {
           // Photo illisible : on continue sans bloquer la génération du PDF.
         }
