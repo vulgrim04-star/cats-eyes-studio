@@ -20,6 +20,7 @@ const ConfirmDeleteAccount = lazy(() => import('./pages/ConfirmDeleteAccount'));
 const Privacy = lazy(() => import('./pages/Privacy'));
 const Terms = lazy(() => import('./pages/Terms'));
 const DemoEntry = lazy(() => import('./pages/DemoEntry'));
+const Guide = lazy(() => import('./pages/Guide'));
 
 export default function App() {
   return (
@@ -44,6 +45,7 @@ export default function App() {
               <Route path="/finances" element={<Finances />} />
               <Route path="/catalogue" element={<Catalogue />} />
               <Route path="/parametres" element={<Settings />} />
+              <Route path="/guide" element={<Guide />} />
             </Route>
           </Route>
         </Routes>

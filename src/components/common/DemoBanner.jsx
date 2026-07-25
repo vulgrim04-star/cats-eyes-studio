@@ -6,11 +6,13 @@ import styles from './DemoBanner.module.css';
 export default function DemoBanner() {
   return (
     <div className={styles.banner} role="status">
+      {/* Formulation courte : sur un écran de 375px, la version longue occupait trois
+          lignes, soit un cinquième de la hauteur utile. */}
       <span className={styles.text}>
-        <strong>Mode démonstration</strong> — données fictives, rien n'est enregistré.
+        <strong>Mode démo</strong> — rien n'est enregistré.
       </span>
       <button type="button" className={styles.exitBtn} onClick={exitDemo}>
-        Quitter la démo
+        Quitter
       </button>
     </div>
   );

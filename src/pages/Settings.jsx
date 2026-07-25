@@ -407,6 +407,13 @@ export default function Settings() {
         </div>
         <div className={styles.prefRow}>
           <div className={styles.prefText}>
+            <div className={styles.prefTitle}>Guide de démarrage</div>
+            <div className={styles.prefSubtitle}>Les étapes pour prendre en main l'application</div>
+          </div>
+          <Link to="/guide" className="btn btn-secondary btn-sm">Ouvrir le guide</Link>
+        </div>
+        <div className={styles.prefRow}>
+          <div className={styles.prefText}>
             <div className={styles.prefTitle}>Un problème, une idée ?</div>
             <div className={styles.prefSubtitle}>
               Signale-le directement — c'est ce qui fait avancer l'application le plus vite.
