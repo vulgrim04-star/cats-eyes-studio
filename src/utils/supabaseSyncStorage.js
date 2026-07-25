@@ -15,8 +15,13 @@ const DEBOUNCE_MS = 800;
 const pendingTimers = new Map();
 const pendingWrites = new Map();
 
-async function flushWrite(name, value, attempt = 1) {
-  if (!currentUserId) return;
+/** Renvoie `true` si la valeur est bien arrivée dans Supabase (ou s'il n'y a pas de compte
+ * connecté, auquel cas le stockage local fait foi). Les appelants qui doivent confirmer une
+ * opération à l'utilisatrice — la restauration de sauvegarde — s'appuient sur ce retour ;
+ * `notify: false` leur permet d'afficher leur propre message plutôt que le message générique
+ * de synchronisation. */
+async function flushWrite(name, value, attempt = 1, { notify = true } = {}) {
+  if (!currentUserId) return true;
   const { error } = await supabase.from('app_state').upsert(
     { user_id: currentUserId, store_key: name, data: JSON.parse(value), updated_at: new Date().toISOString() },
     { onConflict: 'user_id,store_key' }
@@ -25,15 +30,19 @@ async function flushWrite(name, value, attempt = 1) {
     console.error('[supabaseSyncStorage] upsert failed', name, error);
     if (attempt < 2) {
       await new Promise((resolve) => setTimeout(resolve, 1500));
-      return flushWrite(name, value, attempt + 1);
+      return flushWrite(name, value, attempt + 1, { notify });
     }
-    useUIStore
-      .getState()
-      .showToast(
-        'Synchronisation interrompue : vos dernières modifications restent enregistrées sur cet appareil, nouvelle tentative au prochain changement.',
-        'error'
-      );
+    if (notify) {
+      useUIStore
+        .getState()
+        .showToast(
+          'Synchronisation interrompue : vos dernières modifications restent enregistrées sur cet appareil, nouvelle tentative au prochain changement.',
+          'error'
+        );
+    }
+    return false;
   }
+  return true;
 }
 
 /** Envoie immédiatement toute écriture en attente (ex. avant une déconnexion ou une fermeture
@@ -49,6 +58,38 @@ export function flushPendingWrites() {
 
 if (typeof window !== 'undefined') {
   window.addEventListener('pagehide', () => flushPendingWrites());
+}
+
+/** Remplace l'intégralité de l'état persisté (restauration d'une sauvegarde).
+ *
+ * Écrire uniquement en localStorage ne suffit pas : au rechargement qui suit, `getItem`
+ * relit le cloud pour un compte connecté et réécrase le local. La sauvegarde importée
+ * serait donc silencieusement jetée alors qu'on annonce « Sauvegarde restaurée ».
+ *
+ * Le cloud est écrit EN PREMIER et le local seulement une fois tout confirmé : si le réseau
+ * lâche en cours de route, rien n'a bougé nulle part et le compte reste dans son état
+ * d'avant l'import, plutôt qu'à moitié restauré.
+ *
+ * Renvoie `false` si la restauration n'a pas pu être garantie ; l'appelant ne doit alors
+ * pas annoncer de succès. */
+export async function replaceAllStoredState(entries) {
+  if (isDemoActive()) return false;
+
+  // Les écritures encore en attente portent l'état d'AVANT la restauration : les laisser
+  // partir écraserait la sauvegarde qu'on vient d'importer.
+  pendingTimers.forEach((timer) => clearTimeout(timer));
+  pendingTimers.clear();
+  pendingWrites.clear();
+
+  if (currentUserId) {
+    const results = await Promise.all(
+      entries.map(([name, value]) => flushWrite(name, value, 1, { notify: false }))
+    );
+    if (results.some((ok) => !ok)) return false;
+  }
+
+  entries.forEach(([name, value]) => localStorage.setItem(name, value));
+  return true;
 }
 
 /** Storage compatible avec zustand `createJSONStorage` : écrit en localStorage (instantané)

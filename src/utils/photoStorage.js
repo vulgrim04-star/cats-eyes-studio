@@ -72,15 +72,29 @@ export async function getPhotoUrl(path) {
   return data.signedUrl;
 }
 
-/** Supprime les fichiers d'une séance photo. Best-effort : si la suppression échoue, la
- * séance disparaît quand même de la fiche cliente (on ne bloque pas l'utilisatrice sur un
- * fichier résiduel). */
+/** Supprime des fichiers photo et indique si l'opération a réussi. Best-effort du point de
+ * vue de l'appelant courant : si la suppression échoue, la séance disparaît quand même de la
+ * fiche cliente (on ne bloque pas l'utilisatrice sur un fichier résiduel). Le retour sert aux
+ * appelants qui, eux, effacent l'unique index de ces chemins — la réinitialisation des
+ * données — et doivent pouvoir le signaler. */
 export async function deleteStoredPhotos(paths) {
   const valid = paths.filter(Boolean);
-  if (valid.length === 0) return;
+  if (valid.length === 0) return true;
   valid.forEach((p) => urlCache.delete(p));
   const { error } = await supabase.storage.from(PHOTO_BUCKET).remove(valid);
-  if (error) console.error('[photoStorage] remove failed', error);
+  if (error) {
+    console.error('[photoStorage] remove failed', error);
+    return false;
+  }
+  return true;
+}
+
+/** Tous les chemins de stockage référencés par une liste de clientes. */
+export function collectPhotoPaths(clients) {
+  return (clients ?? [])
+    .flatMap((client) => client.photos ?? [])
+    .flatMap((photo) => [photo.beforePath, photo.afterPath])
+    .filter(Boolean);
 }
 
 /** Convertit une photo stockée en data URL, nécessaire pour jsPDF (`addImage` ne sait pas

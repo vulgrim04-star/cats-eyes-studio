@@ -1,3 +1,5 @@
+import { replaceAllStoredState } from './supabaseSyncStorage';
+
 const STORE_KEYS = ['ces-clients', 'ces-appointments', 'ces-products', 'ces-services', 'ces-settings', 'ces-expenses', 'ces-waitlist'];
 
 export function downloadBackup(salonName) {
@@ -20,15 +22,29 @@ export function downloadBackup(salonName) {
   URL.revokeObjectURL(url);
 }
 
-/** Restaure une sauvegarde JSON ; lève une erreur si le format est invalide. */
-export function restoreBackup(jsonText) {
+export class InvalidBackupError extends Error {}
+export class BackupSyncError extends Error {}
+
+/** Restaure une sauvegarde JSON.
+ *
+ * Lève `InvalidBackupError` si le fichier n'est pas une sauvegarde exploitable, et
+ * `BackupSyncError` si les données n'ont pas pu être écrites de façon garantie — dans ce
+ * dernier cas rien n'a été modifié, et l'appelant ne doit surtout pas recharger la page
+ * en annonçant un succès. */
+export async function restoreBackup(jsonText) {
   const parsed = JSON.parse(jsonText);
   if (!parsed || typeof parsed !== 'object' || !parsed.data) {
-    throw new Error('Fichier de sauvegarde invalide');
+    throw new InvalidBackupError('Fichier de sauvegarde invalide');
   }
-  STORE_KEYS.forEach((key) => {
-    if (parsed.data[key]) {
-      localStorage.setItem(key, JSON.stringify(parsed.data[key]));
-    }
-  });
+  const entries = STORE_KEYS.filter((key) => parsed.data[key]).map((key) => [
+    key,
+    JSON.stringify(parsed.data[key]),
+  ]);
+  if (entries.length === 0) {
+    throw new InvalidBackupError('Fichier de sauvegarde invalide');
+  }
+  const ok = await replaceAllStoredState(entries);
+  if (!ok) {
+    throw new BackupSyncError("La restauration n'a pas pu être enregistrée");
+  }
 }

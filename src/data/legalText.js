@@ -2,12 +2,13 @@
 // l'utilisent), à ne pas confondre avec src/data/consentText.js qui contient les
 // formulaires que LEURS clientes signent en cabine.
 //
-// ⚠️ Les valeurs ci-dessous doivent être complétées avec les informations légales réelles
-// de l'éditeur avant toute ouverture publique — les [CROCHETS] sont des marqueurs à remplacer.
+// Informations légales réelles de l'éditeur : elles apparaissent telles quelles dans les
+// mentions légales, la politique de confidentialité et les CGU. Toute modification ici est
+// donc un changement de portée juridique, pas un ajustement de contenu.
 export const PUBLISHER = {
-  name: '[Raison sociale ou nom complet de l\'éditeur]',
-  address: '[Adresse postale complète]',
-  email: '[adresse e-mail de contact]',
+  name: "Cat's Eyes Studio",
+  address: 'Chemin de Folliéran 33, 1630 Bulle',
+  email: 'studio@cats-eyes.com',
   country: 'Suisse',
 };
 

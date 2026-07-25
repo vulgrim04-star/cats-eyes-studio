@@ -19,8 +19,15 @@ export default function ResetDataModal({ open, onClose }) {
     if (input !== CONFIRM_WORD) return;
     setLoading(true);
     try {
-      await resetAllData();
-      showToast('Toutes les données ont été réinitialisées.', 'success');
+      const { photosDeleted } = await resetAllData();
+      // Le reste est bien effacé : on ne transforme pas ça en échec, mais on ne laisse pas
+      // croire à une suppression complète alors que des photos subsistent.
+      showToast(
+        photosDeleted
+          ? 'Toutes les données ont été réinitialisées.'
+          : 'Données réinitialisées, mais certaines photos n’ont pas pu être supprimées du cloud. Contacte le support si besoin.',
+        photosDeleted ? 'success' : 'error'
+      );
       handleClose();
     } catch {
       showToast('La réinitialisation a échoué, réessaie dans un instant.', 'error');
@@ -50,7 +57,7 @@ export default function ResetDataModal({ open, onClose }) {
     >
       <p style={{ fontSize: '0.88rem', lineHeight: 1.6, marginBottom: 'var(--space-4)' }}>
         Cette action est <strong>irréversible</strong>. Seront supprimés définitivement : toutes tes clientes,
-        rendez-vous, prestations, stock, dépenses et demandes de réservation en attente. Ton compte de connexion et
+        leurs photos avant/après, rendez-vous, prestations, stock, dépenses et demandes de réservation en attente. Ton compte de connexion et
         les paramètres du salon (nom, horaires, apparence) restent intacts — tu repars avec un espace vide, comme un
         compte tout juste créé.
       </p>

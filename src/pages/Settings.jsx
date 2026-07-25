@@ -10,7 +10,7 @@ import { useToast } from '../hooks/useToast';
 import { countInlinePhotos, migrateInlinePhotos } from '../utils/photoStorage';
 import { fileToResizedDataUrl } from '../utils/image';
 import { CURRENCIES } from '../utils/format';
-import { downloadBackup, restoreBackup } from '../utils/backup';
+import { downloadBackup, restoreBackup, BackupSyncError } from '../utils/backup';
 import { subscribeToPush, isPushSupported } from '../utils/push';
 import { signOut, useAuthStore } from '../store/useAuthStore';
 import DeleteAccountModal from '../components/settings/DeleteAccountModal';
@@ -46,6 +46,7 @@ export default function Settings() {
   const [resetModalOpen, setResetModalOpen] = useState(false);
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [migrating, setMigrating] = useState(false);
+  const [restoring, setRestoring] = useState(false);
   const { clients, updatePhotoSession } = useClients();
   const inlinePhotoCount = countInlinePhotos(clients);
 
@@ -124,13 +125,24 @@ export default function Settings() {
       return;
     }
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = async () => {
+      setRestoring(true);
       try {
-        restoreBackup(reader.result);
+        await restoreBackup(reader.result);
         showToast('Sauvegarde restaurée, rechargement…', 'success');
         setTimeout(() => window.location.reload(), 800);
-      } catch {
-        showToast('Fichier de sauvegarde invalide', 'error');
+      } catch (err) {
+        setRestoring(false);
+        // Distinguer les deux échecs : un fichier illisible se corrige en choisissant le
+        // bon fichier, une synchronisation qui échoue se corrige en réessayant plus tard.
+        if (err instanceof BackupSyncError) {
+          showToast(
+            "La restauration a échoué : vos données actuelles n'ont pas été modifiées. Vérifiez votre connexion et réessayez.",
+            'error'
+          );
+        } else {
+          showToast('Fichier de sauvegarde invalide', 'error');
+        }
       }
     };
     reader.readAsText(file);
@@ -452,20 +464,30 @@ export default function Settings() {
 
       <div className="card" style={{ marginTop: 'var(--space-5)' }}>
         <h3 className="card-title" style={{ marginBottom: 'var(--space-2)' }}>Sauvegarde des données</h3>
-        <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
+        <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginBottom: 'var(--space-2)' }}>
           Vos données sont synchronisées sur votre compte cloud et retrouvées automatiquement à chaque connexion. Téléchargez aussi une sauvegarde régulièrement par sécurité.
+        </p>
+        <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
+          Le fichier contient vos clientes, rendez-vous, prestations, stock, dépenses et
+          paramètres, ainsi que les signatures et le logo. <strong>Les photos avant/après n'y
+          sont pas incluses</strong> : elles restent stockées sur votre espace cloud privé.
         </p>
         <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap' }}>
           <button type="button" className="btn btn-secondary btn-sm" onClick={() => downloadBackup(salon.name)}>
             <Icon name="download" size={14} /> Télécharger la sauvegarde
           </button>
-          <label htmlFor="backup-import" className="btn btn-ghost btn-sm" style={{ cursor: 'pointer' }}>
-            <Icon name="upload" size={14} /> Importer une sauvegarde
+          <label
+            htmlFor="backup-import"
+            className="btn btn-ghost btn-sm"
+            style={{ cursor: restoring ? 'default' : 'pointer', opacity: restoring ? 0.5 : 1 }}
+          >
+            <Icon name="upload" size={14} /> {restoring ? 'Restauration…' : 'Importer une sauvegarde'}
           </label>
           <input
             id="backup-import"
             type="file"
             accept="application/json"
+            disabled={restoring}
             style={{ display: 'none' }}
             onChange={(e) => {
               const file = e.target.files?.[0];

@@ -12,6 +12,31 @@ import { hasSupabaseAdminConfig, getSupabaseAdmin } from './_lib/supabaseAdmin.j
 // Historiquement prévue en Edge Function Supabase (voir supabase/README.md), réécrite ici
 // parce que les fonctions Vercel se déploient automatiquement au `git push`, sans étape
 // manuelle dans un tableau de bord.
+const PHOTO_BUCKET = 'client-photos';
+
+// Les photos sont rangées en `{userId}/{clientId}/{photoId}-{side}.jpg`. Storage n'offre pas
+// de suppression par préfixe : il faut énumérer les dossiers clientes puis leurs fichiers.
+// `list()` renvoie les dossiers avec un `id` nul, ce qui les distingue des fichiers.
+async function collectUserPhotoPaths(supabase, userId) {
+  const paths = [];
+  const { data: clientFolders, error } = await supabase.storage.from(PHOTO_BUCKET).list(userId, { limit: 1000 });
+  if (error) throw error;
+
+  for (const folder of clientFolders ?? []) {
+    if (folder.id !== null) {
+      paths.push(`${userId}/${folder.name}`);
+      continue;
+    }
+    const prefix = `${userId}/${folder.name}`;
+    const { data: files, error: filesError } = await supabase.storage
+      .from(PHOTO_BUCKET)
+      .list(prefix, { limit: 1000 });
+    if (filesError) throw filesError;
+    (files ?? []).forEach((file) => paths.push(`${prefix}/${file.name}`));
+  }
+  return paths;
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     res.status(405).json({ error: 'Méthode non autorisée.' });
@@ -41,7 +66,26 @@ export default async function handler(req, res) {
     }
     const userId = userData.user.id;
 
-    // Les trois tables déclarent `on delete cascade` sur auth.users, donc la suppression
+    // Les photos avant/après sont dans Storage, qui ne suit aucune cascade : sans cette
+    // étape elles survivraient à la suppression du compte, et resteraient inaccessibles à
+    // tout le monde puisque leurs policies exigent un `auth.uid()` désormais inexistant.
+    // Fait AVANT le reste : si l'énumération échoue, on interrompt tout plutôt que de
+    // détruire le compte en laissant des données personnelles derrière lui.
+    try {
+      const photoPaths = await collectUserPhotoPaths(supabase, userId);
+      if (photoPaths.length > 0) {
+        const { error: removeError } = await supabase.storage.from(PHOTO_BUCKET).remove(photoPaths);
+        if (removeError) throw removeError;
+      }
+    } catch (storageError) {
+      console.error('[api/delete-account] photo cleanup failed', storageError);
+      res.status(500).json({
+        error: "La suppression des photos a échoué. Votre compte n'a pas été supprimé, réessayez dans quelques minutes.",
+      });
+      return;
+    }
+
+    // Les tables déclarent `on delete cascade` sur auth.users, donc la suppression
     // du compte suffirait ; on les vide explicitement d'abord pour que les données
     // disparaissent même si une contrainte venait à être modifiée plus tard.
     await supabase.from('app_state').delete().eq('user_id', userId);
