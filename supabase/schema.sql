@@ -54,3 +54,19 @@ create table if not exists public.push_subscriptions (
 );
 
 alter table public.push_subscriptions enable row level security;
+
+-- Retours des utilisatrices (bug, suggestion) et rapports d'erreur automatiques envoyés
+-- par l'ErrorBoundary. `user_id` est nullable pour couvrir les pages publiques
+-- (/r/:ownerId) où personne n'est authentifié.
+create table if not exists public.feedback (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users (id) on delete cascade,
+  kind text not null default 'bug',
+  message text not null,
+  page text,
+  user_agent text,
+  error_detail text,
+  created_at timestamptz not null default now()
+);
+
+alter table public.feedback enable row level security;

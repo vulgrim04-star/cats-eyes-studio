@@ -64,3 +64,15 @@ create policy owner_update_push_subscriptions on public.push_subscriptions
 create policy owner_delete_push_subscriptions on public.push_subscriptions
   for delete
   using (auth.uid() = user_id);
+
+-- ── feedback ────────────────────────────────────────────────────────────────
+-- Insertion ouverte (y compris anonyme, pour capter les erreurs de la page de
+-- réservation publique), mais uniquement pour soi : impossible d'attribuer un retour
+-- à un autre compte. Lecture strictement limitée à ses propres retours.
+create policy feedback_insert on public.feedback
+  for insert
+  with check (user_id is null or auth.uid() = user_id);
+
+create policy feedback_select_own on public.feedback
+  for select
+  using (auth.uid() = user_id);

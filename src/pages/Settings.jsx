@@ -13,6 +13,7 @@ import { subscribeToPush, isPushSupported } from '../utils/push';
 import { signOut, useAuthStore } from '../store/useAuthStore';
 import DeleteAccountModal from '../components/settings/DeleteAccountModal';
 import ResetDataModal from '../components/settings/ResetDataModal';
+import FeedbackModal from '../components/settings/FeedbackModal';
 import styles from './Settings.module.css';
 
 const DAY_LABELS = { lun: 'Lun', mar: 'Mar', mer: 'Mer', jeu: 'Jeu', ven: 'Ven', sam: 'Sam', dim: 'Dim' };
@@ -41,6 +42,7 @@ export default function Settings() {
   const [dirty, setDirty] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [resetModalOpen, setResetModalOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [notifPermission, setNotifPermission] = useState(
     typeof Notification !== 'undefined' ? Notification.permission : 'unsupported'
   );
@@ -389,6 +391,17 @@ export default function Settings() {
         </div>
         <div className={styles.prefRow}>
           <div className={styles.prefText}>
+            <div className={styles.prefTitle}>Un problème, une idée ?</div>
+            <div className={styles.prefSubtitle}>
+              Signale-le directement — c'est ce qui fait avancer l'application le plus vite.
+            </div>
+          </div>
+          <button type="button" className="btn btn-secondary btn-sm" onClick={() => setFeedbackOpen(true)}>
+            <Icon name="mail" size={14} /> Envoyer un retour
+          </button>
+        </div>
+        <div className={styles.prefRow}>
+          <div className={styles.prefText}>
             <div className={styles.prefTitle}>Informations légales</div>
             <div className={styles.prefSubtitle}>Politique de confidentialité et conditions d'utilisation</div>
           </div>
@@ -448,6 +461,7 @@ export default function Settings() {
 
       <ResetDataModal open={resetModalOpen} onClose={() => setResetModalOpen(false)} />
       <DeleteAccountModal open={deleteModalOpen} onClose={() => setDeleteModalOpen(false)} />
+      <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
     </>
   );
 }

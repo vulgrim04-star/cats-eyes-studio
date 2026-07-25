@@ -47,6 +47,7 @@ export default async function handler(req, res) {
     await supabase.from('app_state').delete().eq('user_id', userId);
     await supabase.from('booking_requests').delete().eq('owner_id', userId);
     await supabase.from('push_subscriptions').delete().eq('user_id', userId);
+    await supabase.from('feedback').delete().eq('user_id', userId);
 
     const { error: deleteError } = await supabase.auth.admin.deleteUser(userId);
     if (deleteError) {

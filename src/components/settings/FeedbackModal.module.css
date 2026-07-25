@@ -1,0 +1,28 @@
+.kindRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.kindChip {
+  padding: 7px 14px;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-white);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-soft);
+}
+
+.kindChipActive {
+  border-color: var(--color-rose);
+  background: var(--color-rose-light);
+  color: var(--color-rose-dark);
+}
+
+.privacyNote {
+  font-size: 0.74rem;
+  color: var(--color-text-muted);
+  margin: 8px 0 0;
+  line-height: 1.5;
+}
