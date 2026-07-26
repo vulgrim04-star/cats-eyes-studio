@@ -1,5 +1,6 @@
 import { formatDateLong } from '../src/utils/date.js';
 import { hasSupabaseAdminConfig, getSupabaseAdmin } from './_lib/supabaseAdmin.js';
+import { resendFrom, isTestSender } from './_lib/email.js';
 
 function escapeHtml(str) {
   return String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -79,7 +80,7 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        from: `${salon?.name || "Votre institut"} <onboarding@resend.dev>`,
+        from: resendFrom(salon?.name),
         to: [client.email],
         subject,
         html,
@@ -89,6 +90,17 @@ export default async function handler(req, res) {
     if (!resendRes.ok) {
       const detail = await resendRes.text();
       console.error('[api/send-confirmation-email] Resend error', resendRes.status, detail);
+      // Cause de loin la plus probable : pas de domaine vérifié, donc Resend refuse tout
+      // destinataire autre que le titulaire du compte — ce qui condamne cette fonctionnalité
+      // entière, puisqu'elle écrit par définition à des clientes.
+      if (resendRes.status === 403 && isTestSender()) {
+        console.error(
+          '[api/send-confirmation-email] aucun domaine vérifié : définissez RESEND_FROM ' +
+            'sur une adresse d’un domaine vérifié dans Resend, sinon aucune cliente ne recevra sa confirmation.'
+        );
+        res.status(200).json({ sent: false, reason: 'unverified-sender-domain' });
+        return;
+      }
       res.status(200).json({ sent: false, reason: 'resend-error' });
       return;
     }

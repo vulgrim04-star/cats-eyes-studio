@@ -1,5 +1,6 @@
 import webpush from 'web-push';
 import { hasSupabaseAdminConfig, getSupabaseAdmin } from './_lib/supabaseAdmin.js';
+import { resendFrom, isTestSender } from './_lib/email.js';
 
 function escapeHtml(str) {
   return String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -23,11 +24,20 @@ async function sendEmail(salon, clientName, { phone, serviceName, date, time }) 
   const resendRes = await fetch('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: `${salon?.name || "Votre institut"} <onboarding@resend.dev>`, to: [salon.email], subject, html }),
+    body: JSON.stringify({ from: resendFrom(salon?.name), to: [salon.email], subject, html }),
   });
 
   if (!resendRes.ok) {
     console.error('[api/notify-booking] Resend error', resendRes.status, await resendRes.text());
+    // Sans domaine vérifié, Resend n'accepte que l'adresse du titulaire du compte : la
+    // notification ne part que si l'e-mail du salon est exactement celui du compte Resend.
+    if (resendRes.status === 403 && isTestSender()) {
+      console.error(
+        `[api/notify-booking] aucun domaine vérifié : Resend refuse d'écrire à ${salon.email}. ` +
+          'Vérifiez un domaine dans Resend puis définissez RESEND_FROM.'
+      );
+      return { sent: false, reason: 'unverified-sender-domain' };
+    }
     return { sent: false, reason: 'resend-error' };
   }
   return { sent: true };

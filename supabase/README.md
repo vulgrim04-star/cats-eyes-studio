@@ -148,11 +148,23 @@ bord Vercel du projet (Project Settings → Environment Variables) :
   bancaire requise pour le tier gratuit ~3000 e-mails/mois). Nécessaire pour les deux
   fonctionnalités d'e-mail (notification de réservation au salon, confirmation à la cliente) ;
   sans cette clé, les toggles concernés dans Paramètres restent sans effet (pas d'erreur,
-  l'e-mail n'est simplement pas envoyé). Les e-mails partent depuis le domaine de test
-  `onboarding@resend.dev` fourni par Resend — cela fonctionne sans configuration DNS, mais pour
-  un meilleur taux de délivrabilité et un expéditeur à votre propre nom de domaine, vous pouvez
-  plus tard vérifier votre propre domaine dans le dashboard Resend (Domains → Add Domain) sans
-  rien changer côté code.
+  l'e-mail n'est simplement pas envoyé).
+- `RESEND_FROM` — adresse d'expédition, sur un domaine **vérifié** dans Resend
+  (ex. `studio@cats-eyes.com`, ou `Cat's Eyes Studio <studio@cats-eyes.com>`).
+
+  **Cette variable n'est pas optionnelle en pratique.** Sans elle, les e-mails partent du
+  domaine de test `onboarding@resend.dev`, et Resend n'accepte alors qu'un seul destinataire :
+  l'adresse du titulaire du compte Resend. Tout autre destinataire est refusé avec un 403.
+  Concrètement :
+  - la **notification de réservation** (adressée à la salonnière) ne part que si l'e-mail du
+    salon est exactement celui du compte Resend ;
+  - la **confirmation à la cliente** échoue systématiquement, puisqu'elle écrit par définition
+    à une adresse tierce.
+
+  Pour lever la limite : dashboard Resend → Domains → Add Domain, ajouter les enregistrements
+  DNS fournis chez le registrar, attendre la vérification, puis définir `RESEND_FROM` dans
+  Vercel. Aucune modification de code n'est nécessaire. Les deux endpoints journalisent
+  explicitement ce diagnostic (`unverified-sender-domain`) en cas de 403.
 - `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` — paire de clés Web Push (norme ouverte, aucun compte
   tiers à créer) générée pour ce projet le 2026-07-24 :
   ```
