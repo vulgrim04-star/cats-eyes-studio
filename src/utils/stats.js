@@ -13,8 +13,13 @@ export function revenueForDate(appointments, date) {
     .reduce((sum, a) => sum + a.price, 0);
 }
 
+/** Variation en pourcentage, ou `null` quand elle n'a pas de sens.
+ *
+ * Sans base de comparaison — un jour de fermeture, un premier mois d'activité — il n'existe
+ * aucun pourcentage juste : « +100% » laissait entendre un doublement là où l'on passait
+ * simplement de rien à quelque chose. `KpiCard` masque la pastille quand on renvoie `null`. */
 export function trendPercent(current, previous) {
-  if (previous === 0) return current > 0 ? 100 : 0;
+  if (previous === 0) return null;
   return Math.round(((current - previous) / previous) * 100);
 }
 

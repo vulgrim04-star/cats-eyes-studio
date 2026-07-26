@@ -44,6 +44,7 @@ export async function generateInvoicePdf(appointment, salon, themeColor) {
   y += 5;
 
   const vatRate = salon?.vatRate ?? 20;
+  const subjectToVat = vatRate > 0;
   const priceTTC = appointment.price ?? 0;
   const priceHT = priceTTC / (1 + vatRate / 100);
   const vatAmount = priceTTC - priceHT;
@@ -55,7 +56,7 @@ export async function generateInvoicePdf(appointment, salon, themeColor) {
   doc.setFontSize(9.5);
   doc.setTextColor(255, 255, 255);
   doc.text('PRESTATION', MARGIN + 4, y + rowH / 2 + 1.5);
-  doc.text('PRIX TTC', PAGE_WIDTH - MARGIN - 4, y + rowH / 2 + 1.5, { align: 'right' });
+  doc.text(subjectToVat ? 'PRIX TTC' : 'PRIX', PAGE_WIDTH - MARGIN - 4, y + rowH / 2 + 1.5, { align: 'right' });
   doc.setTextColor(0);
   y += rowH + 8;
 
@@ -68,8 +69,12 @@ export async function generateInvoicePdf(appointment, salon, themeColor) {
   doc.line(MARGIN, y, PAGE_WIDTH - MARGIN, y);
   y += 10;
 
-  y = totalRow(doc, `TVA (${vatRate}%)`, formatPriceFull(vatAmount), y);
-  y = totalRow(doc, 'Total HT', formatPriceFull(priceHT), y);
+  // Une institutrice non assujettie à la TVA ne doit voir ni « TVA (0%) », ni « HT/TTC » :
+  // ce vocabulaire laisse croire à une facturation avec TVA qu'elle n'a pas le droit d'émettre.
+  if (subjectToVat) {
+    y = totalRow(doc, `TVA (${vatRate}%)`, formatPriceFull(vatAmount), y);
+    y = totalRow(doc, 'Total HT', formatPriceFull(priceHT), y);
+  }
   y += 1;
   doc.setDrawColor(rgb.r, rgb.g, rgb.b);
   doc.setLineWidth(0.5);
@@ -77,7 +82,7 @@ export async function generateInvoicePdf(appointment, salon, themeColor) {
   doc.setLineWidth(0.2);
   doc.setDrawColor(0);
   y += 7;
-  y = totalRow(doc, 'Total TTC', formatPriceFull(priceTTC), y, { bold: true, rgb });
+  y = totalRow(doc, subjectToVat ? 'Total TTC' : 'Total', formatPriceFull(priceTTC), y, { bold: true, rgb });
   y += 6;
 
   if (appointment.paymentMethod) {

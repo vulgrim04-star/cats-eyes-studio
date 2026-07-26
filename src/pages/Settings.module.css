@@ -56,6 +56,21 @@
   color: var(--color-text);
 }
 
+.soonBadge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  background: var(--color-neutral-bg);
+  border: 1px solid var(--color-border);
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--color-text-muted);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
 .prefSubtitle {
   font-size: 0.76rem;
   color: var(--color-text-muted);

@@ -72,6 +72,13 @@ export default function Booking() {
   const appointmentsForSlots = isPublic ? publicDateAppointments : localAppointments;
 
   const grouped = useMemo(() => groupByCategory(services), [services]);
+  // Un institut qui ne fait que les cils n'a aucune raison d'afficher trois rubriques vides
+  // à ses clientes, et un compte dont le catalogue n'est pas encore rempli ne doit pas
+  // présenter une page muette : on ne garde que les catégories qui ont des prestations.
+  const filledCategories = useMemo(
+    () => SERVICE_CATEGORIES.filter((cat) => (grouped[cat.id] ?? []).length > 0),
+    [grouped]
+  );
   const featured = useMemo(() => (isPublic ? [] : topServicesThisMonth(localAppointments, 3)), [isPublic, localAppointments]);
 
   const service = services.find((s) => s.id === serviceId);
@@ -244,8 +251,15 @@ export default function Booking() {
             <>
               <h2 className={styles.title}>Choisissez votre prestation</h2>
               <p className={styles.subtitle}>Extensions de cils, sourcils, soins ou forfaits</p>
+              {filledCategories.length === 0 && (
+                <p className={styles.subtitle} style={{ textAlign: 'center', marginTop: 'var(--space-6)' }}>
+                  {isPublic
+                    ? "Aucune prestation n'est proposée à la réservation pour le moment. Contactez l'institut directement."
+                    : "Votre catalogue est vide. Ajoutez vos prestations dans Catalogue pour qu'elles apparaissent ici et sur votre lien de réservation."}
+                </p>
+              )}
               <div className={styles.serviceGrid}>
-                {SERVICE_CATEGORIES.map((cat) => (
+                {filledCategories.map((cat) => (
                   <div key={cat.id}>
                     <div className={styles.categoryLabel}>{cat.label}</div>
                     {(grouped[cat.id] ?? []).map((s) => (

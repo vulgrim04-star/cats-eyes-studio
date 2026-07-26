@@ -24,8 +24,12 @@ const NOTIFICATION_ROWS = [
   { key: 'newBookingAlert', title: 'Notification nouvelle réservation', subtitle: "Notification sur ton téléphone/ordinateur dès qu'une cliente réserve via le lien en ligne, même app fermée (nécessite d'activer les notifications ci-dessus)" },
   { key: 'newBookingEmail', title: 'E-mail nouvelle réservation', subtitle: "Recevoir un e-mail à l'adresse du salon dès qu'une cliente réserve via le lien en ligne" },
   { key: 'autoConfirm', title: 'Confirmation automatique', subtitle: "Envoyer un e-mail de confirmation à la cliente dès qu'un RDV est créé (si son adresse e-mail est enregistrée)" },
-  { key: 'reminder24h', title: 'Rappel 24h avant', subtitle: 'Envoyer un rappel automatique la veille du rendez-vous (simulation)' },
-  { key: 'reminder2h', title: 'Rappel 2h avant', subtitle: 'Envoyer un rappel automatique quelques heures avant le rendez-vous (simulation)' },
+  // Ces deux réglages étaient enregistrés mais lus nulle part : aucun rappel n'a jamais été
+  // envoyé. Les laisser activables faisait compter sur une fonctionnalité inexistante, et le
+  // problème ne se découvrait qu'au premier rendez-vous manqué. Ils restent visibles, parce
+  // que c'est une attente légitime, mais annoncés pour ce qu'ils sont.
+  { key: 'reminder24h', title: 'Rappel 24h avant', subtitle: 'Envoyer un rappel automatique la veille du rendez-vous.', comingSoon: true },
+  { key: 'reminder2h', title: 'Rappel 2h avant', subtitle: 'Envoyer un rappel automatique quelques heures avant le rendez-vous.', comingSoon: true },
 ];
 
 const COLOR_SWATCHES = ['#C8718A', '#8B5CF6', '#4F9DDE', '#4CA97A', '#D9A441', '#C6667A'];
@@ -396,12 +400,20 @@ export default function Settings() {
           </p>
         )}
         {NOTIFICATION_ROWS.map((row) => (
-          <div key={row.key} className={styles.prefRow}>
+          <div key={row.key} className={styles.prefRow} style={row.comingSoon ? { opacity: 0.55 } : undefined}>
             <div className={styles.prefText}>
-              <div className={styles.prefTitle}>{row.title}</div>
+              <div className={styles.prefTitle}>
+                {row.title}
+                {row.comingSoon && <span className={styles.soonBadge}>Bientôt disponible</span>}
+              </div>
               <div className={styles.prefSubtitle}>{row.subtitle}</div>
             </div>
-            <Toggle active={notifications[row.key]} onChange={() => toggleNotification(row.key)} label={row.title} />
+            <Toggle
+              active={row.comingSoon ? false : notifications[row.key]}
+              onChange={() => toggleNotification(row.key)}
+              label={row.title}
+              disabled={row.comingSoon}
+            />
           </div>
         ))}
       </div>
