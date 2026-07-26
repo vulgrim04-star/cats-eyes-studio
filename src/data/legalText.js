@@ -8,7 +8,10 @@
 export const PUBLISHER = {
   name: "Cat's Eyes Studio",
   address: 'Chemin de Folliéran 33, 1630 Bulle',
-  email: 'studio@cats-eyes.com',
+  // Domaine .ch (celui d'IONOS, avec MX actifs). Le .com appartient à un tiers : y écrire
+  // ne mène nulle part, ce qui condamnait le seul contact des mentions légales et de la
+  // section « exercer vos droits » de la politique de confidentialité.
+  email: 'studio@cats-eyes.ch',
   country: 'Suisse',
 };
 

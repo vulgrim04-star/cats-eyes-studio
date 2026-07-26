@@ -149,8 +149,11 @@ bord Vercel du projet (Project Settings → Environment Variables) :
   fonctionnalités d'e-mail (notification de réservation au salon, confirmation à la cliente) ;
   sans cette clé, les toggles concernés dans Paramètres restent sans effet (pas d'erreur,
   l'e-mail n'est simplement pas envoyé).
-- `RESEND_FROM` — adresse d'expédition, sur un domaine **vérifié** dans Resend
-  (ex. `studio@cats-eyes.com`, ou `Cat's Eyes Studio <studio@cats-eyes.com>`).
+- `RESEND_FROM` — adresse d'expédition, sur un domaine **vérifié** dans Resend. Pour ce
+  projet : `studio@cats-eyes.ch` (ou `Cat's Eyes Studio <studio@cats-eyes.ch>`).
+
+  ⚠️ Le domaine est `cats-eyes.ch`, chez IONOS. Le `.com` appartient à un tiers : ne rien y
+  envoyer, il n'a aucun MX.
 
   **Cette variable n'est pas optionnelle en pratique.** Sans elle, les e-mails partent du
   domaine de test `onboarding@resend.dev`, et Resend n'accepte alors qu'un seul destinataire :

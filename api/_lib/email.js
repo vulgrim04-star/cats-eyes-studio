@@ -13,8 +13,8 @@ const TEST_FROM = 'onboarding@resend.dev';
 export function resendFrom(salonName) {
   const configured = process.env.RESEND_FROM?.trim();
   const address = configured || TEST_FROM;
-  // RESEND_FROM accepte les deux formes : "studio@cats-eyes.com" ou
-  // "Cat's Eyes Studio <studio@cats-eyes.com>". Si le nom est déjà là, on n'y touche pas.
+  // RESEND_FROM accepte les deux formes : "studio@cats-eyes.ch" ou
+  // "Cat's Eyes Studio <studio@cats-eyes.ch>". Si le nom est déjà là, on n'y touche pas.
   if (address.includes('<')) return address;
   return `${salonName || 'Votre institut'} <${address}>`;
 }
