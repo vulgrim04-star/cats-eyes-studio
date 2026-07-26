@@ -138,12 +138,20 @@ bord Vercel du projet (Project Settings → Environment Variables) :
 - `SUPABASE_SERVICE_ROLE_KEY` — la clé `service_role` (même page). **Ne jamais l'exposer côté
   client** (pas de préfixe `VITE_`) : elle contourne toutes les policies RLS.
 
-  **En pratique, ces deux-là n'ont pas besoin d'être ajoutées séparément** : le projet a une
-  intégration Supabase officielle (marketplace Vercel) déjà connectée, qui expose automatiquement
-  `Catseyesapp_SUPABASE_URL` et `Catseyesapp_SUPABASE_SERVICE_ROLE_KEY`. `api/_lib/supabaseAdmin.js`
-  retombe automatiquement sur ces deux variables préfixées si `SUPABASE_URL`/`SUPABASE_SERVICE_ROLE_KEY`
-  ne sont pas définies — donc aucune étape manuelle requise pour celles-ci tant que l'intégration
-  reste connectée (Project Settings → Integrations → Supabase).
+  ⚠️ **Ces deux-là doivent être ajoutées explicitement.** Une version antérieure de ce document
+  affirmait le contraire : l'intégration Supabase (marketplace Vercel) expose
+  `Catseyesapp_SUPABASE_URL` / `Catseyesapp_SUPABASE_SERVICE_ROLE_KEY`, sur lesquelles
+  `api/_lib/supabaseAdmin.js` retombe, et on en concluait qu'aucune étape manuelle n'était
+  nécessaire. C'était faux en pratique : le 27 juillet 2026, `GET /api/health` a renvoyé
+  `supabaseSameProjectAsClient: false` et `supabaseError: PGRST205` — l'intégration pointait
+  vers un **autre projet** que celui du front (`ewkevxufmeuwgpdpyjun`). Toutes les fonctions
+  serveur échouaient donc silencieusement : les deux e-mails, la suppression de compte et le
+  flux `.ics`.
+
+  Les noms « plats » ont la priorité dans le code, donc les définir corrige le problème sans
+  toucher à l'intégration. `SUPABASE_URL` doit valoir exactement l'URL du projet que le
+  navigateur utilise (`VITE_SUPABASE_URL`), et la clé `service_role` doit provenir de **ce**
+  projet-là. `/api/health` permet de le vérifier sans accès au tableau de bord Vercel.
 - `RESEND_API_KEY` — clé API [Resend](https://resend.com) (compte gratuit, aucune carte
   bancaire requise pour le tier gratuit ~3000 e-mails/mois). Nécessaire pour les deux
   fonctionnalités d'e-mail (notification de réservation au salon, confirmation à la cliente) ;
