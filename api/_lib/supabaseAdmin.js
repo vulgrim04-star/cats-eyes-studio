@@ -14,3 +14,18 @@ export function hasSupabaseAdminConfig() {
 export function getSupabaseAdmin() {
   return createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 }
+
+/** Le serveur et le navigateur visent-ils le même projet Supabase ? Les identifiants
+ *  d'administration viennent d'une intégration Vercel, le front d'une variable VITE_ : rien
+ *  ne garantit qu'ils désignent le même projet, et si ce n'est pas le cas les requêtes
+ *  serveur échouent en PGRST205 (« table introuvable ») sur une base pourtant saine.
+ *  Ne renvoie qu'un booléen — jamais les URL, qui identifient les projets. */
+export function serverAndClientAgreeOnProject() {
+  const clientUrl = process.env.VITE_SUPABASE_URL;
+  if (!SUPABASE_URL || !clientUrl) return null;
+  try {
+    return new URL(SUPABASE_URL).host === new URL(clientUrl).host;
+  } catch {
+    return null; // URL malformée : la cause est ailleurs, signalée par client-init-failed
+  }
+}

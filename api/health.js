@@ -1,4 +1,8 @@
-import { hasSupabaseAdminConfig, getSupabaseAdmin } from './_lib/supabaseAdmin.js';
+import {
+  hasSupabaseAdminConfig,
+  getSupabaseAdmin,
+  serverAndClientAgreeOnProject,
+} from './_lib/supabaseAdmin.js';
 import { isTestSender } from './_lib/email.js';
 
 // Diagnostic de configuration serveur.
@@ -17,6 +21,8 @@ export default async function handler(req, res) {
   const checks = {
     supabaseConfigured: hasSupabaseAdminConfig(),
     supabaseReachable: false,
+    // null = indéterminable (une des deux URL manque ou est malformée)
+    supabaseSameProjectAsClient: serverAndClientAgreeOnProject(),
     resendConfigured: Boolean(process.env.RESEND_API_KEY),
     senderDomainConfigured: !isTestSender(),
     vapidConfigured: Boolean(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY),
