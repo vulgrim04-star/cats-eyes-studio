@@ -2,10 +2,10 @@ import { formatDateLong } from './date';
 import { MARGIN, addHeader, addSectionBand, addFooterToAllPages, ensureSpace } from './pdfHelpers';
 import { addAppointmentRows, addPlanningSummary } from './dayPlanningPdf';
 
-export async function generateWeekPlanningPdf(daysWithAppointments, salon, themeColor) {
+export async function generateWeekPlanningPdf(daysWithAppointments, salon) {
   const { jsPDF } = await import('jspdf');
   const doc = new jsPDF();
-  let y = addHeader(doc, 'Planning de la semaine', salon, { themeColor });
+  let y = addHeader(doc, 'Planning de la semaine', salon);
 
   const first = daysWithAppointments[0]?.date;
   const last = daysWithAppointments[daysWithAppointments.length - 1]?.date;
@@ -20,7 +20,7 @@ export async function generateWeekPlanningPdf(daysWithAppointments, salon, theme
   let totalRevenue = 0;
 
   daysWithAppointments.forEach(({ date, appointments }) => {
-    y = addSectionBand(doc, formatDateLong(date), y, themeColor);
+    y = addSectionBand(doc, formatDateLong(date), y);
     if (appointments.length === 0) {
       y = ensureSpace(doc, y, 8);
       doc.setFont('helvetica', 'italic');
@@ -38,8 +38,8 @@ export async function generateWeekPlanningPdf(daysWithAppointments, salon, theme
     y += 3;
   });
 
-  addPlanningSummary(doc, totalCount, totalRevenue, y, themeColor, { label: `${totalCount} rendez-vous sur la semaine` });
+  addPlanningSummary(doc, totalCount, totalRevenue, y, { label: `${totalCount} rendez-vous sur la semaine` });
 
-  addFooterToAllPages(doc, salon, themeColor);
+  addFooterToAllPages(doc, salon);
   doc.save(`planning-semaine-${first}.pdf`);
 }

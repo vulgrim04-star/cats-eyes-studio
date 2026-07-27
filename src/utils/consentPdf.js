@@ -15,10 +15,10 @@ import {
   HEALTH_FORM_ACKNOWLEDGEMENTS,
 } from '../data/consentText';
 
-export async function generateGdprConsentPdf(client, salon, themeColor) {
+export async function generateGdprConsentPdf(client, salon) {
   const { jsPDF } = await import('jspdf');
   const doc = new jsPDF();
-  let y = addHeader(doc, 'Consentement RGPD & protection des données', salon, { themeColor });
+  let y = addHeader(doc, 'Consentement RGPD & protection des données', salon);
 
   y = addParagraph(doc, `Cliente : ${fullName(client)}`, y, { bold: true });
   y += 3;
@@ -44,11 +44,11 @@ function ouiNon(value) {
   return '—';
 }
 
-export async function generateHealthFormPdf(client, salon, themeColor) {
+export async function generateHealthFormPdf(client, salon) {
   const { jsPDF } = await import('jspdf');
   const answers = client.healthFormAnswers ?? {};
   const doc = new jsPDF();
-  let y = addHeader(doc, HEALTH_FORM_TITLE, salon, { themeColor });
+  let y = addHeader(doc, HEALTH_FORM_TITLE, salon);
 
   y = addParagraph(doc, `Cliente : ${fullName(client)}`, y, { bold: true });
   y += 3;

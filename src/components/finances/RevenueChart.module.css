@@ -22,7 +22,7 @@
   width: 100%;
   max-width: 28px;
   border-radius: 6px 6px 2px 2px;
-  background: linear-gradient(180deg, var(--color-rose), var(--color-rose-dark));
+  background: var(--color-accent);
   min-height: 3px;
   transition: height var(--transition-slow);
 }
@@ -42,5 +42,5 @@
 .summaryValue {
   font-family: var(--font-title);
   font-size: 1.7rem;
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
 }

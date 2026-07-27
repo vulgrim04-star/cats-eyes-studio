@@ -15,11 +15,11 @@ function totalRow(doc, label, value, y, { bold = false, rgb } = {}) {
   return y + (bold ? 8 : 6.5);
 }
 
-export async function generateInvoicePdf(appointment, salon, themeColor) {
+export async function generateInvoicePdf(appointment, salon) {
   const { jsPDF } = await import('jspdf');
   const doc = new jsPDF();
-  const rgb = hexToRgb(themeColor);
-  let y = addHeader(doc, 'Reçu / Facture', salon, { themeColor });
+  const rgb = hexToRgb(BRAND_GOLD);
+  let y = addHeader(doc, 'Reçu / Facture', salon);
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
@@ -28,7 +28,7 @@ export async function generateInvoicePdf(appointment, salon, themeColor) {
   doc.text(formatDateLong(appointment.date), PAGE_WIDTH - MARGIN, 43, { align: 'right' });
   doc.setTextColor(0);
 
-  y = addSectionBand(doc, 'Cliente', y, themeColor);
+  y = addSectionBand(doc, 'Cliente', y);
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(11);
   doc.text(appointment.client ? fullName(appointment.client) : 'Cliente', MARGIN, y);
@@ -86,7 +86,7 @@ export async function generateInvoicePdf(appointment, salon, themeColor) {
   y += 6;
 
   if (appointment.paymentMethod) {
-    y = addSectionBand(doc, 'Paiement', y, themeColor);
+    y = addSectionBand(doc, 'Paiement', y);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10.5);
     doc.text(PAYMENT_LABELS[appointment.paymentMethod] || appointment.paymentMethod, MARGIN, y);
@@ -100,6 +100,6 @@ export async function generateInvoicePdf(appointment, salon, themeColor) {
   doc.text(`Merci de votre confiance — ${salon?.name || "Votre institut"}`, PAGE_WIDTH / 2, y, { align: 'center' });
   doc.setTextColor(0);
 
-  addFooterToAllPages(doc, salon, themeColor);
+  addFooterToAllPages(doc, salon);
   doc.save(`recu-${slug(appointment.client ? fullName(appointment.client) : 'client')}-${appointment.date}.pdf`);
 }

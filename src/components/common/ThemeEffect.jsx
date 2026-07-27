@@ -1,22 +1,17 @@
 import { useEffect } from 'react';
 import { useSettingsStore } from '../../store/useSettingsStore';
 import { APP_NAME } from '../../data/brand';
-import { deriveThemeShades } from '../../utils/color';
 
-/** Applique la couleur de thème, le mode sombre et le nom du salon (Paramètres) aux éléments globaux de la page. */
+/** Applique le mode sombre et le nom du salon (Paramètres) aux éléments globaux de la page.
+ *  Les nuances d'accent ne sont plus calculées ici : Cat's Eyes a désormais une identité
+ *  unique, définie une fois pour toutes dans styles/variables.css. */
 export default function ThemeEffect() {
-  const themeColor = useSettingsStore((s) => s.appearance.themeColor);
   const darkMode = useSettingsStore((s) => s.appearance.darkMode);
   const salonName = useSettingsStore((s) => s.salon.name);
 
   useEffect(() => {
-    const { base, dark, light } = deriveThemeShades(themeColor, darkMode);
-    const root = document.documentElement.style;
-    root.setProperty('--color-rose', base);
-    root.setProperty('--color-rose-dark', dark);
-    root.setProperty('--color-rose-light', light);
     document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
-  }, [themeColor, darkMode]);
+  }, [darkMode]);
 
   useEffect(() => {
     document.title = salonName || APP_NAME;

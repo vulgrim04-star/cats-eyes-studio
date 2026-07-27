@@ -2,7 +2,7 @@
   position: fixed;
   inset: 0;
   z-index: 200;
-  background: rgba(59, 42, 48, 0.45);
+  background: var(--color-scrim);
   backdrop-filter: blur(3px);
   display: flex;
   justify-content: center;
@@ -48,7 +48,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
   flex-shrink: 0;
 }
 
@@ -84,8 +84,8 @@
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: var(--color-rose-light);
-  color: var(--color-rose-dark);
+  background: var(--color-accent-light);
+  color: var(--color-accent-dark);
   display: flex;
   align-items: center;
   justify-content: center;

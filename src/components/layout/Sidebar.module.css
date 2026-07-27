@@ -29,18 +29,18 @@
   width: 42px;
   height: 42px;
   border-radius: var(--radius-md);
-  background: linear-gradient(135deg, var(--color-rose), var(--color-rose-dark));
+  background: var(--color-accent);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-white);
+  color: var(--color-text);
   flex-shrink: 0;
 }
 
 .brandName {
   font-family: var(--font-title);
   font-size: 1.1rem;
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
   line-height: 1.15;
 }
 
@@ -71,12 +71,12 @@
 
 .navLink:hover {
   background: var(--color-cream);
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
 }
 
 .navLinkActive {
-  background: var(--color-rose-light);
-  color: var(--color-rose-dark);
+  background: var(--color-accent-light);
+  color: var(--color-accent-dark);
   font-weight: 600;
 }
 
@@ -125,7 +125,7 @@
   height: 38px;
   border-radius: 50%;
   background: var(--color-sand);
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
   display: flex;
   align-items: center;
   justify-content: center;

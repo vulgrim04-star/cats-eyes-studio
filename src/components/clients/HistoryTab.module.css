@@ -25,7 +25,7 @@
 
 .price {
   font-weight: 700;
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
   flex-shrink: 0;
 }
 

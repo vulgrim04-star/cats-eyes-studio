@@ -29,8 +29,8 @@
 }
 
 .dayChipActive {
-  background: var(--color-rose-dark);
-  border-color: var(--color-rose-dark);
+  background: var(--color-accent-dark);
+  border-color: var(--color-accent-dark);
   color: var(--color-white);
 }
 
@@ -123,32 +123,3 @@
 
 /* --- Couleur du thème --- */
 
-.colorRow {
-  display: flex;
-  align-items: center;
-  gap: var(--space-4);
-}
-
-.colorPicker {
-  width: 56px;
-  height: 56px;
-  border-radius: var(--radius-md);
-  border: 1.5px solid var(--color-border);
-  padding: 0;
-  cursor: pointer;
-  background: none;
-}
-
-.swatches {
-  display: flex;
-  gap: 8px;
-}
-
-.swatch {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 2px solid var(--color-white);
-  box-shadow: 0 0 0 1.5px var(--color-border);
-  cursor: pointer;
-}

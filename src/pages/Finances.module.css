@@ -16,7 +16,7 @@
 }
 
 .pillActive {
-  background: var(--color-rose-dark);
+  background: var(--color-accent-dark);
   color: var(--color-white);
 }
 

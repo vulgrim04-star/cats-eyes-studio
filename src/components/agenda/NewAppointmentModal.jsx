@@ -149,7 +149,7 @@ export default function NewAppointmentModal({ open, onClose, appointment, defaul
             <button
               type="button"
               onClick={() => setCustomTime((v) => !v)}
-              style={{ background: 'none', border: 'none', fontSize: '0.74rem', fontWeight: 600, color: 'var(--color-rose-dark)' }}
+              style={{ background: 'none', border: 'none', fontSize: '0.74rem', fontWeight: 600, color: 'var(--color-accent-dark)' }}
             >
               {customTime ? 'Voir les créneaux libres' : 'Saisir une heure manuellement'}
             </button>

@@ -32,10 +32,9 @@ const NOTIFICATION_ROWS = [
   { key: 'reminder2h', title: 'Rappel 2h avant', subtitle: 'Envoyer un rappel automatique quelques heures avant le rendez-vous.', comingSoon: true },
 ];
 
-const COLOR_SWATCHES = ['#C8718A', '#8B5CF6', '#4F9DDE', '#4CA97A', '#D9A441', '#C6667A'];
 
 export default function Settings() {
-  const { salon, notifications, appearance, updateSalon, updateDayHours, toggleNotification, setThemeColor, toggleDarkMode, calendarToken, ensureCalendarToken } = useSettings();
+  const { salon, notifications, appearance, updateSalon, updateDayHours, toggleNotification, toggleDarkMode, calendarToken, ensureCalendarToken } = useSettings();
   const { showToast } = useToast();
   const email = useAuthStore((s) => s.session?.user?.email);
   const ownerId = useAuthStore((s) => s.session?.user?.id);
@@ -254,31 +253,6 @@ export default function Settings() {
             </p>
           </div>
 
-          <p style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginBottom: 'var(--space-4)' }}>
-            Couleur principale de l'interface.
-          </p>
-          <div className={styles.colorRow}>
-            <input
-              type="color"
-              className={styles.colorPicker}
-              value={appearance.themeColor}
-              onChange={(e) => setThemeColor(e.target.value)}
-              aria-label="Couleur principale"
-            />
-            <div className={styles.swatches}>
-              {COLOR_SWATCHES.map((color) => (
-                <button
-                  key={color}
-                  type="button"
-                  className={styles.swatch}
-                  style={{ background: color }}
-                  onClick={() => setThemeColor(color)}
-                  aria-label={color}
-                />
-              ))}
-            </div>
-          </div>
-
           <div className={styles.prefRow} style={{ marginTop: 'var(--space-4)', paddingTop: 'var(--space-4)', borderTop: '1px solid var(--color-border)' }}>
             <div className={styles.prefText}>
               <div className={styles.prefTitle}>Mode sombre</div>
@@ -354,7 +328,7 @@ export default function Settings() {
           </button>
         </div>
         <details>
-          <summary style={{ fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', color: 'var(--color-rose-dark)' }}>
+          <summary style={{ fontSize: '0.82rem', fontWeight: 600, cursor: 'pointer', color: 'var(--color-accent-dark)' }}>
             Comment l'ajouter à Google Calendar ou Apple Calendar ?
           </summary>
           <div style={{ fontSize: '0.78rem', color: 'var(--color-text-muted)', marginTop: 'var(--space-3)', display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>

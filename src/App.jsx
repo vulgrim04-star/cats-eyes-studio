@@ -21,6 +21,7 @@ const Privacy = lazy(() => import('./pages/Privacy'));
 const Terms = lazy(() => import('./pages/Terms'));
 const DemoEntry = lazy(() => import('./pages/DemoEntry'));
 const Guide = lazy(() => import('./pages/Guide'));
+const DesignSystem = lazy(() => import('./pages/DesignSystem'));
 
 export default function App() {
   return (
@@ -35,6 +36,9 @@ export default function App() {
           <Route path="/confidentialite" element={<Privacy />} />
           <Route path="/conditions" element={<Terms />} />
           <Route path="/demo" element={<DemoEntry />} />
+          {/* Guide de style interne : délibérément hors de toute navigation (barre latérale,
+              BottomNav, page publique de réservation). On y accède par l'URL seule. */}
+          <Route path="/design-system" element={<DesignSystem />} />
           <Route element={<RequireAuth />}>
             <Route element={<Layout />}>
               <Route path="/" element={<Dashboard />} />

@@ -16,7 +16,7 @@
 }
 
 .row:hover {
-  background: var(--color-rose-light);
+  background: var(--color-accent-light);
 }
 
 .iconWrap {

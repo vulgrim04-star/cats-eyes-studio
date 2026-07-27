@@ -3,7 +3,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(160deg, var(--color-cream), var(--color-sand));
+  background: var(--color-cream);
   padding: var(--space-6);
 }
 
@@ -56,8 +56,8 @@
 }
 
 .optionActive {
-  border-color: var(--color-rose);
-  background: var(--color-rose-light);
+  border-color: var(--color-accent);
+  background: var(--color-accent-light);
 }
 
 .optionLabel {
@@ -88,9 +88,9 @@
 }
 
 .dayChipActive {
-  border-color: var(--color-rose);
-  background: var(--color-rose-light);
-  color: var(--color-rose-dark);
+  border-color: var(--color-accent);
+  background: var(--color-accent-light);
+  color: var(--color-accent-dark);
 }
 
 .helpText {

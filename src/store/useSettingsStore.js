@@ -46,7 +46,6 @@ export const useSettingsStore = create(
         newBookingEmail: false,
       },
       appearance: {
-        themeColor: '#C8718A',
         darkMode: false,
       },
 
@@ -68,8 +67,6 @@ export const useSettingsStore = create(
         })),
       toggleNotification: (key) =>
         set((s) => ({ notifications: { ...s.notifications, [key]: !s.notifications[key] } })),
-      setThemeColor: (color) =>
-        set((s) => ({ appearance: { ...s.appearance, themeColor: color } })),
       toggleDarkMode: () =>
         set((s) => ({ appearance: { ...s.appearance, darkMode: !s.appearance.darkMode } })),
     }),
@@ -95,7 +92,7 @@ export const useSettingsStore = create(
           newBookingEmail: false,
           ...(persisted?.notifications ?? {}),
         },
-        appearance: { themeColor: persisted?.appearance?.themeColor ?? '#C8718A', darkMode: false },
+        appearance: { darkMode: false },
       }),
     }
   )

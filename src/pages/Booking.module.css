@@ -1,6 +1,6 @@
 .page {
   min-height: 100vh;
-  background: linear-gradient(180deg, var(--color-cream), var(--color-rose-light) 320%);
+  background: var(--color-cream);
   display: flex;
   justify-content: center;
   padding: var(--space-6) var(--space-4) var(--space-12);
@@ -23,17 +23,17 @@
   width: 44px;
   height: 44px;
   border-radius: var(--radius-md);
-  background: linear-gradient(135deg, var(--color-rose), var(--color-rose-dark));
+  background: var(--color-accent);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-white);
+  color: var(--color-text);
 }
 
 .brandName {
   font-family: var(--font-title);
   font-size: 1.4rem;
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
 }
 
 .steps {
@@ -48,10 +48,10 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: var(--color-rose-light);
+  background: var(--color-accent-light);
 }
 .stepDotActive {
-  background: var(--color-rose-dark);
+  background: var(--color-accent-dark);
   width: 22px;
   border-radius: var(--radius-pill);
   transition: width var(--transition-base);
@@ -108,8 +108,8 @@
 }
 
 .serviceOptionActive {
-  border-color: var(--color-rose);
-  background: var(--color-rose-light);
+  border-color: var(--color-accent);
+  background: var(--color-accent-light);
 }
 
 .serviceOptionName {
@@ -125,7 +125,7 @@
 
 .serviceOptionPrice {
   font-weight: 700;
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
   flex-shrink: 0;
 }
 
@@ -151,9 +151,9 @@
 }
 
 .dayChipActive {
-  border-color: var(--color-rose);
-  background: linear-gradient(135deg, var(--color-rose), var(--color-rose-dark));
-  color: var(--color-white);
+  border-color: var(--color-accent);
+  background: var(--color-accent);
+  color: var(--color-text);
 }
 
 .dayChipClosed {
@@ -179,8 +179,8 @@
 }
 
 .slotActive {
-  border-color: var(--color-rose);
-  background: var(--color-rose-dark);
+  border-color: var(--color-accent);
+  background: var(--color-accent-dark);
   color: var(--color-white);
 }
 
@@ -281,8 +281,8 @@
 .featuredChip {
   padding: 6px 14px;
   border-radius: var(--radius-pill);
-  background: var(--color-rose-light);
-  color: var(--color-rose-dark);
+  background: var(--color-accent-light);
+  color: var(--color-accent-dark);
   font-size: 0.78rem;
   font-weight: 600;
 }

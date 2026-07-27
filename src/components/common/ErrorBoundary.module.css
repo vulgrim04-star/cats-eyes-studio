@@ -19,7 +19,7 @@
 .title {
   font-family: var(--font-title);
   font-size: 1.3rem;
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
   margin: 0 0 var(--space-3);
 }
 

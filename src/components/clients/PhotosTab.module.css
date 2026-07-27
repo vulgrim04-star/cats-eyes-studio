@@ -39,10 +39,10 @@
 }
 
 .before {
-  background: linear-gradient(135deg, var(--color-sand), #d8bfa8);
+  background: var(--color-sand);
 }
 .after {
-  background: linear-gradient(135deg, var(--color-rose), var(--color-rose-dark));
+  background: var(--color-accent);
 }
 
 .meta {
@@ -78,7 +78,7 @@
   border-radius: var(--radius-md);
   overflow: hidden;
   cursor: pointer;
-  border: 1.5px dashed var(--color-rose-light);
+  border: 1.5px dashed var(--color-accent-light);
   display: block;
 }
 
@@ -98,14 +98,14 @@
 }
 
 .addCard {
-  border: 1.5px dashed var(--color-rose-light);
+  border: 1.5px dashed var(--color-accent-light);
   border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 6px;
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
   font-size: 0.78rem;
   font-weight: 600;
   min-height: 140px;

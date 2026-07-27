@@ -22,7 +22,7 @@ export default function Agenda() {
   const location = useLocation();
   const navigate = useNavigate();
   const { appointments, setStatus } = useAppointments();
-  const { salon, appearance } = useSettings();
+  const { salon } = useSettings();
   const { showToast } = useToast();
 
   const [selectedDate, setSelectedDate] = useState(todayISO());
@@ -76,14 +76,14 @@ export default function Agenda() {
   };
 
   const handlePrintInvoice = (appointment) => {
-    generateInvoicePdf(appointment, salon, appearance.themeColor);
+    generateInvoicePdf(appointment, salon);
   };
 
   const handlePrintPlanning = () => {
     if (viewMode === 'week') {
-      generateWeekPlanningPdf(weekAppointmentsByDay, salon, appearance.themeColor);
+      generateWeekPlanningPdf(weekAppointmentsByDay, salon);
     } else {
-      generateDayPlanningPdf(selectedDate, dayAppointments, salon, appearance.themeColor);
+      generateDayPlanningPdf(selectedDate, dayAppointments, salon);
     }
   };
 

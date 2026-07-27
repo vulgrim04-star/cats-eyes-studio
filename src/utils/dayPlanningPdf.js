@@ -24,8 +24,8 @@ export function addAppointmentRows(doc, appointments, y) {
   return y;
 }
 
-export function addPlanningSummary(doc, count, revenue, y, themeColor, { label = `${count} rendez-vous` } = {}) {
-  const rgb = hexToRgb(themeColor);
+export function addPlanningSummary(doc, count, revenue, y, { label = `${count} rendez-vous` } = {}) {
+  const rgb = hexToRgb(BRAND_GOLD);
   y = ensureSpace(doc, y, 16);
   y += 4;
   doc.setDrawColor(rgb.r, rgb.g, rgb.b);
@@ -51,10 +51,10 @@ export function addPlanningSummary(doc, count, revenue, y, themeColor, { label =
   return y + 6;
 }
 
-export async function generateDayPlanningPdf(date, appointments, salon, themeColor) {
+export async function generateDayPlanningPdf(date, appointments, salon) {
   const { jsPDF } = await import('jspdf');
   const doc = new jsPDF();
-  let y = addHeader(doc, 'Planning du jour', salon, { themeColor });
+  let y = addHeader(doc, 'Planning du jour', salon);
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(13);
@@ -73,9 +73,9 @@ export async function generateDayPlanningPdf(date, appointments, salon, themeCol
     y = addAppointmentRows(doc, appointments, y);
     const active = appointments.filter((a) => a.status !== 'cancelled' && a.status !== 'no-show');
     const revenue = active.reduce((sum, a) => sum + (a.price ?? 0), 0);
-    addPlanningSummary(doc, appointments.length, revenue, y, themeColor);
+    addPlanningSummary(doc, appointments.length, revenue, y);
   }
 
-  addFooterToAllPages(doc, salon, themeColor);
+  addFooterToAllPages(doc, salon);
   doc.save(`planning-${date}.pdf`);
 }

@@ -35,7 +35,7 @@ export default function ClientDetail() {
   const { appointments } = useAppointments();
   const { updateClient, removeClient } = useClients();
   const { showToast } = useToast();
-  const { salon, appearance } = useSettings();
+  const { salon } = useSettings();
   const [tab, setTab] = useState('profil');
   const [consentOpen, setConsentOpen] = useState(false);
   const [healthFormOpen, setHealthFormOpen] = useState(false);
@@ -145,7 +145,6 @@ export default function ClientDetail() {
         client={client}
         appointments={getAppointmentsByClient(appointments, client.id).map(enrich)}
         salon={salon}
-        themeColor={appearance.themeColor}
       />
     </>
   );

@@ -7,7 +7,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 0 var(--space-5);
-  background: rgba(253, 248, 245, 0.85);
+  background: var(--color-surface-translucent);
   backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--color-border);
 }
@@ -18,18 +18,18 @@
   gap: var(--space-2);
   font-family: var(--font-title);
   font-size: 1.05rem;
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
 }
 
 .brandMark {
   width: 34px;
   height: 34px;
   border-radius: var(--radius-sm);
-  background: linear-gradient(135deg, var(--color-rose), var(--color-rose-dark));
+  background: var(--color-accent);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-white);
+  color: var(--color-text);
   flex-shrink: 0;
 }
 
@@ -55,7 +55,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
 }
 
 .dot {

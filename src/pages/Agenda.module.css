@@ -7,7 +7,7 @@
 
 .dayHeadingTitle {
   font-size: 1.05rem;
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
   text-transform: capitalize;
 }
 
@@ -41,6 +41,6 @@
 
 .viewBtnActive {
   background: var(--color-white);
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
   box-shadow: var(--shadow-sm);
 }

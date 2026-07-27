@@ -28,15 +28,15 @@
   background: var(--color-white);
   font-size: 0.88rem;
   font-weight: 600;
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
   transform: translateX(-50%);
   box-shadow: var(--shadow-sm);
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 .zoneInput:focus {
   outline: none;
-  border-color: var(--color-rose);
-  box-shadow: 0 0 0 3px var(--color-rose-light);
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-light);
 }
 
 .zoneValue {
@@ -45,7 +45,7 @@
   font-family: var(--font-title);
   font-size: 0.92rem;
   font-weight: 700;
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
   min-width: 20px;
   text-align: center;
 }

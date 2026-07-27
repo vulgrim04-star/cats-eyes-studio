@@ -56,7 +56,7 @@ body {
 h1, h2, h3, h4 {
   font-family: var(--font-title);
   font-weight: 600;
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
   margin: 0;
 }
 
@@ -87,7 +87,7 @@ input, select, textarea {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: var(--color-rose-light);
+  background: var(--color-accent-light);
   border-radius: var(--radius-pill);
 }
 
@@ -103,7 +103,7 @@ input, select, textarea {
 .card-title {
   font-family: var(--font-title);
   font-size: 1.1rem;
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
 }
 
 .btn {
@@ -123,27 +123,27 @@ input, select, textarea {
   transform: scale(0.97);
 }
 .btn-primary {
-  background: linear-gradient(135deg, var(--color-rose), var(--color-rose-dark));
-  color: var(--color-white);
+  background: var(--color-accent);
+  color: var(--color-text);
   box-shadow: var(--shadow-sm);
 }
 .btn-primary:hover {
   box-shadow: var(--shadow-md);
 }
 .btn-secondary {
-  background: var(--color-rose-light);
-  color: var(--color-rose-dark);
+  background: var(--color-accent-light);
+  color: var(--color-accent-dark);
 }
 .btn-secondary:hover {
-  background: #ead0d9;
+  background: var(--color-accent-light-hover);
 }
 .btn-ghost {
   background: transparent;
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
   box-shadow: var(--shadow-inset);
 }
 .btn-ghost:hover {
-  background: rgba(200, 113, 138, 0.06);
+  background: rgba(var(--color-accent-rgb), 0.06);
 }
 .btn-danger {
   background: var(--color-danger-bg);
@@ -180,7 +180,7 @@ input, select, textarea {
 }
 .input-field:focus {
   outline: none;
-  border-color: var(--color-rose);
+  border-color: var(--color-accent);
   background: var(--color-white);
 }
 

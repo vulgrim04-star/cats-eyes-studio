@@ -16,18 +16,12 @@ export function useSettings() {
   const completeOnboarding = useSettingsStore((s) => s.completeOnboarding);
   const updateDayHours = useSettingsStore((s) => s.updateDayHours);
   const toggleNotification = useSettingsStore((s) => s.toggleNotification);
-  const setThemeColorRaw = useSettingsStore((s) => s.setThemeColor);
   const toggleDarkMode = useSettingsStore((s) => s.toggleDarkMode);
   const showToast = useUIStore((s) => s.showToast);
 
   const updateSalon = (patch) => {
     updateSalonRaw(patch);
     showToast('Informations du salon mises à jour', 'success');
-  };
-
-  const setThemeColor = (color) => {
-    setThemeColorRaw(color);
-    showToast('Couleur de l\'interface mise à jour', 'success');
   };
 
   return {
@@ -41,7 +35,6 @@ export function useSettings() {
     completeOnboarding,
     updateDayHours,
     toggleNotification,
-    setThemeColor,
     toggleDarkMode,
   };
 }

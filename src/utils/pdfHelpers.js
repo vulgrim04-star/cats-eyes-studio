@@ -19,13 +19,14 @@ export function imageFormatOf(dataUrl) {
   return type === 'JPG' ? 'JPEG' : type;
 }
 
-const DEFAULT_THEME = '#C8718A';
+// Couleur de marque unique : Cat's Eyes n'a plus de thème personnalisable.
+const BRAND_GOLD = '#C9A961';
 
 export function hexToRgb(hex) {
   const clean = (hex || '').replace('#', '');
   const full = clean.length === 3 ? clean.split('').map((c) => c + c).join('') : clean;
   const num = parseInt(full, 16);
-  if (Number.isNaN(num) || full.length !== 6) return hexToRgb(DEFAULT_THEME);
+  if (Number.isNaN(num) || full.length !== 6) return hexToRgb(BRAND_GOLD);
   return { r: (num >> 16) & 255, g: (num >> 8) & 255, b: num & 255 };
 }
 
@@ -48,8 +49,8 @@ export function shade({ r, g, b }, amount) {
 }
 
 /** En-tête de document : bandeau de couleur, logo du salon (si présent), coordonnées et titre. */
-export function addHeader(doc, title, salon, { themeColor = DEFAULT_THEME } = {}) {
-  const rgb = hexToRgb(themeColor);
+export function addHeader(doc, title, salon) {
+  const rgb = hexToRgb(BRAND_GOLD);
   const hasLogo = !!salon?.logoUrl;
 
   doc.setFillColor(rgb.r, rgb.g, rgb.b);
@@ -93,8 +94,8 @@ export function addHeader(doc, title, salon, { themeColor = DEFAULT_THEME } = {}
 }
 
 /** Bandeau de titre de section : filet coloré + petit accent, à la place d'une simple ligne grise. */
-export function addSectionBand(doc, text, y, themeColor = DEFAULT_THEME) {
-  const rgb = hexToRgb(themeColor);
+export function addSectionBand(doc, text, y) {
+  const rgb = hexToRgb(BRAND_GOLD);
   y = ensureSpace(doc, y, 16);
   y += 4;
   const bandTop = y - 5.5;
@@ -115,8 +116,8 @@ export function addSectionBand(doc, text, y, themeColor = DEFAULT_THEME) {
 }
 
 /** Pied de page (filet + nom du salon + numéro de page) appliqué à toutes les pages déjà générées. */
-export function addFooterToAllPages(doc, salon, themeColor = DEFAULT_THEME) {
-  const rgb = hexToRgb(themeColor);
+export function addFooterToAllPages(doc, salon) {
+  const rgb = hexToRgb(BRAND_GOLD);
   const pageCount = doc.internal.getNumberOfPages();
   for (let i = 1; i <= pageCount; i += 1) {
     doc.setPage(i);

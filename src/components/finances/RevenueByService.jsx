@@ -3,7 +3,7 @@ import EmptyState from '../common/EmptyState';
 import { getCategoryLabel } from '../../data/services';
 import { formatPriceFull } from '../../utils/format';
 
-const COLORS = ['var(--color-rose)', 'var(--color-rose-dark)', 'var(--color-warning)', 'var(--color-info)'];
+const COLORS = ['var(--color-accent)', 'var(--color-accent-dark)', 'var(--color-warning)', 'var(--color-info)'];
 
 export default function RevenueByService({ rows }) {
   return (

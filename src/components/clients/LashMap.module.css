@@ -15,9 +15,9 @@
 }
 
 .chipActive {
-  border-color: var(--color-rose);
-  background: var(--color-rose-light);
-  color: var(--color-rose-dark);
+  border-color: var(--color-accent);
+  background: var(--color-accent-light);
+  color: var(--color-accent-dark);
 }
 
 .zoneCountRow {
@@ -43,7 +43,7 @@
   border-radius: 50%;
   border: none;
   background: var(--color-white);
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
   font-size: 1rem;
   font-weight: 700;
   line-height: 1;
@@ -95,7 +95,7 @@
 .cardTitle {
   font-family: var(--font-title);
   font-size: 1.05rem;
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
 }
 
 .cardDate {
@@ -130,8 +130,8 @@
 .tag {
   padding: 3px 10px;
   border-radius: var(--radius-pill);
-  background: var(--color-rose-light);
-  color: var(--color-rose-dark);
+  background: var(--color-accent-light);
+  color: var(--color-accent-dark);
   font-size: 0.72rem;
   font-weight: 600;
 }
@@ -147,12 +147,12 @@
   justify-content: space-between;
   gap: var(--space-3);
   flex-wrap: wrap;
-  background: var(--color-rose-light);
+  background: var(--color-accent-light);
   border-radius: var(--radius-md);
   padding: var(--space-2) var(--space-3);
   margin-bottom: var(--space-3);
   font-size: 0.82rem;
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
 }
 
 .specsGrid {

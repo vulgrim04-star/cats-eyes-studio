@@ -28,7 +28,7 @@
   font-family: var(--font-title);
   font-weight: 600;
   font-size: 1.05rem;
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
 }
 
 .timeEnd {
@@ -58,7 +58,7 @@
   cursor: pointer;
 }
 .clientName:hover {
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
   text-decoration: underline;
 }
 

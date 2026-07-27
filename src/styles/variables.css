@@ -1,35 +1,62 @@
-:root {
-  /* Palette */
-  --color-rose: #C8718A;
-  --color-rose-dark: #8B4E63;
-  --color-rose-light: #F0C4D0;
-  --color-cream: #FDF8F5;
-  --color-sand: #E8D5C4;
+/* Charte Cat's Eyes — or, crème, taupe, noir chaud.
+   Luxe discret : l'or est un accent, jamais un fond dominant. Aucune couleur saturée,
+   aucun dégradé, des ombres très légères.
 
-  --color-rose-rgb: 200, 113, 138;
+   ACCESSIBILITÉ — règle à ne pas contourner : l'or #C9A961 sur le fond crème ne donne
+   qu'environ 1,9:1, très en dessous du seuil WCAG AA (4,5:1). Donc :
+     • jamais d'or en couleur de texte sur fond clair → utiliser --color-accent-dark ;
+     • jamais de texte blanc sur un aplat doré → le texte des boutons primaires est
+       --color-text (≈ 7:1 sur l'or) ;
+     • l'or reste réservé aux aplats, bordures, icônes et éléments de valorisation. */
+:root {
+  /* Accent doré. Les trois nuances suivent la construction historique du thème
+     (même teinte, luminosité 32 % pour le texte, 85 % désaturée pour les fonds de
+     pastille) afin qu'aucun composant ne change de comportement, seulement de couleur. */
+  --color-accent: #C9A961;
+  --color-accent-dark: #7A612A;  /* texte et liens accentués — 5,5:1 sur le crème */
+  --color-accent-light: #E8DDD0; /* sable : fonds de pastille, survols */
+  --color-accent-light-hover: #DCCEBC;
+
+  --color-accent-rgb: 201, 169, 97;
+
+  /* Neutres à sous-ton brun chaud (jamais de gris pur, jamais de noir pur) */
+  --color-cream: #FAF7F2;
+  --color-sand: #E8DDD0;
+  --color-taupe: #9C8A73; /* décoratif et bordures — trop clair pour du texte */
+
+  /* Voile des modales et surface translucide de la barre du haut. Ces deux valeurs étaient
+     figées en rgba() dans les composants, donc insensibles au thème : la barre du haut
+     restait un voile CLAIR en mode sombre. */
+  --color-scrim: rgba(43, 39, 36, 0.45);
+  --color-surface-translucent: rgba(250, 247, 242, 0.85);
 
   --color-white: #FFFFFF;
-  --color-text: #3B2A30;
-  --color-text-soft: #7A6169;
-  --color-text-muted: #A88E95;
-  --color-border: #EDE0DD;
+  --color-text: #2B2724;       /* 14,9:1 */
+  --color-text-soft: #5F5750;  /*  6,6:1 */
+  --color-text-muted: #7A6B58; /*  4,8:1 — plancher AA */
+  --color-border: #E5DDD2;
 
-  --color-success: #6FA98A;
-  --color-success-bg: #E7F3ED;
-  --color-warning: #D9A441;
-  --color-warning-bg: #FBF1DF;
-  --color-danger: #C6667A;
-  --color-danger-bg: #FBE9EC;
-  --color-info: #7C93C8;
-  --color-info-bg: #EAEEF9;
-  --color-neutral-bg: #F1EAEA;
+  /* Sémantique : teintes naturelles et sourdes, accordées à l'or.
+     L'ambre d'avertissement est volontairement plus sombre et plus orangé que l'accent,
+     sans quoi « en attente » et « doré décoratif » deviendraient indiscernables. */
+  --color-success: #3F6B52;
+  --color-success-bg: #E7EFEA;
+  --color-warning: #8A5219;
+  --color-warning-bg: #F5E9DA;
+  --color-danger: #97423E;
+  --color-danger-bg: #F6E7E5;
+  --color-info: #4A5D7C;
+  --color-info-bg: #E9EDF3;
+  --color-neutral-bg: #F0EBE3;
 
   /* Status colors */
-  --status-confirmed: #6FA98A;
-  --status-pending: #D9A441;
-  --status-completed: #7C93C8;
-  --status-cancelled: #A88E95;
-  --status-noshow: #C6667A;
+  --status-confirmed: #3F6B52;
+  --status-pending: #8A5219;
+  --status-completed: #4A5D7C;
+  /* Assombri par rapport au taupe décoratif (#9C8A73) : en texte de badge celui-ci
+     ne donnait que 2,9:1 sur son fond, sous le seuil AA. */
+  --status-cancelled: #6F6355;
+  --status-noshow: #97423E;
 
   /* Typography */
   --font-title: 'Playfair Display', 'Georgia', serif;
@@ -42,11 +69,11 @@
   --radius-xl: 32px;
   --radius-pill: 999px;
 
-  /* Shadows */
-  --shadow-sm: 0 2px 8px rgba(139, 78, 99, 0.08);
-  --shadow-md: 0 8px 24px rgba(139, 78, 99, 0.12);
-  --shadow-lg: 0 16px 40px rgba(139, 78, 99, 0.18);
-  --shadow-inset: inset 0 0 0 1px rgba(139, 78, 99, 0.08);
+  /* Shadows — portées par le noir chaud, très légères */
+  --shadow-sm: 0 2px 8px rgba(43, 39, 36, 0.06);
+  --shadow-md: 0 8px 24px rgba(43, 39, 36, 0.10);
+  --shadow-lg: 0 16px 40px rgba(43, 39, 36, 0.14);
+  --shadow-inset: inset 0 0 0 1px rgba(43, 39, 36, 0.07);
 
   /* Spacing */
   --space-1: 4px;
@@ -72,22 +99,45 @@
   --transition-slow: 360ms var(--ease);
 }
 
-/* Mode sombre : uniquement les tokens neutres. Les 3 variables --color-rose*
-   sont recalculées en JS (ThemeEffect) en fonction du mode, ne pas les redéfinir ici. */
+/* Mode sombre. Les nuances d'accent s'inversent de rôle : --color-accent-dark sert
+   toujours de couleur de texte accentué, il doit donc être plus CLAIR ici, et
+   --color-accent-light sert toujours de fond de pastille, donc plus sombre. */
 :root[data-theme='dark'] {
-  --color-cream: #1E1519;
-  --color-sand: #4A372E;
-  --color-white: #2A1F24;
-  --color-text: #F3E9EC;
-  --color-text-soft: #C9B8BE;
-  --color-text-muted: #8F7A81;
-  --color-border: #3D2E33;
+  --color-accent: #C9A961;
+  --color-accent-dark: #D0C19F;
+  --color-accent-light: #463D2A;
+  --color-accent-light-hover: #55492F;
 
-  --color-success-bg: #1E3128;
-  --color-warning-bg: #332711;
-  --color-danger-bg: #331B21;
-  --color-info-bg: #1D2333;
-  --color-neutral-bg: #332830;
+  /* Le voile reste sombre dans les deux thèmes (un voile clair n'assombrit rien) */
+  --color-scrim: rgba(0, 0, 0, 0.6);
+  --color-surface-translucent: rgba(38, 34, 30, 0.85);
+
+  --color-cream: #1C1917;
+  --color-sand: #3A322A;
+  --color-taupe: #8F8578;
+  --color-white: #26221E;
+  --color-text: #F5F0EA;
+  --color-text-soft: #C4BAAE;
+  --color-text-muted: #8F8578;
+  --color-border: #38312B;
+
+  /* Les couleurs sémantiques doivent s'éclaircir avec leur fond. Seuls les -bg étaient
+     redéfinis ici : un vert sombre restait posé sur un vert très sombre, illisible. */
+  --color-success: #8FC7A5;
+  --color-success-bg: #1E2C24;
+  --color-warning: #E0A860;
+  --color-warning-bg: #302213;
+  --color-danger: #E09490;
+  --color-danger-bg: #2E1D1B;
+  --color-info: #9DB4D8;
+  --color-info-bg: #1D2430;
+  --color-neutral-bg: #2E2820;
+
+  --status-confirmed: #8FC7A5;
+  --status-pending: #E0A860;
+  --status-completed: #9DB4D8;
+  --status-cancelled: #BFB3A2;
+  --status-noshow: #E09490;
 
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.25);
   --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);

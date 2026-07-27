@@ -9,8 +9,10 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  border: 3px solid var(--color-border, #e5e0da);
-  border-top-color: var(--color-primary, #b98a5e);
+  border: 3px solid var(--color-border);
+  /* --color-primary n'a jamais existé : le spinner tournait donc en #b98a5e codé en dur,
+     hors charte et insensible au mode sombre. */
+  border-top-color: var(--color-accent);
   animation: spin 0.7s linear infinite;
 }
 

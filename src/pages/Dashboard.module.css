@@ -24,8 +24,8 @@
 }
 
 .nextCard {
-  background: linear-gradient(135deg, var(--color-rose), var(--color-rose-dark));
-  color: var(--color-white);
+  background: var(--color-accent);
+  color: var(--color-text);
   border-radius: var(--radius-lg);
   padding: var(--space-5);
   box-shadow: var(--shadow-md);
@@ -87,7 +87,7 @@
 .link {
   font-size: 0.82rem;
   font-weight: 600;
-  color: var(--color-rose);
+  color: var(--color-accent);
 }
 
 @media (min-width: 640px) {

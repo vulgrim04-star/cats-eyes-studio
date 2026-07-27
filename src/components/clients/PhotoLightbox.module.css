@@ -5,7 +5,7 @@
 .title {
   font-family: var(--font-title);
   font-size: 1.15rem;
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
 }
 
 .date {
@@ -61,10 +61,10 @@
 }
 
 .before {
-  background: linear-gradient(135deg, var(--color-sand), #d8bfa8);
+  background: var(--color-sand);
 }
 .after {
-  background: linear-gradient(135deg, var(--color-rose), var(--color-rose-dark));
+  background: var(--color-accent);
 }
 
 @media (max-width: 480px) {

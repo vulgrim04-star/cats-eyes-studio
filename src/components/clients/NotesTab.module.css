@@ -22,7 +22,7 @@
 .statValue {
   font-family: var(--font-title);
   font-size: 1.4rem;
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
 }
 
 .statLabel {

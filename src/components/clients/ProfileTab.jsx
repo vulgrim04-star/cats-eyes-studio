@@ -8,7 +8,7 @@ import { HEALTH_FORM_TITLE } from '../../data/consentText';
 
 export default function ProfileTab({ client, onOpenConsent, onOpenHealthForm }) {
   const { updateClient } = useClients();
-  const { salon, appearance } = useSettings();
+  const { salon } = useSettings();
   const [form, setForm] = useState({
     phone: client.phone,
     email: client.email,
@@ -61,7 +61,7 @@ export default function ProfileTab({ client, onOpenConsent, onOpenHealthForm }) 
                 style={{ height: 60, background: 'var(--color-cream)', borderRadius: 'var(--radius-sm)', padding: 8, marginBottom: 10, display: 'block' }}
               />
             )}
-            <button type="button" className="btn btn-secondary btn-sm" onClick={() => generateGdprConsentPdf(client, salon, appearance.themeColor)}>
+            <button type="button" className="btn btn-secondary btn-sm" onClick={() => generateGdprConsentPdf(client, salon)}>
               <Icon name="download" size={14} /> Télécharger le PDF
             </button>
           </div>
@@ -102,7 +102,7 @@ export default function ProfileTab({ client, onOpenConsent, onOpenHealthForm }) 
                 style={{ height: 60, background: 'var(--color-cream)', borderRadius: 'var(--radius-sm)', padding: 8, marginBottom: 10, display: 'block' }}
               />
             )}
-            <button type="button" className="btn btn-secondary btn-sm" onClick={() => generateHealthFormPdf(client, salon, appearance.themeColor)}>
+            <button type="button" className="btn btn-secondary btn-sm" onClick={() => generateHealthFormPdf(client, salon)}>
               <Icon name="download" size={14} /> Télécharger le PDF
             </button>
           </div>
@@ -139,7 +139,7 @@ export default function ProfileTab({ client, onOpenConsent, onOpenHealthForm }) 
                 href={`https://instagram.com/${client.instagram}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ fontWeight: 400, color: 'var(--color-rose-dark)' }}
+                style={{ fontWeight: 400, color: 'var(--color-accent-dark)' }}
               >
                 Voir le profil ↗
               </a>

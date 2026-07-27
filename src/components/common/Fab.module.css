@@ -6,8 +6,8 @@
   height: 58px;
   border-radius: 50%;
   border: none;
-  background: linear-gradient(135deg, var(--color-rose), var(--color-rose-dark));
-  color: var(--color-white);
+  background: var(--color-accent);
+  color: var(--color-text);
   display: flex;
   align-items: center;
   justify-content: center;

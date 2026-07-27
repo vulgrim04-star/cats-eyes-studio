@@ -11,7 +11,7 @@
 .amount {
   font-family: var(--font-title);
   font-size: 1.6rem;
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
 }
 
 .methods {
@@ -36,11 +36,11 @@
 }
 
 .method:hover {
-  border-color: var(--color-rose);
+  border-color: var(--color-accent);
 }
 
 .methodActive {
-  border-color: var(--color-rose);
-  background: var(--color-rose-light);
-  color: var(--color-rose-dark);
+  border-color: var(--color-accent);
+  background: var(--color-accent-light);
+  color: var(--color-accent-dark);
 }

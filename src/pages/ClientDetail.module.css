@@ -8,7 +8,7 @@
   margin-bottom: var(--space-4);
 }
 .backLink:hover {
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
 }
 
 .headCard {
@@ -23,8 +23,8 @@
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: var(--color-rose-light);
-  color: var(--color-rose-dark);
+  background: var(--color-accent-light);
+  color: var(--color-accent-dark);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -55,7 +55,7 @@
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: var(--color-rose-dark);
+  background: var(--color-accent-dark);
   color: var(--color-white);
   display: flex;
   align-items: center;
@@ -110,8 +110,8 @@
 }
 
 .tabActive {
-  color: var(--color-rose-dark);
-  border-bottom-color: var(--color-rose);
+  color: var(--color-accent-dark);
+  border-bottom-color: var(--color-accent);
 }
 
 @media (max-width: 640px) {

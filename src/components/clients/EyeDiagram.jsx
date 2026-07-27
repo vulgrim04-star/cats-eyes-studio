@@ -118,7 +118,7 @@ export default function EyeDiagram({ title, zones, onChange, readOnly = false })
       <svg viewBox="0 0 280 150" className={styles.svg} aria-hidden="true">
         <Lashes values={values} zones={zonePositions} />
         <path d="M20 92 Q140 48 260 92" fill="none" stroke={INK} strokeWidth="3" strokeLinecap="round" />
-        <path d="M20 92 Q140 48 260 92 Q140 128 20 92 Z" fill="var(--color-rose-light)" opacity="0.65" />
+        <path d="M20 92 Q140 48 260 92 Q140 128 20 92 Z" fill="var(--color-accent-light)" opacity="0.65" />
         <path d="M34 138 Q90 118 150 121 Q210 124 252 138 Q200 132 150 131 Q95 130 34 138 Z" fill={INK} opacity="0.9" />
       </svg>
     </div>

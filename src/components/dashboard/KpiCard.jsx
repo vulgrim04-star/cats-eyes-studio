@@ -1,7 +1,7 @@
 import Icon from '../common/Icon';
 import styles from './KpiCard.module.css';
 
-export default function KpiCard({ icon, iconColor = 'var(--color-rose)', iconBg = 'var(--color-rose-light)', label, value, trend, trendLabel }) {
+export default function KpiCard({ icon, iconColor = 'var(--color-accent)', iconBg = 'var(--color-accent-light)', label, value, trend, trendLabel }) {
   const trendClass = trend === null || trend === undefined ? null : trend > 0 ? styles.trendUp : trend < 0 ? styles.trendDown : styles.trendFlat;
 
   return (

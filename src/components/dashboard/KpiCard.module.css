@@ -38,7 +38,7 @@
 .value {
   font-family: var(--font-title);
   font-size: clamp(1.25rem, 6.5vw, 1.9rem);
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
   line-height: 1.1;
   min-width: 0;
   overflow-wrap: break-word;

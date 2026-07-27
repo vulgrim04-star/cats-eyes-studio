@@ -42,11 +42,11 @@ function addLabelValueGrid(doc, pairs, y, rgb) {
 
 /** Construit le document jsPDF sans le télécharger — utilisé à la fois pour l'aperçu
  * (affiché dans une iframe) et pour le téléchargement final. */
-export async function buildClientSheetPdf(client, appointments, salon, sections, themeColor) {
+export async function buildClientSheetPdf(client, appointments, salon, sections) {
   const { jsPDF } = await import('jspdf');
   const doc = new jsPDF();
-  const rgb = hexToRgb(themeColor);
-  let y = addHeader(doc, 'Fiche cliente', salon, { themeColor });
+  const rgb = hexToRgb(BRAND_GOLD);
+  let y = addHeader(doc, 'Fiche cliente', salon);
 
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(14);
@@ -66,7 +66,7 @@ export async function buildClientSheetPdf(client, appointments, salon, sections,
         // Photo illisible : on continue sans bloquer la génération du PDF.
       }
     }
-    y = addSectionBand(doc, 'Informations générales', y, themeColor);
+    y = addSectionBand(doc, 'Informations générales', y);
     y = addLabelValueGrid(doc, [
       ['Téléphone', client.phone],
       ['Email', client.email],
@@ -85,13 +85,13 @@ export async function buildClientSheetPdf(client, appointments, salon, sections,
   }
 
   if (sections.notes && client.notes) {
-    y = addSectionBand(doc, 'Notes', y, themeColor);
+    y = addSectionBand(doc, 'Notes', y);
     y = addParagraph(doc, client.notes, y, { fontSize: 9.5 });
     y += 3;
   }
 
   if (sections.history && appointments.length > 0) {
-    y = addSectionBand(doc, 'Historique des rendez-vous', y, themeColor);
+    y = addSectionBand(doc, 'Historique des rendez-vous', y);
     const STATUS_LABELS = { confirmed: 'Confirmé', completed: 'Terminé', cancelled: 'Annulé', 'no-show': 'No-show', pending: 'En attente' };
     appointments.forEach((apt) => {
       y = ensureSpace(doc, y, 8);
@@ -110,7 +110,7 @@ export async function buildClientSheetPdf(client, appointments, salon, sections,
   }
 
   if (sections.lashMaps && (client.lashMaps ?? []).length > 0) {
-    y = addSectionBand(doc, 'Lash Maps', y, themeColor);
+    y = addSectionBand(doc, 'Lash Maps', y);
     const mapTitleColor = shade(rgb, 0.1);
     client.lashMaps.forEach((map) => {
       y = ensureSpace(doc, y, 26);
@@ -160,7 +160,7 @@ export async function buildClientSheetPdf(client, appointments, salon, sections,
   }
 
   if (sections.photos && (client.photos ?? []).length > 0) {
-    y = addSectionBand(doc, 'Photos avant / après', y, themeColor);
+    y = addSectionBand(doc, 'Photos avant / après', y);
 
     // jsPDF ne sait pas charger une URL distante : on résout d'abord toutes les photos
     // stockées en data URL, en parallèle, avant de commencer à dessiner.
@@ -210,11 +210,11 @@ export async function buildClientSheetPdf(client, appointments, salon, sections,
     });
   }
 
-  addFooterToAllPages(doc, salon, themeColor);
+  addFooterToAllPages(doc, salon);
   return doc;
 }
 
-export async function generateClientSheetPdf(client, appointments, salon, sections, themeColor) {
-  const doc = await buildClientSheetPdf(client, appointments, salon, sections, themeColor);
+export async function generateClientSheetPdf(client, appointments, salon, sections) {
+  const doc = await buildClientSheetPdf(client, appointments, salon, sections);
   doc.save(`fiche-cliente-${slug(fullName(client))}.pdf`);
 }

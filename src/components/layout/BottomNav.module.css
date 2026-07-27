@@ -35,7 +35,7 @@
 }
 
 .itemActive {
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
 }
 
 .label {
@@ -48,7 +48,7 @@
   position: fixed;
   inset: 0;
   z-index: 150;
-  background: rgba(59, 42, 48, 0.4);
+  background: var(--color-scrim);
   display: flex;
   align-items: flex-end;
 }

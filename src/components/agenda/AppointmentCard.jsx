@@ -8,7 +8,7 @@ import styles from './AppointmentCard.module.css';
 export default function AppointmentCard({ appointment, showActions = true, onStatusChange, onEdit, onRequestComplete, onPrint }) {
   const navigate = useNavigate();
   const { client, service, time, duration, status } = appointment;
-  const stripeColor = STATUS_MAP[status]?.color ?? 'var(--color-rose)';
+  const stripeColor = STATUS_MAP[status]?.color ?? 'var(--color-accent)';
 
   const handleComplete = () => {
     if (onRequestComplete) {

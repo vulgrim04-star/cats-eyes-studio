@@ -1,5 +1,5 @@
 .wrap {
-  border: 1.5px dashed var(--color-rose-light);
+  border: 1.5px dashed var(--color-accent-light);
   border-radius: var(--radius-md);
   /* Toujours blanc : une signature doit rester lisible/imprimable quel que soit le thème. */
   background: #FFFFFF;

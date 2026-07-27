@@ -18,7 +18,7 @@ export default function AlertsPanel({ lowStock, pendingAppointments, birthdays =
         <div className={styles.list}>
           {birthdays.map(({ client, daysUntil }) => (
             <button key={client.id} type="button" className={styles.row} onClick={() => navigate(`/clientes/${client.id}`)}>
-              <span className={styles.iconWrap} style={{ background: 'var(--color-rose-light)', color: 'var(--color-rose-dark)' }}>
+              <span className={styles.iconWrap} style={{ background: 'var(--color-accent-light)', color: 'var(--color-accent-dark)' }}>
                 <Icon name="gift" size={16} />
               </span>
               <div className={styles.text}>

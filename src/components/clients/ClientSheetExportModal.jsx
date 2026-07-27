@@ -14,7 +14,7 @@ const SECTIONS = [
 const ALL_CHECKED = SECTIONS.reduce((acc, s) => ({ ...acc, [s.key]: true }), {});
 const MOBILE_QUERY = '(max-width: 640px)';
 
-export default function ClientSheetExportModal({ open, onClose, client, appointments, salon, themeColor }) {
+export default function ClientSheetExportModal({ open, onClose, client, appointments, salon }) {
   const [checked, setChecked] = useState(ALL_CHECKED);
   const [generating, setGenerating] = useState(false);
   const [previewing, setPreviewing] = useState(false);
@@ -52,7 +52,7 @@ export default function ClientSheetExportModal({ open, onClose, client, appointm
   const handlePreview = async () => {
     setPreviewing(true);
     try {
-      const doc = await buildClientSheetPdf(client, appointments, salon, checked, themeColor);
+      const doc = await buildClientSheetPdf(client, appointments, salon, checked);
       clearPreview();
       setPreviewUrl(doc.output('bloburl'));
     } finally {
@@ -63,7 +63,7 @@ export default function ClientSheetExportModal({ open, onClose, client, appointm
   const handleGenerate = async () => {
     setGenerating(true);
     try {
-      await generateClientSheetPdf(client, appointments, salon, checked, themeColor);
+      await generateClientSheetPdf(client, appointments, salon, checked);
       onClose();
     } finally {
       setGenerating(false);

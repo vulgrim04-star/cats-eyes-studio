@@ -12,8 +12,8 @@
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background: var(--color-rose-light);
-  color: var(--color-rose-dark);
+  background: var(--color-accent-light);
+  color: var(--color-accent-dark);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -22,7 +22,7 @@
 
 .title {
   font-family: var(--font-title);
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
   font-size: 1.05rem;
   margin-bottom: var(--space-2);
 }

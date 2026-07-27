@@ -40,7 +40,7 @@
 
 .price {
   font-weight: 700;
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
 }
 
 .actions {
@@ -55,11 +55,11 @@
   border-radius: 50%;
   border: none;
   background: var(--color-cream);
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 .iconBtn:hover {
-  background: var(--color-rose-light);
+  background: var(--color-accent-light);
 }

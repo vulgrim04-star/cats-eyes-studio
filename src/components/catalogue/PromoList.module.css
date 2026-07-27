@@ -19,7 +19,7 @@
 .code {
   font-family: var(--font-title);
   font-weight: 700;
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
   letter-spacing: 0.02em;
 }
 
@@ -50,5 +50,5 @@
 }
 .iconBtn:hover {
   background: var(--color-cream);
-  color: var(--color-rose-dark);
+  color: var(--color-accent-dark);
 }

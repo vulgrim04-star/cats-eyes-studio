@@ -121,7 +121,7 @@ export default function LashMapModal({ open, onClose, client, editingMap }) {
             <label className="field-label" htmlFor="lm-fill">Cycle de retouche</label>
             <input id="lm-fill" className="input-field" value={form.fillCycle} onChange={(e) => update({ fillCycle: e.target.value })} placeholder="2-3 semaines" />
             {suggestedRetouch && (
-              <p style={{ fontSize: '0.74rem', color: 'var(--color-rose-dark)', marginTop: 6 }}>
+              <p style={{ fontSize: '0.74rem', color: 'var(--color-accent-dark)', marginTop: 6 }}>
                 → Prochaine retouche suggérée : {formatDateLong(suggestedRetouch)}
               </p>
             )}
