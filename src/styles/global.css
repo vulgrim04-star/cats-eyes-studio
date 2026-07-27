@@ -150,7 +150,11 @@ input, select, textarea {
   color: var(--color-danger);
 }
 .btn-sm {
-  padding: 7px 14px;
+  /* 36 px : les actions secondaires denses (« Reçu », « Annuler », « Commander ») tombaient
+     à 28 px de haut, difficiles à viser au pouce sans pour autant justifier un bouton pleine
+     taille. */
+  padding: 0 14px;
+  min-height: 36px;
   font-size: 0.82rem;
 }
 .btn:disabled {
@@ -184,6 +188,45 @@ input, select, textarea {
   background: var(--color-white);
 }
 
+/* Cases à cocher. La case native du navigateur fait 13×13 px — sous le plancher WCAG 2.2
+   (24×24) et pénible à viser au doigt, y compris sur les formulaires de consentement où
+   cocher EST l'acte juridique. Redessinée à 22 px, aux couleurs de la charte.
+   Pas d'extension de zone par pseudo-élément ici : ces cases vivent toutes dans un <label>
+   dont le texte est déjà cliquable, la cible réelle est donc largement suffisante. */
+input[type='checkbox'] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  margin: 0;
+  border: 1.5px solid var(--color-taupe);
+  border-radius: 6px;
+  background: var(--color-white);
+  cursor: pointer;
+  position: relative;
+  transition: background var(--transition-fast), border-color var(--transition-fast);
+}
+input[type='checkbox']:checked {
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+}
+input[type='checkbox']:checked::before {
+  content: '';
+  position: absolute;
+  left: 7px;
+  top: 3px;
+  width: 5px;
+  height: 10px;
+  border: solid var(--color-text);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+input[type='checkbox']:focus-visible {
+  outline: 2px solid var(--color-accent-dark);
+  outline-offset: 2px;
+}
+
 .field-label {
   display: block;
   font-size: 0.8rem;
@@ -205,6 +248,8 @@ input, select, textarea {
 
 @media (max-width: 720px) {
   .btn {
-    padding: 10px 18px;
+    /* Le padding reduit ramenait les boutons a 37 px : on garantit la hauteur de touche. */
+    padding: 0 18px;
+    min-height: 44px;
   }
 }

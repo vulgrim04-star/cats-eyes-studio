@@ -54,8 +54,8 @@
 
 .deleteBtn {
   flex-shrink: 0;
-  width: 26px;
-  height: 26px;
+  width: 40px;
+  height: 40px;
   border-radius: var(--radius-sm);
   background: none;
   border: none;
@@ -67,4 +67,14 @@
 .deleteBtn:hover {
   background: var(--color-danger-bg);
   color: var(--color-danger);
+}
+
+/* Même géométrie que .deleteBtn, mais un survol neutre : le bouton « Modifier »
+   partageait sa classe et virait donc au rouge, annonçant une suppression. */
+.editBtn {
+  composes: deleteBtn;
+}
+.editBtn:hover {
+  background: var(--color-accent-light);
+  color: var(--color-accent-dark);
 }

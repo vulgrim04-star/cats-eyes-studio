@@ -5,7 +5,10 @@
 }
 
 .pill {
-  padding: 8px 18px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 18px;
+  min-height: 40px;
   border-radius: var(--radius-pill);
   background: var(--color-white);
   box-shadow: var(--shadow-sm);
@@ -16,8 +19,8 @@
 }
 
 .pillActive {
-  background: var(--color-accent-dark);
-  color: var(--color-white);
+  background: var(--color-accent);
+  color: var(--color-text);
 }
 
 .grid {

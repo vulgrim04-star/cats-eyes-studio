@@ -28,7 +28,7 @@ export default function ProductCard({ product, onOrder, onEdit, onDelete }) {
           )}
           <button
             type="button"
-            className={styles.deleteBtn}
+            className={styles.editBtn}
             onClick={() => onEdit(product)}
             title="Modifier ce produit"
             aria-label="Modifier ce produit"

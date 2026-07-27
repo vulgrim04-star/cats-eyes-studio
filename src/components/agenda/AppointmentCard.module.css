@@ -52,6 +52,9 @@
 }
 
 .clientName {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
   font-weight: 700;
   font-size: 0.94rem;
   color: var(--color-text);
@@ -89,7 +92,8 @@
   gap: 4px;
   border: none;
   border-radius: var(--radius-pill);
-  padding: 6px 12px;
+  padding: 0 12px;
+  min-height: 36px;
   font-size: 0.74rem;
   font-weight: 600;
   transition: transform var(--transition-fast);

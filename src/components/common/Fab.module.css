@@ -22,7 +22,7 @@
   transform: scale(0.95);
 }
 
-@media (min-width: 960px) {
+@media (min-width: 768px) {
   .fab {
     bottom: var(--space-8);
     right: var(--space-8);

@@ -99,6 +99,15 @@
   --transition-slow: 360ms var(--ease);
 }
 
+/* Tablette en portrait (iPad : 768–834 px). La barre latérale y apparaît désormais — elle
+   n'arrivait qu'à 960 px, si bien qu'un iPad tenu verticalement recevait la mise en page
+   téléphone. À 260 px elle laisserait moins de 510 px de contenu : on la resserre. */
+@media (min-width: 768px) and (max-width: 959px) {
+  :root {
+    --sidebar-width: 210px;
+  }
+}
+
 /* Mode sombre. Les nuances d'accent s'inversent de rôle : --color-accent-dark sert
    toujours de couleur de texte accentué, il doit donc être plus CLAIR ici, et
    --color-accent-light sert toujours de fond de pastille, donc plus sombre. */

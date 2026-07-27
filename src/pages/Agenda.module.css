@@ -30,7 +30,10 @@
 }
 
 .viewBtn {
-  padding: 7px 16px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 16px;
+  min-height: 40px;
   border-radius: var(--radius-pill);
   border: none;
   background: none;

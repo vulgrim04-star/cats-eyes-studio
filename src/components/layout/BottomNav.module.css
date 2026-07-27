@@ -77,7 +77,7 @@
   background: var(--color-cream);
 }
 
-@media (min-width: 960px) {
+@media (min-width: 768px) {
   .nav {
     display: none;
   }
