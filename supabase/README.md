@@ -84,6 +84,46 @@ create policy owner_delete_push_subscriptions on public.push_subscriptions
 Sans cette table, activer les notifications dans Paramètres ne provoquera pas d'erreur visible,
 mais aucun abonnement ne sera enregistré et aucune notification ne sera reçue app fermée.
 
+## Étape manuelle requise : publier `booking_requests` en temps réel
+
+Supabase n'inscrit **aucune** table dans la publication `supabase_realtime` par défaut. Tant
+que cette ligne n'a pas été exécutée, l'abonnement temps réel de l'app se connecte sans la
+moindre erreur et ne reçoit jamais rien — ni alerte, ni rafraîchissement de la liste des
+demandes. À exécuter une fois dans le SQL Editor :
+
+```sql
+alter publication supabase_realtime add table public.booking_requests;
+```
+
+(Le même bloc, rendu ré-exécutable, se trouve en fin de `schema.sql`. Équivalent au dashboard :
+Database → Replication → publication `supabase_realtime` → cocher `booking_requests`.)
+
+L'app **n'en dépend plus pour alerter** : un sondage au premier plan sert de filet
+(`src/hooks/usePollWhileVisible.js`), et les demandes apparaissent de toute façon dans la
+cloche et sur le tableau de bord. Cette publication ne fait que rendre l'alerte instantanée
+au lieu d'attendre le prochain sondage — jusqu'à une minute.
+
+## Vérifier les notifications de bout en bout
+
+Trois choses doivent être vraies pour qu'un téléphone verrouillé sonne. Dans l'ordre où il
+faut les vérifier :
+
+1. **`/api/health`** (à ouvrir dans le navigateur) doit rapporter `vapidConfigured: true`
+   **et** `vapidClientKeyConfigured: true`. Le second est le piège classique : la clé publique
+   existe en deux exemplaires, `VAPID_PUBLIC_KEY` pour le serveur et `VITE_VAPID_PUBLIC_KEY`
+   pour le navigateur. N'ajouter que la première donne un serveur prêt à envoyer… à personne,
+   puisqu'aucun appareil n'a jamais pu s'abonner.
+   ⚠️ Une variable `VITE_` est figée dans le bundle **à la construction** : l'ajouter dans
+   Vercel n'a aucun effet tant qu'on n'a pas redéployé.
+2. **Le SQL ci-dessus** (table `push_subscriptions` + publication temps réel) doit être exécuté.
+3. **Paramètres → « Tester les notifications »** sur l'appareil concerné. Ce bouton emprunte
+   exactement le même chemin que la vraie notification (`api/_lib/push.js`) et nomme la cause
+   quand ça échoue : clé absente, permission refusée, aucun appareil abonné, envoi rejeté.
+
+Sur **iPhone/iPad**, une notification app fermée exige que l'app soit ajoutée à l'écran
+d'accueil (Partager → « Sur l'écran d'accueil ») et ouverte **depuis cette icône** : Safari en
+onglet ne donne pas accès au push, quelle que soit la configuration serveur.
+
 ## Stockage des photos (bucket `client-photos`)
 
 Les photos de séance vivaient à l'origine en data URL base64 **à l'intérieur** du blob

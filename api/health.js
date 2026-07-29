@@ -4,6 +4,7 @@ import {
   serverAndClientAgreeOnProject,
 } from './_lib/supabaseAdmin.js';
 import { isTestSender } from './_lib/email.js';
+import { hasVapidConfig } from './_lib/push.js';
 
 // Diagnostic de configuration serveur.
 //
@@ -25,7 +26,13 @@ export default async function handler(req, res) {
     supabaseSameProjectAsClient: serverAndClientAgreeOnProject(),
     resendConfigured: Boolean(process.env.RESEND_API_KEY),
     senderDomainConfigured: !isTestSender(),
-    vapidConfigured: Boolean(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY),
+    vapidConfigured: hasVapidConfig(),
+    // La clé publique existe en DEUX exemplaires : sans préfixe pour le serveur, avec
+    // préfixe VITE_ pour le navigateur. N'ajouter que la première est l'erreur la plus
+    // fréquente, et la plus discrète : le serveur est prêt à envoyer, mais aucun appareil
+    // n'a jamais pu s'abonner, donc il n'a personne à qui écrire. Rappel : une variable
+    // VITE_ est figée dans le bundle à la construction — l'ajouter exige un redéploiement.
+    vapidClientKeyConfigured: Boolean(process.env.VITE_VAPID_PUBLIC_KEY),
   };
 
   if (checks.supabaseConfigured) {

@@ -4,9 +4,9 @@ import Icon from '../common/Icon';
 import { fullName } from '../../utils/format';
 import styles from './NotificationsPanel.module.css';
 
-export default function NotificationsPanel({ birthdays, lowStock, pendingAppointments, onClose }) {
+export default function NotificationsPanel({ birthdays, lowStock, pendingAppointments, bookingRequests = [], onClose }) {
   const navigate = useNavigate();
-  const hasAny = birthdays.length + lowStock.length + pendingAppointments.length > 0;
+  const hasAny = birthdays.length + lowStock.length + pendingAppointments.length + bookingRequests.length > 0;
 
   const go = (path) => {
     onClose();
@@ -20,6 +20,25 @@ export default function NotificationsPanel({ birthdays, lowStock, pendingAppoint
         <div className={styles.title}>Notifications</div>
 
         {!hasAny && <div className={styles.empty}>Aucune alerte pour le moment.</div>}
+
+        {/* Les demandes venues du lien de réservation en tête : ce sont les seules alertes
+            qu'une cliente attend, et le seul endroit où elles restaient invisibles quand
+            l'alerte instantanée ne partait pas. */}
+        {bookingRequests.map((request) => (
+          <button key={request.id} type="button" className={styles.row} onClick={() => go('/')}>
+            <span className={`${styles.iconWrap} rose`}>
+              <Icon name="clipboard" size={15} />
+            </span>
+            <div className={styles.text}>
+              <div className={styles.rowTitle}>
+                {`${request.first_name ?? ''} ${request.last_name ?? ''}`.trim() || 'Une cliente'} — demande de RDV
+              </div>
+              <div className={styles.rowSubtitle}>
+                {request.service_name} · {request.date} à {request.time}
+              </div>
+            </div>
+          </button>
+        ))}
 
         {birthdays.map(({ client, daysUntil }) => (
           <button key={client.id} type="button" className={styles.row} onClick={() => go(`/clientes/${client.id}`)}>

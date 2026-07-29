@@ -11,7 +11,7 @@ import { countInlinePhotos, migrateInlinePhotos } from '../utils/photoStorage';
 import { fileToResizedDataUrl } from '../utils/image';
 import { CURRENCIES } from '../utils/format';
 import { downloadBackup, restoreBackup, BackupSyncError } from '../utils/backup';
-import { subscribeToPush, isPushSupported } from '../utils/push';
+import { subscribeToPush, isPushSupported, localPushState, pushReasonText, sendTestPush } from '../utils/push';
 import { signOut, useAuthStore } from '../store/useAuthStore';
 import DeleteAccountModal from '../components/settings/DeleteAccountModal';
 import ResetDataModal from '../components/settings/ResetDataModal';
@@ -63,23 +63,56 @@ export default function Settings() {
       showToast(`${migrated} photo(s) optimisée(s).`, 'success');
     }
   };
-  const [notifPermission, setNotifPermission] = useState(
-    typeof Notification !== 'undefined' ? Notification.permission : 'unsupported'
-  );
+  // `subscribed` compte autant que `permission` : une permission accordée sans abonnement
+  // enregistré ne fait sonner aucun téléphone, et c'est le cas que l'écran affirmait résolu.
+  const [pushState, setPushState] = useState({ supported: true, permission: 'default', subscribed: false });
+  const [pushMessage, setPushMessage] = useState(null);
+  const [testing, setTesting] = useState(false);
+
+  const refreshPushState = async () => {
+    setPushState(await localPushState());
+  };
+
+  useEffect(() => {
+    refreshPushState();
+  }, []);
 
   const requestNotifPermission = async () => {
     if (typeof Notification === 'undefined') return;
-    const result = await Notification.requestPermission();
-    setNotifPermission(result);
-    if (result === 'granted') {
-      const subscribed = ownerId && (await subscribeToPush(ownerId));
-      showToast(
-        subscribed
-          ? 'Notifications activées — tu les recevras même app fermée'
-          : 'Notifications activées (uniquement app ouverte sur cet appareil)',
-        'success'
-      );
+    const permission = await Notification.requestPermission();
+    if (permission !== 'granted') {
+      await refreshPushState();
+      setPushMessage({ ok: false, text: pushReasonText(permission === 'denied' ? 'permission-denied' : 'permission-missing') });
+      return;
     }
+
+    const result = await subscribeToPush(ownerId);
+    await refreshPushState();
+    setPushMessage({ ok: result.ok, text: pushReasonText(result.reason) });
+    if (result.ok) showToast('Notifications activées sur cet appareil', 'success');
+  };
+
+  const handleTestPush = async () => {
+    setTesting(true);
+    setPushMessage(null);
+    // On (ré)abonne d'abord : le test doit dire si ça marche MAINTENANT, pas si ça marchait
+    // le jour où la permission a été accordée.
+    const local = await subscribeToPush(ownerId);
+    await refreshPushState();
+    if (!local.ok) {
+      setTesting(false);
+      setPushMessage({ ok: false, text: pushReasonText(local.reason) });
+      return;
+    }
+
+    const result = await sendTestPush();
+    setTesting(false);
+    setPushMessage({
+      ok: result.ok,
+      text: result.ok
+        ? `${pushReasonText('sent')} Si rien n'apparaît sur cet appareil dans quelques secondes, vérifie que les notifications de l'app ne sont pas coupées dans les réglages du téléphone.`
+        : pushReasonText(result.reason),
+    });
   };
 
   const bookingLink = ownerId ? `${window.location.origin}/r/${ownerId}` : '';
@@ -351,21 +384,46 @@ export default function Settings() {
           <div className={styles.prefText}>
             <div className={styles.prefTitle}>Alertes nouvelles demandes de réservation</div>
             <div className={styles.prefSubtitle}>
-              {notifPermission === 'granted'
-                ? "Activées — tu reçois une alerte dès qu'une cliente demande un rendez-vous depuis le lien en ligne, même app fermée sur cet appareil."
-                : notifPermission === 'denied'
-                  ? 'Bloquées dans les réglages de ton navigateur/téléphone — réactive-les manuellement pour les recevoir.'
-                  : notifPermission === 'unsupported'
-                    ? "Non disponibles sur ce navigateur. Tu verras quand même les demandes en attente sur le tableau de bord."
-                    : "Active-les pour être alerté(e) même sans avoir l'app ouverte sous les yeux."}
+              {/* Trois états distincts, et non deux : « autorisé » ne veut pas dire « abonné ».
+                  Les confondre était précisément ce qui laissait croire que tout marchait. */}
+              {!pushState.supported
+                ? "Notifications app fermée indisponibles sur ce navigateur. Les demandes restent visibles dans la cloche et sur le tableau de bord."
+                : pushState.permission === 'denied'
+                  ? 'Bloquées dans les réglages de ton navigateur/téléphone — il faut les réautoriser à la main.'
+                  : pushState.subscribed
+                    ? "Cet appareil est abonné : tu es alertée dès qu'une cliente réserve, même app fermée."
+                    : pushState.permission === 'granted'
+                      ? "Autorisées, mais cet appareil n'est pas abonné — appuie sur « Tester » pour savoir ce qui bloque."
+                      : "Active-les pour être alertée même sans avoir l'app sous les yeux."}
             </div>
           </div>
-          {notifPermission !== 'granted' && notifPermission !== 'unsupported' && (
-            <button type="button" className="btn btn-secondary btn-sm" onClick={requestNotifPermission} disabled={notifPermission === 'denied'}>
-              Activer
-            </button>
-          )}
+          <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+            {pushState.supported && !pushState.subscribed && pushState.permission !== 'denied' && (
+              <button type="button" className="btn btn-secondary btn-sm" onClick={requestNotifPermission}>
+                Activer
+              </button>
+            )}
+            {/* Toujours proposé dès que la permission est là : c'est le seul moyen de savoir si
+                la chaîne complète (clés serveur, abonnement, envoi) fonctionne réellement. */}
+            {pushState.supported && pushState.permission === 'granted' && (
+              <button type="button" className="btn btn-ghost btn-sm" onClick={handleTestPush} disabled={testing}>
+                {testing ? 'Envoi…' : 'Tester'}
+              </button>
+            )}
+          </div>
         </div>
+        {pushMessage && (
+          <p
+            style={{
+              fontSize: '0.78rem',
+              lineHeight: 1.45,
+              margin: '0 0 var(--space-3)',
+              color: pushMessage.ok ? 'var(--color-success)' : 'var(--color-warning)',
+            }}
+          >
+            {pushMessage.text}
+          </p>
+        )}
         {!isPushSupported() && (
           <p style={{ fontSize: '0.76rem', color: 'var(--color-text-soft)', margin: '0 0 var(--space-3)' }}>
             Sur iPhone/iPad : ajoute d'abord l'app à l'écran d'accueil (bouton Partager → "Sur l'écran

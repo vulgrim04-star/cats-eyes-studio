@@ -7,6 +7,7 @@ import { useAppointments, enrich, getPendingAppointments } from '../../hooks/use
 import { useProducts, lowStockProducts } from '../../hooks/useProducts';
 import { useClients } from '../../hooks/useClients';
 import { useSettings } from '../../hooks/useSettings';
+import { useBookingRequestsStore } from '../../store/useBookingRequestsStore';
 import { upcomingBirthdays } from '../../utils/birthday';
 import { formatDateLong, todayISO } from '../../utils/date';
 import styles from './TopBar.module.css';
@@ -19,10 +20,12 @@ export default function TopBar() {
   const [panelOpen, setPanelOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
 
+  const bookingRequests = useBookingRequestsStore((s) => s.requests);
+
   const pending = getPendingAppointments(appointments).map(enrich).slice(0, 5);
   const lowStock = lowStockProducts(products);
   const birthdays = upcomingBirthdays(clients, 7);
-  const alertCount = pending.length + lowStock.length + birthdays.length;
+  const alertCount = bookingRequests.length + pending.length + lowStock.length + birthdays.length;
 
   return (
     <header className={styles.bar}>
@@ -47,6 +50,7 @@ export default function TopBar() {
               birthdays={birthdays}
               lowStock={lowStock}
               pendingAppointments={pending}
+              bookingRequests={bookingRequests}
               onClose={() => setPanelOpen(false)}
             />
           )}

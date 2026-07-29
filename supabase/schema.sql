@@ -70,3 +70,29 @@ create table if not exists public.feedback (
 );
 
 alter table public.feedback enable row level security;
+
+-- ── Diffusion temps réel ────────────────────────────────────────────────────
+-- Supabase n'inscrit AUCUNE table dans la publication `supabase_realtime` par défaut.
+-- Sans la ligne ci-dessous, l'abonnement `postgres_changes` de useBookingNotifications
+-- se connecte sans la moindre erreur et ne reçoit jamais rien : la salonnière n'était
+-- donc jamais alertée d'une nouvelle demande, même l'app ouverte sous les yeux. Une panne
+-- parfaitement muette, impossible à distinguer de « aucune cliente n'a réservé ».
+--
+-- L'app ne dépend plus de cette publication pour alerter (un sondage au premier plan sert
+-- de filet, voir hooks/usePollWhileVisible.js) — elle sert à rendre l'alerte instantanée
+-- au lieu d'attendre le prochain sondage.
+--
+-- Bloc conditionnel : `add table` échoue si la table est déjà publiée, ce qui interromprait
+-- le reste du script à la seconde exécution.
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'booking_requests'
+  ) then
+    alter publication supabase_realtime add table public.booking_requests;
+  end if;
+end
+$$;

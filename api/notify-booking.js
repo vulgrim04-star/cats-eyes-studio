@@ -1,6 +1,6 @@
-import webpush from 'web-push';
 import { hasSupabaseAdminConfig, getSupabaseAdmin } from './_lib/supabaseAdmin.js';
 import { resendFrom, isTestSender } from './_lib/email.js';
+import { sendPushToUser } from './_lib/push.js';
 
 function escapeHtml(str) {
   return String(str ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -43,40 +43,12 @@ async function sendEmail(salon, clientName, { phone, serviceName, date, time }) 
   return { sent: true };
 }
 
-async function sendPush(supabase, ownerId, clientName, { serviceName, date, time }) {
-  if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
-    return { sent: false, reason: 'missing-vapid-keys' };
-  }
-
-  const { data: subs, error } = await supabase.from('push_subscriptions').select('*').eq('user_id', ownerId);
-  if (error || !subs?.length) return { sent: false, reason: error ? 'query-error' : 'no-subscription' };
-
-  webpush.setVapidDetails(process.env.VAPID_SUBJECT || 'mailto:contact@cats-eyes-studio.vercel.app', process.env.VAPID_PUBLIC_KEY, process.env.VAPID_PRIVATE_KEY);
-
-  const payload = JSON.stringify({
+function sendPush(supabase, ownerId, clientName, { serviceName, date, time }) {
+  return sendPushToUser(supabase, ownerId, {
     title: 'Nouvelle réservation en ligne',
     body: `${clientName} — ${serviceName || 'Prestation'} le ${date} à ${time}`,
     url: '/agenda',
   });
-
-  let sent = 0;
-  await Promise.all(
-    subs.map(async (sub) => {
-      try {
-        await webpush.sendNotification({ endpoint: sub.endpoint, keys: { p256dh: sub.p256dh, auth: sub.auth } }, payload);
-        sent += 1;
-      } catch (err) {
-        // 404/410 = abonnement expiré/révoqué côté navigateur : on le supprime pour ne
-        // plus tenter de lui envoyer quoi que ce soit.
-        if (err.statusCode === 404 || err.statusCode === 410) {
-          await supabase.from('push_subscriptions').delete().eq('id', sub.id);
-        } else {
-          console.error('[api/notify-booking] push send error', err.statusCode, err.body);
-        }
-      }
-    })
-  );
-  return { sent: sent > 0, count: sent };
 }
 
 // Notifie le salon (e-mail + notification push) dès qu'une cliente réserve via le lien

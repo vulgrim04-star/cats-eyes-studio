@@ -1,54 +1,28 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
 import { supabase } from '../lib/supabaseClient';
 import { useAuthStore } from '../store/useAuthStore';
+import { useBookingRequestsStore } from '../store/useBookingRequestsStore';
 import { useAppointments } from './useAppointments';
 import { useClients } from './useClients';
 import { useToast } from './useToast';
 
 /** Demandes de RDV en attente de validation, prises par des clientes via le lien
- * de réservation public (non connectées). */
+ * de réservation public (non connectées).
+ *
+ * La liste vient du magasin partagé, alimenté par useBookingNotifications (monté dans
+ * Layout) : elle est donc déjà à jour à l'ouverture du tableau de bord, et reste alignée
+ * sur ce que la cloche annonce. Ce hook n'ajoute que les actions de traitement. */
 export function useBookingRequests() {
   const ownerId = useAuthStore((s) => s.session?.user?.id);
-  const [requests, setRequests] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const requests = useBookingRequestsStore((s) => s.requests);
+  const loading = useBookingRequestsStore((s) => s.loading);
+  const refreshStore = useBookingRequestsStore((s) => s.refresh);
+  const removeFromStore = useBookingRequestsStore((s) => s.remove);
   const { clients, addClient } = useClients();
   const { addAppointment } = useAppointments();
   const { showToast } = useToast();
 
-  const refresh = useCallback(async () => {
-    if (!ownerId) return;
-    setLoading(true);
-    const { data, error } = await supabase
-      .from('booking_requests')
-      .select('*')
-      .eq('owner_id', ownerId)
-      .eq('status', 'pending')
-      .order('created_at', { ascending: true });
-    if (!error) setRequests(data ?? []);
-    setLoading(false);
-  }, [ownerId]);
-
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
-
-  // Rafraîchit la liste en direct dès qu'une demande arrive/est traitée, sans attendre
-  // que l'utilisatrice recharge la page (le toast/notification est géré séparément par
-  // useBookingNotifications, monté au niveau du Layout).
-  useEffect(() => {
-    if (!ownerId) return undefined;
-    const channel = supabase
-      .channel(`booking-requests-list-${ownerId}`)
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'booking_requests', filter: `owner_id=eq.${ownerId}` },
-        () => refresh()
-      )
-      .subscribe();
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [ownerId, refresh]);
+  const refresh = useCallback(() => refreshStore(ownerId), [refreshStore, ownerId]);
 
   const confirm = async (request) => {
     let client = clients.find((c) => c.phone.replace(/\s/g, '') === request.phone.replace(/\s/g, ''));
@@ -75,13 +49,13 @@ export function useBookingRequests() {
     if (!appointment) return false;
 
     await supabase.from('booking_requests').update({ status: 'confirmed' }).eq('id', request.id);
-    setRequests((prev) => prev.filter((r) => r.id !== request.id));
+    removeFromStore(request.id);
     return true;
   };
 
   const decline = async (request) => {
     await supabase.from('booking_requests').update({ status: 'declined' }).eq('id', request.id);
-    setRequests((prev) => prev.filter((r) => r.id !== request.id));
+    removeFromStore(request.id);
     showToast('Demande refusée', 'warning');
   };
 
