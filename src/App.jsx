@@ -10,6 +10,8 @@ const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Agenda = lazy(() => import('./pages/Agenda'));
 const Clients = lazy(() => import('./pages/Clients'));
 const ClientDetail = lazy(() => import('./pages/ClientDetail'));
+const LashMapPage = lazy(() => import('./pages/LashMapPage'));
+const LashMaps = lazy(() => import('./pages/LashMaps'));
 const Stock = lazy(() => import('./pages/Stock'));
 const Finances = lazy(() => import('./pages/Finances'));
 const Catalogue = lazy(() => import('./pages/Catalogue'));
@@ -45,6 +47,8 @@ export default function App() {
               <Route path="/agenda" element={<Agenda />} />
               <Route path="/clientes" element={<Clients />} />
               <Route path="/clientes/:id" element={<ClientDetail />} />
+              <Route path="/clientes/:id/lash-map/:mapId" element={<LashMapPage />} />
+              <Route path="/lash-map" element={<LashMaps />} />
               <Route path="/stock" element={<Stock />} />
               <Route path="/finances" element={<Finances />} />
               <Route path="/catalogue" element={<Catalogue />} />

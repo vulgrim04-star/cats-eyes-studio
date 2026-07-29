@@ -8,7 +8,7 @@ import LoyaltyBadge from '../components/clients/LoyaltyBadge';
 import ProfileTab from '../components/clients/ProfileTab';
 import HistoryTab from '../components/clients/HistoryTab';
 import PhotosTab from '../components/clients/PhotosTab';
-import LashMapTab from '../components/clients/LashMapTab';
+import LashMapTab from '../components/lashmap/LashMapTab';
 import NotesTab from '../components/clients/NotesTab';
 import ClientSheetExportModal from '../components/clients/ClientSheetExportModal';
 import { useClient, useClients } from '../hooks/useClients';

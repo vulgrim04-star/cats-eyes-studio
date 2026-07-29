@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { to: '/', icon: 'dashboard', label: 'Dashboard', end: true },
   { to: '/agenda', icon: 'calendar', label: 'Agenda' },
   { to: '/clientes', icon: 'users', label: 'Clientes' },
+  { to: '/lash-map', icon: 'eye', label: 'Lash map' },
   { to: '/stock', icon: 'package', label: 'Stock' },
   { to: '/finances', icon: 'euro', label: 'Finances' },
   { to: '/catalogue', icon: 'sparkles', label: 'Catalogue' },

@@ -1,0 +1,109 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: var(--color-scrim);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: fade 180ms ease-in-out;
+}
+
+.sheet {
+  width: 100%;
+  max-width: 560px;
+  max-height: 72vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-white);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  box-shadow: var(--shadow-lg);
+  transition: transform 180ms ease-in-out;
+  animation: rise 180ms ease-in-out;
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+.grabber {
+  display: flex;
+  justify-content: center;
+  padding: 10px 0 4px;
+  cursor: grab;
+  touch-action: none;
+}
+
+.grabberBar {
+  width: 42px;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-border);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: 0 var(--space-5) var(--space-2);
+}
+
+.title {
+  margin: 0;
+  font-family: var(--font-title);
+  font-size: 1rem;
+  color: var(--color-accent-dark);
+}
+
+.closeBtn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: var(--color-cream);
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.body {
+  overflow-y: auto;
+  /* La barre de navigation du bas recouvre la feuille sur téléphone : on lui réserve sa
+     hauteur, sinon le dernier réglage est inatteignable. */
+  padding: 0 var(--space-5) calc(var(--space-5) + var(--bottom-nav-height));
+}
+
+@media (min-width: 960px) {
+  .body {
+    padding-bottom: var(--space-5);
+  }
+}
+
+@keyframes fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes rise {
+  from { transform: translateY(16px); opacity: 0.6; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@media (min-width: 900px) {
+  /* Sur grand écran les propriétés vivent dans la colonne de droite : la feuille
+     n'est qu'un filet de sécurité, on la centre comme une modale classique. */
+  .overlay {
+    align-items: center;
+  }
+  .sheet {
+    border-radius: var(--radius-xl);
+    max-height: 80vh;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overlay,
+  .sheet {
+    animation: none;
+    transition: none;
+  }
+}

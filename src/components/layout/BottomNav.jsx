@@ -11,6 +11,7 @@ const MAIN_ITEMS = [
 ];
 
 const MORE_ITEMS = [
+  { to: '/lash-map', icon: 'eye', label: 'Lash map' },
   { to: '/finances', icon: 'euro', label: 'Finances' },
   { to: '/catalogue', icon: 'sparkles', label: 'Catalogue' },
   { to: '/parametres', icon: 'settings', label: 'Paramètres' },

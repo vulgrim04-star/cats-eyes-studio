@@ -1,3 +1,18 @@
+import { createEye } from '../utils/lashModel';
+
+/** Fabrique un œil de démonstration.
+ * @param {number[]} lengths longueurs en mm, du coin INTERNE vers le coin EXTERNE
+ * @param {object} global réglages de l'œil (courbure, épaisseur, technique, densité…)
+ * @param {Object<number, object>} [overrides] surcharges par index de secteur
+ */
+function eye(lengths, global, overrides = {}) {
+  const base = createEye(lengths.length, global);
+  return {
+    ...base,
+    zones: base.zones.map((zone, i) => ({ ...zone, length: lengths[i], ...(overrides[i] ?? {}) })),
+  };
+}
+
 export const clients = [
   {
     id: 'cli_1',
@@ -28,20 +43,22 @@ export const clients = [
         lashHealth: 'Fins mais résistants',
         fillCycle: '3 semaines',
         setShape: 'Naturel',
-        poseType: 'Retouche',
-        styles: ['Volume'],
-        effects: ['Open Eye'],
-        curl: 'C',
-        // Les longueurs/épaisseurs sont stockées sans unité : l'affichage ajoute « mm ».
-        length: '11',
-        thickness: '0.05',
+        poseType: 'Retouche 3 sem',
+        // Les secteurs vont TOUJOURS du coin interne au coin externe, pour les deux
+        // yeux : c'est le dessin de l'œil gauche qui est retourné, pas la donnée.
+        leftEye: eye(
+          [8, 9, 10, 11, 11, 11, 11, 11, 10, 10, 9, 8],
+          { curl: 'C', diameter: '0.05', style: 'Volume Russe', density: '3D', color: 'Noir' }
+        ),
+        rightEye: eye(
+          [8, 9, 10, 11, 11, 11, 11, 11, 10, 10, 9, 8],
+          { curl: 'C', diameter: '0.05', style: 'Volume Russe', density: '3D', color: 'Noir' }
+        ),
         adhesive: 'Sensitive 1-2 s',
-        innerCornerLength: '8',
-        outerCornerLength: '10',
-        layers: { top: '11', mid: '10', bottom: '9' },
+        poseDuration: '2 h 10',
+        products: 'Bouquets pré-fannés 0.05 · plateau C',
+        advice: 'Brosser matin et soir, éviter les soins gras sur la ligne de cils.',
         notes: 'Effet naturel demandé, densité légère sur les coins externes.',
-        zonesLeft: ['9', '10', '11', '11', '10', '9'],
-        zonesRight: ['9', '10', '11', '11', '10', '9'],
       },
     ],
   },
@@ -152,18 +169,25 @@ export const clients = [
         fillCycle: '2-3 semaines',
         setShape: 'Cat Eye',
         poseType: 'Pose complète',
-        styles: ['Mega volume', 'Wispy'],
-        effects: ['Cat Eye', 'Wispy'],
-        curl: 'D',
-        length: '13',
-        thickness: '0.03',
+        templateId: 'kim-k',
+        // Cat Eye wispy : dégradé croissant vers l'externe, avec des spikes plus longs
+        // un secteur sur deux dans le tiers externe (surcharge de densité).
+        leftEye: eye(
+          [8, 9, 10, 10, 11, 12, 12, 13, 13, 14, 13, 13],
+          { curl: 'D', diameter: '0.03', style: 'Kim K', density: '6D', color: 'Noir' },
+          { 7: { density: '2D' }, 9: { density: '2D' }, 11: { density: '2D' } }
+        ),
+        rightEye: eye(
+          [8, 9, 10, 10, 11, 12, 12, 13, 13, 14, 13, 13],
+          { curl: 'D', diameter: '0.03', style: 'Kim K', density: '6D', color: 'Noir' },
+          { 7: { density: '2D' }, 9: { density: '2D' }, 11: { density: '2D' } }
+        ),
         adhesive: 'Ultra bond 0.5 s',
-        innerCornerLength: '8',
-        outerCornerLength: '13',
-        layers: { top: '13', mid: '11', bottom: '9' },
+        poseDuration: '2 h 45',
+        products: 'Fibres 0.03 handmade · plateau D',
+        sensitivities: 'Aucune, supporte la colle rapide',
+        advice: 'Retouche à 3 semaines pour garder les spikes nets.',
         notes: 'Adore l\'effet dramatique. Coins externes très fournis, spikes wispy.',
-        zonesLeft: ['8', '9', '10', '12', '13', '13'],
-        zonesRight: ['13', '13', '12', '10', '9', '8'],
       },
       {
         id: 'lm_3',
@@ -172,14 +196,40 @@ export const clients = [
         lashHealth: 'Épais et courts',
         fillCycle: '2-3 semaines',
         setShape: 'Cat Eye',
-        poseType: 'Retouche',
-        styles: ['Mega volume'],
-        curl: 'D',
-        length: '13mm',
-        thickness: '0.03mm',
+        poseType: 'Retouche 4 sem',
+        templateId: 'classic-cat-eye',
+        leftEye: eye(
+          [8, 9, 9, 10, 11, 11, 12, 12, 13, 13, 13, 13],
+          { curl: 'D', diameter: '0.03', style: 'Mega Volume', density: '6D', color: 'Noir' }
+        ),
+        rightEye: eye(
+          [8, 9, 9, 10, 11, 11, 12, 12, 13, 13, 13, 13],
+          { curl: 'D', diameter: '0.03', style: 'Mega Volume', density: '6D', color: 'Noir' }
+        ),
+        adhesive: 'Ultra bond 0.5 s',
+        fillDuration: '1 h 30',
         notes: 'Retouche mensuelle habituelle.',
-        zonesLeft: ['8', '9', '10', '12', '13', '13'],
-        zonesRight: ['13', '13', '12', '10', '9', '8'],
+      },
+      {
+        id: 'lm_4',
+        date: '2026-04-22',
+        eyeShape: 'Amande',
+        lashHealth: 'Épais et courts',
+        fillCycle: '3 semaines',
+        setShape: 'Doll Eye',
+        poseType: 'Pose complète',
+        templateId: 'doll-eye',
+        leftEye: eye(
+          [9, 10, 11, 12, 13, 13, 13, 13, 12, 11, 10, 9],
+          { curl: 'CC', diameter: '0.05', style: 'Volume Russe', density: '4D', color: 'Noir' }
+        ),
+        rightEye: eye(
+          [9, 10, 11, 12, 13, 13, 13, 13, 12, 11, 10, 9],
+          { curl: 'CC', diameter: '0.05', style: 'Volume Russe', density: '4D', color: 'Noir' }
+        ),
+        adhesive: 'Sensitive 1-2 s',
+        poseDuration: '2 h 20',
+        notes: 'Essai Doll Eye avant l\'été : longueurs maximales au centre, coins adoucis.',
       },
     ],
   },

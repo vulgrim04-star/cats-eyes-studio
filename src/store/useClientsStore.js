@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { createId } from '../utils/id';
 import { supabaseSyncStorage } from '../utils/supabaseSyncStorage';
+import { normalizeLashMap } from '../utils/lashModel';
 
 export const useClientsStore = create(
   persist(
@@ -94,7 +95,9 @@ export const useClientsStore = create(
       },
 
       addLashMap: (id, map) => {
-        const entry = { id: createId('lm'), date: new Date().toISOString().slice(0, 10), ...map };
+        // Normalisée à l'entrée : le magasin ne contient JAMAIS une fiche à moitié
+        // convertie, quelle que soit la forme fournie par l'appelant.
+        const entry = normalizeLashMap({ id: createId('lm'), date: new Date().toISOString().slice(0, 10), ...map });
         set((state) => ({
           clients: state.clients.map((c) =>
             c.id === id ? { ...c, lashMaps: [entry, ...(c.lashMaps ?? [])] } : c
@@ -123,18 +126,21 @@ export const useClientsStore = create(
     }),
     {
       name: 'ces-clients',
-      version: 3,
+      version: 4,
       storage: createJSONStorage(() => supabaseSyncStorage),
       skipHydration: true,
-      // Complète les fiches persistées avant l'ajout de la Lash Map / fiche de santé.
+      // v3 : complète les fiches d'avant la Lash Map / la fiche de santé.
+      // v4 : convertit les Lash Maps au modèle par secteurs (longueurs en tableau de
+      //      chaînes → secteurs numérotés, courbure/épaisseur → réglages globaux).
+      //      `normalizeLashMap` est idempotente : une fiche déjà convertie est intacte.
       migrate: (persisted) => ({
         clients: (persisted?.clients ?? []).map((c) => ({
-          lashMaps: [],
           healthFormSigned: false,
           healthFormDate: null,
           healthFormSignatureUrl: null,
           healthFormAnswers: null,
           ...c,
+          lashMaps: (c.lashMaps ?? []).map(normalizeLashMap),
         })),
       }),
     }
