@@ -129,8 +129,12 @@ export async function buildClientSheetPdf(client, appointments, salon, sections)
         ['Courbure', map.curl],
         ['Longueur', map.length && `${map.length}mm`],
         ['Épaisseur', map.thickness && `${map.thickness}mm`],
+        ['Type de base', map.baseType],
         ['Colle', map.adhesive],
         ['Coin interne / externe', (map.innerCornerLength || map.outerCornerLength) ? `${map.innerCornerLength || '—'} / ${map.outerCornerLength || '—'}` : ''],
+        ['Couches (H/M/B)', (map.layers && (map.layers.top || map.layers.mid || map.layers.bottom))
+          ? `${map.layers.top || '—'} / ${map.layers.mid || '—'} / ${map.layers.bottom || '—'}`
+          : ''],
       ].filter(([, v]) => v);
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);

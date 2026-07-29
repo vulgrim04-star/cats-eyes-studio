@@ -1,20 +1,46 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Icon from '../common/Icon';
 import EmptyState from '../common/EmptyState';
 import LashMapModal from './LashMapModal';
-import EyeDiagram from './EyeDiagram';
+import LashDiagram from './LashDiagram';
 import { useClients } from '../../hooks/useClients';
 import { formatDateLong } from '../../utils/date';
 import { estimateNextRetouchDate } from '../../utils/lashCycle';
-import styles from './LashMap.module.css';
+import { diffMaps } from '../../utils/lashCalculations';
+import styles from './styles/LashMap.module.css';
+
+const noop = () => {};
+
+/** Écarts avec la séance qui précède immédiatement, affichés sur la fiche. */
+function ChangesFromPrevious({ map, previous }) {
+  const { changes } = useMemo(() => diffMaps(map, previous), [map, previous]);
+  if (!previous || changes.length === 0) return null;
+
+  return (
+    <div className={styles.cardChanges}>
+      <span className={styles.cardChangesLabel}>Depuis le {formatDateLong(previous.date)}</span>
+      <div className={styles.cardChangesList}>
+        {changes.slice(0, 4).map((change) => (
+          <span key={change.key} className={styles.changeChip}>
+            {change.label} : {change.from} → {change.to}
+          </span>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function LashMapTab({ client }) {
   const navigate = useNavigate();
   const { removeLashMap } = useClients();
   const [modalOpen, setModalOpen] = useState(false);
   const [editingMap, setEditingMap] = useState(null);
-  const maps = client.lashMaps ?? [];
+
+  const maps = useMemo(
+    () => [...(client.lashMaps ?? [])].sort((a, b) => String(b.date).localeCompare(String(a.date))),
+    [client.lashMaps]
+  );
 
   const handleDelete = (mapId) => {
     if (window.confirm('Supprimer cette Lash Map ?')) {
@@ -41,9 +67,13 @@ export default function LashMapTab({ client }) {
       </div>
 
       {maps.length === 0 ? (
-        <EmptyState icon="sparkles" title="Aucune Lash Map" subtitle="Créez une fiche technique à chaque séance pour suivre la forme, le style et les longueurs posées." />
+        <EmptyState
+          icon="sparkles"
+          title="Aucune Lash Map"
+          subtitle="Créez une fiche technique à chaque séance pour suivre la forme, le style et les longueurs posées."
+        />
       ) : (
-        maps.map((map) => (
+        maps.map((map, index) => (
           <div key={map.id} className={styles.card}>
             <div className={styles.cardHeader}>
               <div>
@@ -61,11 +91,11 @@ export default function LashMapTab({ client }) {
             </div>
 
             <div className={styles.tagRow}>
-              {(map.styles ?? []).map((s) => (
-                <span key={s} className={styles.tag}>{s}</span>
+              {(map.styles ?? []).map((style) => (
+                <span key={style} className={styles.tag}>{style}</span>
               ))}
-              {(map.effects ?? []).map((e) => (
-                <span key={e} className={styles.tag}>{e}</span>
+              {(map.effects ?? []).map((effect) => (
+                <span key={effect} className={styles.tag}>{effect}</span>
               ))}
               {map.setShape && <span className={styles.tagNeutral}>{map.setShape}</span>}
             </div>
@@ -113,6 +143,10 @@ export default function LashMapTab({ client }) {
                 <span className={styles.specValue}>{map.thickness ? `${map.thickness}mm` : '—'}</span>
               </div>
               <div className={styles.spec}>
+                <span className={styles.specLabel}>Type de base</span>
+                <span className={styles.specValue}>{map.baseType || '—'}</span>
+              </div>
+              <div className={styles.spec}>
                 <span className={styles.specLabel}>Colle</span>
                 <span className={styles.specValue}>{map.adhesive || '—'}</span>
               </div>
@@ -134,17 +168,24 @@ export default function LashMapTab({ client }) {
               )}
             </div>
 
-            <div className={styles.eyesRow}>
-              <EyeDiagram title="Œil gauche" zones={map.zonesLeft} readOnly />
-              <EyeDiagram title="Œil droit" zones={map.zonesRight} readOnly />
+            <div className={styles.diagramsRow}>
+              <LashDiagram title="Œil gauche" values={map.zonesLeft ?? []} onChange={noop} readOnly mirrored />
+              <LashDiagram title="Œil droit" values={map.zonesRight ?? []} onChange={noop} readOnly />
             </div>
+
+            <ChangesFromPrevious map={map} previous={maps[index + 1]} />
 
             {map.notes && <div className={styles.notes}>{map.notes}</div>}
           </div>
         ))
       )}
 
-      <LashMapModal open={modalOpen} onClose={() => { setModalOpen(false); setEditingMap(null); }} client={client} editingMap={editingMap} />
+      <LashMapModal
+        open={modalOpen}
+        onClose={() => { setModalOpen(false); setEditingMap(null); }}
+        client={client}
+        editingMap={editingMap}
+      />
     </>
   );
 }
