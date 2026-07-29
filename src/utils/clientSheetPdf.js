@@ -15,6 +15,8 @@ import {
   shade,
 } from './pdfHelpers';
 import { pathToDataUrl } from './photoStorage';
+import { eyeLengths, normalizeLashMap } from './lashModel';
+import { formatMm } from './lashCalculations';
 
 function addLabelValueGrid(doc, pairs, y, rgb) {
   const visible = pairs.filter(([, value]) => value);
@@ -121,20 +123,23 @@ export async function buildClientSheetPdf(client, appointments, salon, sections)
       doc.setTextColor(0);
       y += 5.5;
 
+      // La fiche peut dater d'avant le modèle par secteurs : on la normalise pour lire
+      // les deux formes sans dupliquer la logique de conversion.
+      const lashMap = normalizeLashMap(map);
+      const { global } = lashMap.rightEye;
+      const sameGlobals = JSON.stringify(global) === JSON.stringify(lashMap.leftEye.global);
       const specs = [
-        ["Forme de l'œil", map.eyeShape],
-        ['Forme de la pose', map.setShape],
-        ['Style', (map.styles ?? []).join(', ')],
-        ['Effet', (map.effects ?? []).join(', ')],
-        ['Courbure', map.curl],
-        ['Longueur', map.length && `${map.length}mm`],
-        ['Épaisseur', map.thickness && `${map.thickness}mm`],
-        ['Type de base', map.baseType],
-        ['Colle', map.adhesive],
-        ['Coin interne / externe', (map.innerCornerLength || map.outerCornerLength) ? `${map.innerCornerLength || '—'} / ${map.outerCornerLength || '—'}` : ''],
-        ['Couches (H/M/B)', (map.layers && (map.layers.top || map.layers.mid || map.layers.bottom))
-          ? `${map.layers.top || '—'} / ${map.layers.mid || '—'} / ${map.layers.bottom || '—'}`
-          : ''],
+        ["Forme de l'œil", lashMap.eyeShape],
+        ['Forme de la pose', lashMap.setShape],
+        ['Technique', global.style],
+        ['Courbure', global.curl],
+        ['Épaisseur', global.diameter && `${global.diameter} mm`],
+        ['Densité', global.density],
+        ['Couleur', global.color],
+        ['Colle', lashMap.adhesive],
+        ['Durée de pose', lashMap.poseDuration],
+        ['Durée de remplissage', lashMap.fillDuration],
+        ['Réglages œil gauche', sameGlobals ? '' : `${lashMap.leftEye.global.style} · ${lashMap.leftEye.global.curl} · ${lashMap.leftEye.global.diameter} mm`],
       ].filter(([, v]) => v);
       doc.setFont('helvetica', 'normal');
       doc.setFontSize(9);
@@ -145,20 +150,23 @@ export async function buildClientSheetPdf(client, appointments, salon, sections)
         y += lines.length * 4.5;
       }
 
-      const zonesL = (map.zonesLeft ?? []).filter(Boolean).join(', ');
-      const zonesR = (map.zonesRight ?? []).filter(Boolean).join(', ');
+      // Longueurs listées du coin interne vers le coin externe, pour les deux yeux.
+      const zonesL = eyeLengths(lashMap.leftEye).map(formatMm).join(' · ');
+      const zonesR = eyeLengths(lashMap.rightEye).map(formatMm).join(' · ');
       if (zonesL || zonesR) {
         y += 1;
-        doc.text(`Zones œil gauche (mm) : ${zonesL || '—'}`, MARGIN, y);
+        doc.text(`Œil gauche, interne → externe (mm) : ${zonesL || '—'}`, MARGIN, y);
         y += 4.5;
-        doc.text(`Zones œil droit (mm) : ${zonesR || '—'}`, MARGIN, y);
+        doc.text(`Œil droit, interne → externe (mm) : ${zonesR || '—'}`, MARGIN, y);
         y += 4.5;
       }
 
-      if (map.notes) {
-        y += 1;
-        y = addParagraph(doc, map.notes, y, { fontSize: 8.5 });
-      }
+      [['Conseils', lashMap.advice], ['Produits', lashMap.products], ['Sensibilités', lashMap.sensitivities], ['Notes', lashMap.notes]]
+        .filter(([, value]) => value)
+        .forEach(([label, value]) => {
+          y += 1;
+          y = addParagraph(doc, `${label} : ${value}`, y, { fontSize: 8.5 });
+        });
       y += 5;
     });
   }

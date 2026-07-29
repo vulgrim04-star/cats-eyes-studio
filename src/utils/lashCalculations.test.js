@@ -3,24 +3,20 @@ import {
   MM_DEFAULT,
   MM_MAX,
   MM_MIN,
-  PX_MAX,
-  PX_MIN,
+  applyDrag,
   averageMm,
-  buildLashLines,
-  calculateLashLine,
   clampMm,
-  diffMaps,
   estimateProductCost,
   formatMm,
   interpolateLength,
   isSafeForNaturalLash,
-  lashLinePoint,
-  mmToRenderPx,
+  mmToPixels,
   parseMm,
+  pixelsToDelta,
   roundMm,
+  stepZoneValue,
   validateLashLength,
 } from './lashCalculations';
-import { buildZones } from '../components/lashmap/LashDiagramInteraction';
 
 describe('parseMm', () => {
   it('lit les entiers, décimales et virgules françaises', () => {
@@ -56,22 +52,9 @@ describe('clampMm / roundMm / formatMm', () => {
   });
 });
 
-describe('mmToRenderPx', () => {
-  it('mappe les bornes métier sur les bornes de dessin', () => {
-    expect(mmToRenderPx(MM_MIN)).toBe(PX_MIN);
-    expect(mmToRenderPx(MM_MAX)).toBe(PX_MAX);
-  });
-
-  it('reste dans les bornes de dessin hors limites', () => {
-    expect(mmToRenderPx(0)).toBe(PX_MIN);
-    expect(mmToRenderPx(40)).toBe(PX_MAX);
-  });
-});
-
 describe('validateLashLength', () => {
-  it('accepte une zone vide sans la marquer en erreur', () => {
-    const result = validateLashLength('');
-    expect(result).toMatchObject({ valid: true, empty: true, mm: MM_DEFAULT, warning: null });
+  it('accepte un secteur vide sans le marquer en erreur', () => {
+    expect(validateLashLength('')).toMatchObject({ valid: true, empty: true, mm: MM_DEFAULT, warning: null });
   });
 
   it('refuse hors bornes en indiquant la limite atteinte', () => {
@@ -102,87 +85,60 @@ describe('isSafeForNaturalLash', () => {
   });
 });
 
-describe('lashLinePoint', () => {
-  it('passe par les coins et culmine au centre', () => {
-    expect(lashLinePoint(0)).toEqual({ x: 20, y: 92 });
-    expect(lashLinePoint(1)).toEqual({ x: 260, y: 92 });
-    // Sommet de la Bézier : y minimal (l'axe SVG descend vers le bas).
-    expect(lashLinePoint(0.5).y).toBeLessThan(lashLinePoint(0.25).y);
-  });
-});
-
 describe('interpolateLength', () => {
-  const zones = buildZones(3);
+  const anchors = [0.2, 0.5, 0.8];
 
-  it('rend la valeur exacte sur une zone', () => {
-    expect(interpolateLength(zones[0].t, zones, ['8', '12', '10'])).toBe(8);
-    expect(interpolateLength(zones[1].t, zones, ['8', '12', '10'])).toBe(12);
+  it('rend la valeur exacte sur une ancre', () => {
+    expect(interpolateLength(0.2, anchors, [8, 12, 10])).toBe(8);
+    expect(interpolateLength(0.5, anchors, [8, 12, 10])).toBe(12);
   });
 
-  it('interpole entre deux zones', () => {
-    const middle = (zones[0].t + zones[1].t) / 2;
-    expect(interpolateLength(middle, zones, ['8', '12', '10'])).toBeCloseTo(10, 5);
+  it('interpole entre deux ancres', () => {
+    expect(interpolateLength(0.35, anchors, [8, 12, 10])).toBeCloseTo(10, 5);
   });
 
-  it('prolonge les extrémités au-delà des zones', () => {
-    expect(interpolateLength(0, zones, ['8', '12', '10'])).toBe(8);
-    expect(interpolateLength(1, zones, ['8', '12', '10'])).toBe(10);
+  it('prolonge au-delà des extrémités', () => {
+    expect(interpolateLength(0, anchors, [8, 12, 10])).toBe(8);
+    expect(interpolateLength(1, anchors, [8, 12, 10])).toBe(10);
   });
 
-  it('utilise la longueur par défaut pour les zones vides', () => {
-    expect(interpolateLength(zones[1].t, zones, ['', '', ''])).toBe(MM_DEFAULT);
-  });
-});
-
-describe('calculateLashLine / buildLashLines', () => {
-  it('dessine un cil qui part du bord ciliaire vers le haut', () => {
-    const zones = buildZones(6);
-    const lash = calculateLashLine(0.5, zones, ['11', '11', '11', '11', '11', '11']);
-    expect(lash.y2).toBeLessThan(lash.y1);
-    expect(lash.mm).toBe(11);
-  });
-
-  it('produit le nombre de cils demandé, plus longs là où la valeur est plus grande', () => {
-    const zones = buildZones(4);
-    const lines = buildLashLines(['8', '8', '14', '14'], zones, 10);
-    expect(lines).toHaveLength(10);
-    expect(lines[0].mm).toBeLessThan(lines[9].mm);
+  it('utilise la longueur par défaut pour les valeurs vides', () => {
+    expect(interpolateLength(0.5, anchors, ['', '', ''])).toBe(MM_DEFAULT);
+    expect(interpolateLength(0.5, [], [])).toBe(MM_DEFAULT);
   });
 });
 
 describe('averageMm', () => {
-  it('ignore les zones vides et rend null si tout est vide', () => {
-    expect(averageMm(['10', '', '12'])).toBe(11);
+  it('ignore les valeurs vides et rend null si tout est vide', () => {
+    expect(averageMm([10, '', 12])).toBe(11);
     expect(averageMm(['', ''])).toBeNull();
   });
 });
 
-describe('diffMaps', () => {
-  const previous = {
-    curl: 'C',
-    length: '11',
-    thickness: '0.05',
-    styles: ['Volume'],
-    zonesLeft: ['9', '10', '11', '11'],
-    zonesRight: ['9', '10', '11', '11'],
-  };
-
-  it('ne rend aucun changement pour deux fiches identiques', () => {
-    expect(diffMaps(previous, previous).changes).toHaveLength(0);
+describe('ajustement au doigt', () => {
+  it('applique la sensibilité 40 px = 3 mm, dans les deux sens', () => {
+    expect(pixelsToDelta(40)).toBeCloseTo(3, 5);
+    expect(mmToPixels(3)).toBeCloseTo(40, 5);
+    expect(pixelsToDelta(mmToPixels(7))).toBeCloseTo(7, 5);
   });
 
-  it('relève les champs modifiés et les écarts de longueur moyenne', () => {
-    const current = { ...previous, curl: 'CC', zonesLeft: ['10', '11', '12', '12'] };
-    const { changes } = diffMaps(current, previous);
-    const curl = changes.find((c) => c.key === 'curl');
-    const left = changes.find((c) => c.key === 'zonesLeft');
-    expect(curl).toMatchObject({ from: 'C', to: 'CC' });
-    expect(left.delta).toBe(1);
-    expect(changes.find((c) => c.key === 'zonesRight')).toBeUndefined();
+  it('allonge vers le haut et raccourcit vers le bas', () => {
+    expect(applyDrag(11, mmToPixels(2))).toEqual({ mm: 13, value: '13' });
+    expect(applyDrag(11, -mmToPixels(2))).toEqual({ mm: 9, value: '9' });
   });
 
-  it('rend une liste vide sans fiche de comparaison', () => {
-    expect(diffMaps(previous, null).changes).toEqual([]);
+  it('arrondit au demi-millimètre et reste dans les bornes', () => {
+    expect(applyDrag(11, mmToPixels(0.4)).mm).toBe(11.5);
+    expect(applyDrag(11, mmToPixels(50)).mm).toBe(MM_MAX);
+    expect(applyDrag(11, -mmToPixels(50)).mm).toBe(MM_MIN);
+  });
+
+  it('avance et recule d’un pas clavier, en butant sur les bornes', () => {
+    expect(stepZoneValue(11, 1)).toEqual({ mm: 11.5, value: '11.5' });
+    expect(stepZoneValue(11, -1)).toEqual({ mm: 10.5, value: '10.5' });
+    expect(stepZoneValue(11, 2, 1)).toEqual({ mm: 13, value: '13' });
+    expect(stepZoneValue(18, 1).mm).toBe(MM_MAX);
+    expect(stepZoneValue(6, -1).mm).toBe(MM_MIN);
   });
 });
 
@@ -192,9 +148,6 @@ describe('estimateProductCost', () => {
   });
 
   it('calcule le coût quand le coût unitaire est connu', () => {
-    expect(estimateProductCost({}, { costPerLash: 0.01, lashesPerEye: 100 })).toEqual({
-      lashes: 200,
-      cost: 2,
-    });
+    expect(estimateProductCost({}, { costPerLash: 0.01, lashesPerEye: 100 })).toEqual({ lashes: 200, cost: 2 });
   });
 });

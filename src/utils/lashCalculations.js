@@ -1,8 +1,8 @@
-/** Géométrie et validation de la Lash Map.
+/** Règles métier de la Lash Map : longueurs, bornes, validation, comparaison.
  *
- * Ce module ne contient que des fonctions pures : aucune dépendance à React ni au DOM,
- * pour que le rendu SVG, les tests et un futur export image partagent exactement les
- * mêmes calculs. Les composants ne doivent jamais recalculer une position « à la main ».
+ * Ce module ne connaît RIEN du dessin (voir `lashGeometry.js`) ni de la forme de
+ * stockage (voir `lashModel.js`). Il ne contient que des fonctions pures, pour que le
+ * rendu, les tests et l'export partagent exactement les mêmes règles.
  */
 
 // --- Bornes métier (millimètres) -------------------------------------------------
@@ -11,37 +11,14 @@
 export const MM_MIN = 6;
 /** Au-delà, l'extension devient trop lourde pour un cil naturel, quel qu'il soit. */
 export const MM_MAX = 18;
-/** Longueur « neutre » utilisée pour dessiner une zone laissée vide. */
-export const MM_DEFAULT = 13;
+/** Longueur « neutre » utilisée pour dessiner un secteur laissé vide. */
+export const MM_DEFAULT = 11;
 /** Pas de saisie : les fournisseurs vendent au demi-millimètre. */
 export const MM_STEP = 0.5;
 
-// --- Bornes de rendu (unités du viewBox SVG) -------------------------------------
+// --- Lecture et normalisation ----------------------------------------------------
 
-export const VIEWBOX = { width: 280, height: 150 };
-
-/** Longueur dessinée d'un cil de MM_MIN / MM_MAX. Volontairement non proportionnelle :
- *  un cil de 6 mm resterait invisible s'il était à l'échelle réelle du dessin. */
-export const PX_MIN = 13;
-export const PX_MAX = 34;
-
-/** Bézier quadratique du bord ciliaire, dans le repère du viewBox. */
-export const LASH_LINE = {
-  p0: { x: 20, y: 92 },
-  p1: { x: 140, y: 48 },
-  p2: { x: 260, y: 92 },
-};
-
-/** Nombre de cils dessinés. Assez pour lire une courbe, assez peu pour rester fluide
- *  pendant un drag (chaque déplacement redessine la totalité). */
-export const LASH_COUNT = 23;
-
-/** Écart vertical entre la pointe du cil et la pastille de saisie, en unités viewBox. */
-export const HANDLE_GAP = 15;
-
-// --- Lecture et normalisation des valeurs ----------------------------------------
-
-/** Convertit une saisie utilisateur (« 11 », « 11,5 », « », null) en millimètres.
+/** Convertit une saisie utilisateur (« 11 », « 11,5 », 11, '', null) en millimètres.
  * @param {string|number|null|undefined} value
  * @param {number} [fallback] valeur retournée si la saisie est vide ou illisible
  * @returns {number}
@@ -64,16 +41,10 @@ export function roundMm(mm, step = MM_STEP) {
   return Math.round(mm / step) * step;
 }
 
-/** Représentation textuelle stockée dans le formulaire : « 11 » et non « 11.0 ». */
+/** Représentation d'affichage : « 11 » et non « 11.0 ». */
 export function formatMm(mm) {
   const rounded = Math.round(mm * 10) / 10;
   return Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(1);
-}
-
-/** Longueur dessinée (unités viewBox) pour une longueur en millimètres. */
-export function mmToRenderPx(mm) {
-  const clamped = clampMm(mm);
-  return PX_MIN + ((clamped - MM_MIN) / (MM_MAX - MM_MIN)) * (PX_MAX - PX_MIN);
 }
 
 // --- Validation ------------------------------------------------------------------
@@ -92,12 +63,8 @@ export function validateLashLength(value) {
   if (!Number.isFinite(n)) {
     return { valid: false, empty: false, mm: MM_DEFAULT, warning: 'Valeur non numérique' };
   }
-  if (n < MM_MIN) {
-    return { valid: false, empty: false, mm: MM_MIN, warning: `Minimum ${MM_MIN} mm` };
-  }
-  if (n > MM_MAX) {
-    return { valid: false, empty: false, mm: MM_MAX, warning: `Maximum ${MM_MAX} mm` };
-  }
+  if (n < MM_MIN) return { valid: false, empty: false, mm: MM_MIN, warning: `Minimum ${MM_MIN} mm` };
+  if (n > MM_MAX) return { valid: false, empty: false, mm: MM_MAX, warning: `Maximum ${MM_MAX} mm` };
   return { valid: true, empty: false, mm: n, warning: null };
 }
 
@@ -123,138 +90,79 @@ export function isSafeForNaturalLash(mm, lashType = '') {
   return value <= (rule ? rule.max : MM_MAX);
 }
 
-// --- Géométrie du dessin ---------------------------------------------------------
+// --- Interpolation ---------------------------------------------------------------
 
-/** Point du bord ciliaire à la position `t` (0 = coin gauche, 1 = coin droit). */
-export function lashLinePoint(t) {
-  const { p0, p1, p2 } = LASH_LINE;
-  const u = 1 - t;
-  return {
-    x: u * u * p0.x + 2 * u * t * p1.x + t * t * p2.x,
-    y: u * u * p0.y + 2 * u * t * p1.y + t * t * p2.y,
-  };
-}
-
-/** Inclinaison du cil à la position `t`, en unités viewBox d'écart horizontal :
- *  les cils s'éventent vers l'extérieur, verticaux au sommet de la courbure. */
-export function lashSlantAt(t) {
-  return (t - 0.5) * 26;
-}
-
-/** Longueur (mm) à la position `t`, interpolée linéairement entre les deux zones
- *  voisines — c'est ce qui donne une transition douce entre deux valeurs saisies.
+/** Longueur (mm) à la position `t` d'une courbe, interpolée linéairement entre les
+ *  deux points d'ancrage voisins — c'est ce qui donne un dégradé continu de cils
+ *  alors que les valeurs, elles, sont saisies secteur par secteur.
  * @param {number} t
- * @param {Array<{t:number}>} zones
+ * @param {number[]} anchors positions (croissantes) des valeurs sur la courbe
  * @param {Array<string|number>} values
- * @returns {number} millimètres, hors bornage
+ * @returns {number} millimètres
  */
-export function interpolateLength(t, zones, values) {
-  if (!zones || zones.length === 0) return MM_DEFAULT;
+export function interpolateLength(t, anchors, values) {
+  if (!anchors || anchors.length === 0) return MM_DEFAULT;
   const at = (i) => parseMm(values?.[i]);
-  if (zones.length === 1 || t <= zones[0].t) return at(0);
-  const last = zones.length - 1;
-  if (t >= zones[last].t) return at(last);
+  const last = anchors.length - 1;
+  if (anchors.length === 1 || t <= anchors[0]) return at(0);
+  if (t >= anchors[last]) return at(last);
   for (let i = 0; i < last; i += 1) {
-    if (t >= zones[i].t && t <= zones[i + 1].t) {
-      const span = zones[i + 1].t - zones[i].t;
-      const local = span === 0 ? 0 : (t - zones[i].t) / span;
+    if (t >= anchors[i] && t <= anchors[i + 1]) {
+      const span = anchors[i + 1] - anchors[i];
+      const local = span === 0 ? 0 : (t - anchors[i]) / span;
       return at(i) * (1 - local) + at(i + 1) * local;
     }
   }
   return MM_DEFAULT;
 }
 
-/** Segment d'un cil dessiné à la position `t`.
- * @returns {{x1:number, y1:number, x2:number, y2:number, mm:number, length:number}}
- */
-export function calculateLashLine(t, zones, values) {
-  const { x, y } = lashLinePoint(t);
-  const mm = interpolateLength(t, zones, values);
-  const length = mmToRenderPx(mm);
-  const slant = lashSlantAt(t);
-  return { x1: x, y1: y, x2: x + slant, y2: y - length, mm, length };
-}
-
-/** Tous les cils du diagramme, prêts à être rendus en `<line>`.
- * @param {Array<string|number>} values
- * @param {Array<{t:number}>} zones
- * @param {number} [count]
- * @returns {Array<{key:number, x1:number, y1:number, x2:number, y2:number, mm:number}>}
- */
-export function buildLashLines(values, zones, count = LASH_COUNT) {
-  const lines = [];
-  for (let i = 0; i < count; i += 1) {
-    const t = 0.04 + (i / (count - 1)) * 0.92;
-    lines.push({ key: i, ...calculateLashLine(t, zones, values) });
-  }
-  return lines;
-}
-
-/** Point d'ancrage de la pastille de saisie d'une zone : juste au-dessus de la pointe
- *  du cil, pour que la pastille monte et descende avec la valeur. */
-export function handleAnchor(zone, values) {
-  const { x, y } = lashLinePoint(zone.t);
-  const mm = parseMm(values?.[zone.index]);
-  return { x: x + lashSlantAt(zone.t), y: y - mmToRenderPx(mm) - HANDLE_GAP, mm };
-}
-
-// --- Comparaison entre séances ---------------------------------------------------
-
-/** Moyenne des longueurs saisies d'une série de zones (null si tout est vide). */
+/** Moyenne des longueurs renseignées (null si tout est vide). */
 export function averageMm(values) {
   const filled = (values ?? []).filter((v) => String(v ?? '').trim() !== '');
   if (filled.length === 0) return null;
   return filled.reduce((sum, v) => sum + parseMm(v), 0) / filled.length;
 }
 
-function labelOf(value) {
-  if (Array.isArray(value)) return value.join(', ');
-  const text = String(value ?? '').trim();
-  return text === '' ? '—' : text;
+// --- Ajustement au doigt ---------------------------------------------------------
+
+/** Sensibilité du glissé : 40 px de déplacement du doigt = 3 mm de longueur.
+ *  Assez lent pour viser le demi-millimètre, assez rapide pour parcourir 6→18 mm
+ *  sans lever le doigt (160 px de course totale). */
+export const DRAG_PX_PER_MM = 40 / 3;
+
+/** Convertit un déplacement du doigt en écart de longueur.
+ *  Le signe est celui du dessin : vers le HAUT = cil plus long. L'appelant passe donc
+ *  `startY - currentY`, jamais l'inverse.
+ * @param {number} pxDelta pixels écran parcourus vers le haut
+ * @returns {number} millimètres
+ */
+export function pixelsToDelta(pxDelta) {
+  return pxDelta / DRAG_PX_PER_MM;
 }
 
-const COMPARED_FIELDS = [
-  ['curl', 'Courbure'],
-  ['length', 'Longueur'],
-  ['thickness', 'Épaisseur'],
-  ['baseType', 'Type de base'],
-  ['adhesive', 'Colle'],
-  ['setShape', 'Forme de pose'],
-  ['styles', 'Style'],
-  ['effects', 'Effet'],
-];
+/** Réciproque de `pixelsToDelta`. */
+export function mmToPixels(mm) {
+  return mm * DRAG_PX_PER_MM;
+}
 
-/** Différences entre deux Lash Maps, pour la frise de comparaison.
- * @param {object} currentMap
- * @param {object} previousMap
- * @returns {{changes: Array<{key:string, label:string, from:string, to:string, delta:number|null}>}}
+/** Nouvelle valeur d'un secteur pendant un glissé.
+ * @param {string|number} startValue valeur au moment de l'appui
+ * @param {number} pxDelta pixels parcourus vers le haut depuis l'appui
+ * @returns {{mm:number, value:string}} valeur bornée, arrondie au pas de saisie
  */
-export function diffMaps(currentMap, previousMap) {
-  const changes = [];
-  if (!currentMap || !previousMap) return { changes };
+export function applyDrag(startValue, pxDelta) {
+  const mm = clampMm(roundMm(parseMm(startValue) + pixelsToDelta(pxDelta), MM_STEP));
+  return { mm, value: formatMm(mm) };
+}
 
-  COMPARED_FIELDS.forEach(([key, label]) => {
-    const from = labelOf(previousMap[key]);
-    const to = labelOf(currentMap[key]);
-    if (from !== to) changes.push({ key, label, from, to, delta: null });
-  });
-
-  [['zonesLeft', 'Œil gauche (moy.)'], ['zonesRight', 'Œil droit (moy.)']].forEach(([key, label]) => {
-    const before = averageMm(previousMap[key]);
-    const after = averageMm(currentMap[key]);
-    if (before === null || after === null) return;
-    const delta = Math.round((after - before) * 10) / 10;
-    if (delta === 0) return;
-    changes.push({
-      key,
-      label,
-      from: `${formatMm(before)} mm`,
-      to: `${formatMm(after)} mm`,
-      delta,
-    });
-  });
-
-  return { changes };
+/** Incrément clavier (flèches) d'un secteur.
+ * @param {string|number} currentValue
+ * @param {number} steps nombre de pas (positif = plus long)
+ * @param {number} [step] taille du pas en mm
+ */
+export function stepZoneValue(currentValue, steps, step = MM_STEP) {
+  const mm = clampMm(roundMm(parseMm(currentValue) + steps * step, step));
+  return { mm, value: formatMm(mm) };
 }
 
 // --- Coût de revient (préparation branchement stock) -----------------------------
@@ -264,7 +172,7 @@ export function diffMaps(currentMap, previousMap) {
  * Volontairement non branchée sur le stock pour l'instant : la fonction reste pure et
  * retourne `null` tant qu'aucun coût unitaire n'est fourni, ce qui permet d'appeler
  * l'affichage sans attendre l'intégration produits.
- * @param {{zonesLeft?:Array, zonesRight?:Array, thickness?:string}} map
+ * @param {object} map
  * @param {{costPerLash?:number, lashesPerEye?:number}} [pricing]
  * @returns {{lashes:number, cost:number}|null}
  */
