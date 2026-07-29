@@ -1,9 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
+  COMPACT_VIEWPORT_PX,
+  SECTOR_COMPACT,
   SECTOR_DEFAULT,
   SECTOR_MAX,
   SECTOR_MIN,
   VIEWBOX,
+  sectorCountForWidth,
   axisLabelPoints,
   buildBrow,
   buildExtensionLashes,
@@ -100,6 +103,62 @@ describe('buildSectors', () => {
     expect([...anchors].sort((a, b) => a - b)).toEqual(anchors);
     const mirroredAnchors = sectorAnchors(buildSectors(8, { mirrored: true }));
     expect([...mirroredAnchors].sort((a, b) => b - a)).toEqual(mirroredAnchors);
+  });
+});
+
+describe('sectorCountForWidth', () => {
+  it('découpe plus large sur téléphone que sur grand écran', () => {
+    expect(sectorCountForWidth(390)).toBe(SECTOR_COMPACT);
+    expect(sectorCountForWidth(1440)).toBe(SECTOR_DEFAULT);
+  });
+
+  it('bascule exactement au point de rupture des feuilles de style', () => {
+    expect(sectorCountForWidth(COMPACT_VIEWPORT_PX - 1)).toBe(SECTOR_COMPACT);
+    expect(sectorCountForWidth(COMPACT_VIEWPORT_PX)).toBe(SECTOR_DEFAULT);
+  });
+
+  it('retombe sur le découpage standard si la largeur est inexploitable', () => {
+    expect(sectorCountForWidth(0)).toBe(SECTOR_DEFAULT);
+    expect(sectorCountForWidth(NaN)).toBe(SECTOR_DEFAULT);
+    expect(sectorCountForWidth(undefined)).toBe(SECTOR_DEFAULT);
+  });
+});
+
+describe('taille des cibles tactiles', () => {
+  /** Largeur du rectangle englobant d'un secteur, en unités du viewBox — c'est ce que
+   *  mesure un navigateur sur le `<g>` correspondant. */
+  const boxWidth = (sector) => {
+    const xs = pointsOf(sector.path).map((p) => p.x);
+    return Math.max(...xs) - Math.min(...xs);
+  };
+
+  /** Largeur de planche sur un téléphone de 390 px : la planche va d'un bord à l'autre. */
+  const PHONE_PLATE_PX = 390;
+  const TOUCH_TARGET_PX = 44;
+
+  it('garde tous les secteurs au-dessus de 44 px sur un téléphone, au découpage compact', () => {
+    const scale = PHONE_PLATE_PX / VIEWBOX.width;
+    const narrowest = Math.min(...buildSectors(SECTOR_COMPACT).map(boxWidth));
+    expect(narrowest * scale).toBeGreaterThanOrEqual(TOUCH_TARGET_PX);
+  });
+
+  // Une fiche déjà enregistrée garde son découpage : ouverte sur un téléphone, elle doit
+  // au moins rester au-dessus du plancher WCAG 2.2 AA (24 px).
+  it('garde le découpage standard au-dessus du plancher WCAG sur téléphone', () => {
+    const scale = PHONE_PLATE_PX / VIEWBOX.width;
+    const narrowest = Math.min(...buildSectors(SECTOR_DEFAULT).map(boxWidth));
+    expect(narrowest * scale).toBeGreaterThanOrEqual(24);
+  });
+
+  // Au découpage maximal, 390 px d'écran ne peuvent PHYSIQUEMENT pas offrir 24 px par
+  // secteur (390/16 = 24,4 px avant même de compter les marges du dessin). C'est un choix
+  // délibéré de la praticienne, et les commandes équivalentes — pastilles, pas à pas,
+  // panneau — restent, elles, au-dessus de 44 px.
+  it('reste utilisable au découpage maximal, sans prétendre y tenir la cible tactile', () => {
+    const scale = PHONE_PLATE_PX / VIEWBOX.width;
+    const narrowest = Math.min(...buildSectors(SECTOR_MAX).map(boxWidth));
+    expect(narrowest * scale).toBeGreaterThan(20);
+    expect(narrowest * scale).toBeLessThan(24);
   });
 });
 

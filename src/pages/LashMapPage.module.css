@@ -158,6 +158,16 @@
   .clientFacts > div {
     flex: 0 0 auto;
   }
+
+  /* La planche va d'un bord à l'autre : ces 2 × 20 px de retrait de page valent, sur un
+     téléphone, cinq pixels de largeur par secteur — la différence entre une cible qu'on
+     vise et une cible qu'on rate. Les onglets et la barre d'outils gardent le retrait. */
+  .canvasWrap {
+    margin-inline: calc(-1 * var(--space-5));
+  }
+  .canvasWrap > * {
+    border-radius: 0;
+  }
 }
 
 .clientFacts dt {

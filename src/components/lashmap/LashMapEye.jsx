@@ -44,7 +44,10 @@ function LashMapEye({
     [lengthKey, sectors, mirrored]
   );
 
-  const peak = Math.max(...lengths);
+  // Le sommet du mapping n'est mis en valeur que s'il y en a un : sur une fiche neuve,
+  // toutes les longueurs sont égales et tout passerait en doré.
+  const longest = Math.max(...lengths);
+  const peak = longest > Math.min(...lengths) ? longest : null;
   const axis = axisLabelPoints(mirrored);
 
   return (
@@ -92,7 +95,7 @@ function LashMapEye({
             label={sectorLabel(sector.index, count)}
             selected={selectedIndex === sector.index}
             changed={Boolean(changedIndexes?.has(sector.index))}
-            peak={lengths[sector.index] === peak}
+            peak={peak !== null && lengths[sector.index] === peak}
             dropActive={dropIndex === sector.index}
             readOnly={readOnly}
             onSelect={onSelect}

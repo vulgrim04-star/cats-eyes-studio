@@ -42,8 +42,12 @@ export const PALETTE = {
   text: '#2B2724',
 };
 
-/** Bord ciliaire de l'œil fermé. */
-const LID = { p0: { x: 78, y: 258 }, p1: { x: 300, y: 486 }, p2: { x: 522, y: 258 } };
+/** Bord ciliaire de l'œil fermé.
+ *  L'œil occupe 76 % de la largeur du cadre : les marges latérales restantes suffisent au
+ *  sourcil et aux libellés d'axe. Les élargir davantage ferait sortir les coins de
+ *  l'éventail du cadre ; les resserrer rendrait les secteurs trop étroits pour le doigt
+ *  (voir le test de taille des cibles). */
+const LID = { p0: { x: 72, y: 258 }, p1: { x: 300, y: 486 }, p2: { x: 528, y: 258 } };
 
 /** Foyer des secteurs, sous l'œil : plus il est bas, plus l'éventail est resserré. */
 const FAN_FOCUS = { x: 300, y: 880 };
@@ -64,6 +68,28 @@ const T_MAX = 0.955;
 export const SECTOR_MIN = 6;
 export const SECTOR_MAX = 16;
 export const SECTOR_DEFAULT = 12;
+
+/** Découpage de départ sur téléphone. Douze secteurs sur une planche de 390 px ne
+ *  laissent que 29 px de large aux secteurs centraux, très en dessous des 44 px d'une
+ *  cible tactile confortable ; huit les ramènent au-delà du seuil. */
+export const SECTOR_COMPACT = 8;
+
+/** Seuil du mode téléphone. À garder aligné sur le point de rupture des feuilles de
+ *  style du module (`@media (max-width: 719px)`). */
+export const COMPACT_VIEWPORT_PX = 720;
+
+/** Découpage à la CRÉATION d'une fiche, selon la largeur d'écran.
+ *
+ *  Ne s'applique jamais à une fiche déjà enregistrée : le nombre de secteurs est une
+ *  donnée de la séance, pas un réglage d'affichage — rouvrir une fiche sur un autre
+ *  appareil ne doit pas la redécouper.
+ * @param {number} width largeur de la fenêtre, en pixels CSS
+ * @returns {number}
+ */
+export function sectorCountForWidth(width) {
+  if (!Number.isFinite(width) || width <= 0) return SECTOR_DEFAULT;
+  return width < COMPACT_VIEWPORT_PX ? SECTOR_COMPACT : SECTOR_DEFAULT;
+}
 
 /** Longueur dessinée d'un cil d'extension, aux deux bornes métier. Volontairement non
  *  proportionnelle : un 6 mm à l'échelle réelle serait invisible sur le schéma. */
@@ -289,7 +315,7 @@ export function buildExtensionLashes(lengths, sectors, { mirrored = false, count
 
 // --- Sourcil ---------------------------------------------------------------------
 
-const BROW = { p0: { x: 104, y: 86 }, p1: { x: 292, y: -6 }, p2: { x: 516, y: 66 } };
+const BROW = { p0: { x: 98, y: 86 }, p1: { x: 292, y: -6 }, p2: { x: 522, y: 66 } };
 
 function browPoint(t) {
   const u = 1 - t;

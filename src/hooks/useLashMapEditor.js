@@ -12,6 +12,7 @@ import {
   setZoneLength,
   applyProfile,
 } from '../utils/lashModel';
+import { sectorCountForWidth } from '../utils/lashGeometry';
 import { cycleForPoseType } from '../utils/lashPresets';
 
 /** Identifiant d'URL d'une fiche encore jamais enregistrée. */
@@ -39,7 +40,15 @@ export function useLashMapEditor(client, mapId) {
     [client, mapId, isNew]
   );
 
-  const [map, setMap] = useState(() => normalizeLashMap(stored));
+  /** Fiche de départ. Une fiche NEUVE adopte le découpage adapté à l'écran ; une fiche
+   *  déjà enregistrée est reprise telle quelle — la redécouper à l'ouverture réécrirait
+   *  le travail de la praticienne. */
+  const buildInitialMap = useCallback(() => {
+    const base = normalizeLashMap(stored);
+    return stored ? base : resizeSectors(base, sectorCountForWidth(window.innerWidth));
+  }, [stored]);
+
+  const [map, setMap] = useState(buildInitialMap);
   const [dirty, setDirty] = useState(false);
   const [savedId, setSavedId] = useState(isNew ? null : mapId);
   const [side, setSide] = useState('right');
@@ -49,13 +58,15 @@ export function useLashMapEditor(client, mapId) {
 
   // Recharge quand on change de fiche (navigation d'une séance à l'autre). Les
   // modifications non enregistrées d'une fiche ne doivent jamais « suivre » sur l'autre.
+  // Cet effet s'exécute AUSSI au montage : il doit passer par le même constructeur que
+  // l'initialiseur ci-dessus, sinon il écraserait aussitôt le découpage choisi.
   const identity = stored?.id ?? mapId;
   useEffect(() => {
-    setMap(normalizeLashMap(stored));
+    setMap(buildInitialMap());
     setDirty(false);
     setSelected(null);
     undoStack.current = [];
-  }, [identity, stored]);
+  }, [identity, buildInitialMap]);
 
   // Filet de sécurité navigateur : fermeture d'onglet ou rechargement avec des
   // modifications en cours.
