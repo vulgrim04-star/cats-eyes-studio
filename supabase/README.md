@@ -332,6 +332,32 @@ donc aucune Edge Function à déployer dans Supabase, et elles se mettent à jou
 - `api/delete-account.js` — suppression définitive du compte et de toutes ses données
   (Paramètres → "Supprimer mon compte", après confirmation par e-mail).
 
+### ⚠️ `vercel.json` n'accepte AUCUN commentaire
+
+Le fichier est validé contre un schéma strict : toute clé hors schéma fait **échouer le
+déploiement entier**, avec pour seul message
+`should NOT have additional property '//'`. Le 30 juillet 2026, des clés `"//"` avaient été
+ajoutées dans `headers[]` pour documenter les règles de cache : **tous** les déploiements ont
+échoué à partir de là, production comprise, et l'application est restée figée sur le build
+précédent pendant des jours — sans que rien dans l'app ne le signale, puisque c'est le
+déploiement qui échouait, pas le code.
+
+D'où cette section : les explications qui vivaient dans le fichier vivent ici.
+
+- **`/version.json` en `no-store`.** Ce fichier doit toujours venir du serveur. Servi depuis
+  un cache, il répondrait éternellement l'ancienne version et ne détecterait donc jamais
+  rien — un détecteur de mise à jour périmé est pire qu'aucun (voir
+  `src/hooks/useAppUpdate.js`).
+- **`index.html`, `sw.js`, `manifest.webmanifest` en `must-revalidate`.** Ces trois-là ne
+  portent pas d'empreinte dans leur nom : sans revalidation, une application installée sur
+  l'écran d'accueil peut resservir la version d'hier indéfiniment. C'est particulièrement vrai
+  du service worker, dont dépendent toutes les notifications. Les fichiers de `/assets` sont
+  hachés et gardent leur cache long par défaut.
+
+Pour vérifier avant de pousser : `npx vercel build` valide le schéma localement, ou à défaut
+`node -e "JSON.parse(require('fs').readFileSync('vercel.json'))"` pour au moins garantir un
+JSON correct.
+
 Il faut en revanche ajouter, une seule fois, ces variables d'environnement dans le tableau de
 bord Vercel du projet (Project Settings → Environment Variables) :
 
