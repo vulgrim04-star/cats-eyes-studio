@@ -3,6 +3,7 @@ import PageHeader from '../components/common/PageHeader';
 import Icon from '../components/common/Icon';
 import { useSettings } from '../hooks/useSettings';
 import { useAuthStore } from '../store/useAuthStore';
+import { formatVersionLabel } from '../utils/appVersion';
 import styles from './Settings.module.css';
 
 /** Index des réglages.
@@ -43,6 +44,10 @@ export default function Settings() {
           </Link>
         ))}
       </div>
+
+      {/* Rend vérifiable ce qui ne l'était pas : « est-ce que ma mise à jour est arrivée ? »
+          se répond en lisant cette ligne, au lieu de chercher à l'œil ce qui a changé. */}
+      <p className={styles.version}>Version {formatVersionLabel()}</p>
     </>
   );
 }

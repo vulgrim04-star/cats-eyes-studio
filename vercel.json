@@ -1,3 +1,15 @@
 {
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }],
+  "headers": [
+    {
+      "//": "Le fichier de version doit toujours venir du serveur. Servi depuis un cache, il répondrait éternellement l'ancienne version et ne détecterait donc jamais rien — un détecteur de mise à jour périmé est pire qu'aucun.",
+      "source": "/version.json",
+      "headers": [{ "key": "Cache-Control", "value": "no-store" }]
+    },
+    {
+      "//": "La page d'entrée, le service worker et le manifeste ne portent pas d'empreinte dans leur nom : sans revalidation, une application installée sur l'écran d'accueil peut resservir la version d'hier indéfiniment. Les fichiers de /assets, eux, sont hachés et gardent leur cache long par défaut.",
+      "source": "/(index.html|sw.js|manifest.webmanifest)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }]
+    }
+  ]
 }

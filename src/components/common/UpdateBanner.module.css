@@ -1,0 +1,40 @@
+/* Même construction que DemoBanner, en couleur d'accent : c'est une bonne nouvelle, pas un
+   avertissement. */
+.banner {
+  position: sticky;
+  top: 0;
+  z-index: 61;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding: 8px var(--space-4);
+  background: var(--color-accent-light);
+  border-bottom: 1px solid var(--color-accent);
+  font-size: 0.8rem;
+  color: var(--color-text);
+  text-align: center;
+}
+
+.text strong {
+  color: var(--color-accent-dark);
+}
+
+.reloadBtn {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  background: none;
+  border: 1px solid var(--color-accent-dark);
+  border-radius: var(--radius-pill);
+  padding: 3px 12px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--color-accent-dark);
+  white-space: nowrap;
+}
+.reloadBtn:hover {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}

@@ -292,3 +292,13 @@
   color: var(--color-text-muted);
   margin-top: 2px;
 }
+
+/* --- Version installée ------------------------------------------------------------- */
+
+.version {
+  margin: var(--space-5) 0 0;
+  text-align: center;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+}
