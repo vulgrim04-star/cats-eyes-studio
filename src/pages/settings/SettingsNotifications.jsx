@@ -123,6 +123,24 @@ export default function SettingsNotifications() {
             label={server === null ? 'Vérification du serveur…' : server.vapidConfigured ? 'Serveur prêt à envoyer' : "Clés absentes côté serveur"}
             hint={server && !server.vapidConfigured ? 'VAPID_PUBLIC_KEY et VAPID_PRIVATE_KEY à ajouter dans Vercel.' : null}
           />
+          {/* Contrôle distinct du précédent : les deux clés publiques peuvent très bien
+              exister toutes les deux et ne pas être la même. Chaque envoi est alors refusé,
+              sans que rien d'autre ne le laisse voir. */}
+          <CheckRow
+            state={server === null ? null : server.vapidKeysMatch}
+            label={
+              server === null
+                ? 'Vérification des clés…'
+                : server.vapidKeysMatch === false
+                  ? 'Clés serveur et app différentes'
+                  : 'Clés serveur et app accordées'
+            }
+            hint={
+              server?.vapidKeysMatch === false
+                ? "La même clé publique doit être déclarée deux fois dans Vercel : VAPID_PUBLIC_KEY et VITE_VAPID_PUBLIC_KEY. Elles ne correspondent pas — recopie l'une dans l'autre, puis redéploie."
+                : null
+            }
+          />
           {/* Deux lignes, et non une : l'abonnement du navigateur et son enregistrement en
               base peuvent diverger, et c'est justement le cas qui laissait croire que tout
               allait bien alors qu'aucune notification ne pouvait partir. */}

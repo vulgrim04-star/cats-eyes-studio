@@ -189,6 +189,8 @@ export const PUSH_REASON_TEXT = {
   'no-subscription':
     "Aucun appareil n'est abonné pour ce compte — appuie sur « Activer » sur le téléphone qui doit sonner.",
   'send-failed': "Le service de notification du navigateur a refusé l'envoi. Réactive les notifications sur cet appareil.",
+  'key-mismatch':
+    "Le service de notification a refusé la signature du serveur : la clé publique déclarée côté serveur (VAPID_PUBLIC_KEY) et celle compilée dans l'app (VITE_VAPID_PUBLIC_KEY) ne sont pas la même. Recopie l'une dans l'autre dans Vercel, redéploie, puis réappuie sur « Activer sur cet appareil ».",
   sent: 'Notification envoyée.',
   'query-error': "Impossible de lire les appareils abonnés (table push_subscriptions manquante ?).",
   'server-misconfigured': "Le serveur n'a pas ses identifiants Supabase — voir /api/health.",

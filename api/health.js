@@ -4,7 +4,7 @@ import {
   serverAndClientAgreeOnProject,
 } from './_lib/supabaseAdmin.js';
 import { isTestSender } from './_lib/email.js';
-import { hasVapidConfig } from './_lib/push.js';
+import { hasVapidConfig, vapidKeysMatch } from './_lib/push.js';
 
 // Diagnostic de configuration serveur.
 //
@@ -33,6 +33,10 @@ export default async function handler(req, res) {
     // n'a jamais pu s'abonner, donc il n'a personne à qui écrire. Rappel : une variable
     // VITE_ est figée dans le bundle à la construction — l'ajouter exige un redéploiement.
     vapidClientKeyConfigured: Boolean(process.env.VITE_VAPID_PUBLIC_KEY),
+    // Les deux clés publiques doivent être IDENTIQUES, pas seulement présentes. Un caractère
+    // perdu au collage et chaque envoi est refusé par un 403, alors que tous les autres
+    // contrôles restent verts. null = indéterminable, une des deux manque.
+    vapidKeysMatch: vapidKeysMatch(),
   };
 
   if (checks.supabaseConfigured) {

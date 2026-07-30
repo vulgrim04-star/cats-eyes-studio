@@ -9,6 +9,40 @@ export function hasVapidConfig() {
   return Boolean(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY);
 }
 
+/** Le padding et les espaces parasites ne changent pas la clé, mais faussent une comparaison
+ *  littérale — et un copier-coller depuis un document en ajoute très facilement. */
+const normalizeKey = (value) => (value ?? '').trim().replace(/=+$/, '');
+
+/** La clé publique du serveur et celle compilée dans le navigateur désignent-elles la même
+ *  paire ?
+ *
+ *  Vérification indispensable, et elle manquait : la même clé publique doit être déclarée
+ *  DEUX fois dans Vercel, sous `VAPID_PUBLIC_KEY` et sous `VITE_VAPID_PUBLIC_KEY`. Si les
+ *  deux diffèrent — ne serait-ce que d'un caractère perdu au collage — l'appareil s'abonne
+ *  avec l'une, le serveur signe avec l'autre, et le service de push refuse chaque envoi par
+ *  un 403. Tous les autres contrôles restent verts : les deux clés existent bel et bien.
+ *
+ *  Renvoie `null` si l'une des deux manque : c'est alors l'autre contrôle qui le signale.
+ *  Ne renvoie jamais les valeurs elles-mêmes. */
+export function vapidKeysMatch() {
+  const server = normalizeKey(process.env.VAPID_PUBLIC_KEY);
+  const client = normalizeKey(process.env.VITE_VAPID_PUBLIC_KEY);
+  if (!server || !client) return null;
+  if (server !== client) {
+    console.error(
+      '[push] VAPID_PUBLIC_KEY et VITE_VAPID_PUBLIC_KEY diffèrent : ' +
+        `${server.length} vs ${client.length} caractères. Aucun envoi ne peut aboutir.`
+    );
+    return false;
+  }
+  // Espace ou retour à la ligne collé dans la variable : les clés se valent après nettoyage,
+  // mais web-push reçoit la valeur brute et peut la refuser.
+  if ((process.env.VAPID_PUBLIC_KEY ?? '').trim() !== process.env.VAPID_PUBLIC_KEY) {
+    console.error('[push] VAPID_PUBLIC_KEY contient un espace ou un retour à la ligne parasite.');
+  }
+  return true;
+}
+
 /** Envoie `payload` à tous les appareils abonnés de cette salonnière.
  *
  * Renvoie une raison unique, dans le même vocabulaire que src/utils/push.js, pour que
@@ -36,6 +70,7 @@ export async function sendPushToUser(supabase, userId, payload) {
   );
 
   const body = JSON.stringify(payload);
+  let forbidden = false;
   const results = await Promise.all(
     subs.map(async (sub) => {
       try {
@@ -53,6 +88,10 @@ export async function sendPushToUser(supabase, userId, payload) {
           await supabase.from('push_subscriptions').delete().eq('id', sub.id);
         } else {
           console.error('[push] envoi en échec', err.statusCode, err.body);
+          // Un 403 ne se corrige pas en réessayant : il dit que la signature ne correspond
+          // pas à l'abonnement. On le remonte tel quel pour que l'app nomme la vraie cause
+          // au lieu d'accuser le navigateur.
+          if (err.statusCode === 403) forbidden = true;
         }
         return false;
       }
@@ -60,7 +99,8 @@ export async function sendPushToUser(supabase, userId, payload) {
   );
 
   const count = results.filter(Boolean).length;
-  return count > 0
-    ? { sent: true, reason: 'sent', count }
-    : { sent: false, reason: 'send-failed', count: 0 };
+  if (count > 0) return { sent: true, reason: 'sent', count };
+  // Le 403 prime sur l'échec générique : c'est le seul qui désigne une cause précise, et
+  // celle-ci se corrige dans les variables d'environnement, pas sur le téléphone.
+  return { sent: false, reason: forbidden ? 'key-mismatch' : 'send-failed', count: 0 };
 }
