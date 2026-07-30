@@ -124,6 +124,67 @@ Sur **iPhone/iPad**, une notification app fermée exige que l'app soit ajoutée 
 d'accueil (Partager → « Sur l'écran d'accueil ») et ouverte **depuis cette icône** : Safari en
 onglet ne donne pas accès au push, quelle que soit la configuration serveur.
 
+### Quatre pannes qui n'étaient PAS des pannes de configuration
+
+Les points ci-dessus supposent tous que le problème vient d'une variable ou d'une table. Ce
+n'était pas toujours le cas, et ces quatre-là ne se voyaient dans aucun diagnostic :
+
+- **Sur Android, `new Notification(...)` lève.** Le constructeur est interdit dès qu'un service
+  worker est enregistré : « Illegal constructor. Use ServiceWorkerRegistration.showNotification()
+  instead. » L'app affichait donc son bandeau interne et rien d'autre — l'exception partait
+  dans une promesse non rattrapée. Tout passe désormais par `src/utils/localNotify.js`, qui
+  emprunte le service worker et ne retombe sur le constructeur que là où il est permis.
+- **Deux notifications identiques**, app ouverte au premier plan : celle du serveur et celle
+  de l'app. Elles partagent maintenant l'étiquette `booking-request` ; le système remplace au
+  lieu d'empiler. `renotify: true` conserve le son de la seconde, sans quoi une demande
+  arrivée pendant qu'une autre n'est pas lue passerait inaperçue.
+- **Toucher la notification n'ouvrait pas la bonne page.** Elle visait `/agenda`, alors qu'une
+  demande en attente n'entre dans l'agenda qu'une fois validée — elle se trouve sur le tableau
+  de bord. Et le rapprochement de fenêtre (`url.includes(cible)`) se trompait dans les deux
+  sens : `/` correspondait à n'importe quelle page ouverte, tandis qu'une cible absente faisait
+  ouvrir une SECONDE fenêtre de l'app par-dessus la première.
+- **Après rotation de l'abonnement par le navigateur**, l'appareil se retrouvait sans aucun
+  abonnement : l'ancien endpoint répondait 410 (le serveur supprimait la ligne) et rien n'en
+  créait de nouveau. `public/sw.js` gère désormais `pushsubscriptionchange`. Son enregistrement
+  en base, lui, reste fait par l'app à sa prochaine ouverture : le service worker n'a pas de
+  session Supabase, et lui ouvrir un endpoint d'écriture non authentifié permettrait de
+  détourner les notifications d'un compte vers un autre appareil.
+
+## Synchronisation d'agenda (Google / Apple)
+
+Le bouton « Synchroniser mon agenda » abonne l'agenda personnel de la salonnière au flux
+`.ics` servi par `api/ics.js`. **Aucune configuration supplémentaire n'est nécessaire** : ni
+compte Google, ni clé d'API, ni OAuth. On ne parle pas à l'API de Google ou d'Apple — on leur
+donne l'adresse d'un flux, ce sont eux qui viennent le relire, toutes les quelques heures.
+
+Ce qui doit être vrai pour que ça marche :
+
+1. **`SUPABASE_URL` et `SUPABASE_SERVICE_ROLE_KEY`** doivent être définies dans Vercel (voir
+   plus bas). Sans elles, `api/ics.js` répond 500 et l'abonnement échoue côté Google/Apple.
+2. **Le jeton doit avoir atteint le cloud avant l'ouverture de Google/Apple.** Le jeton
+   (`calendarToken`) est créé dans le navigateur et vérifié par le serveur, qui le relit dans
+   `app_state`. Les écritures étant regroupées sur 800 ms, ouvrir l'agenda trop tôt le fait
+   tomber sur un jeton que le serveur ne connaît pas encore — il répond « Lien invalide ou
+   expiré », et Google garde l'agenda en échec dans la liste. `src/hooks/useCalendarSync.js`
+   force donc l'envoi (`flushPendingWrites`) et attend sa confirmation avant de proposer les
+   boutons. Ne pas court-circuiter cette attente.
+
+Deux détails de mise en œuvre qui ont l'air anodins et ne le sont pas :
+
+- **Le schéma `webcal:` n'est pas décoratif.** En `https:`, iOS *télécharge* un fichier `.ics`
+  figé : les rendez-vous ajoutés ensuite n'apparaîtront jamais. En `webcal:`, il crée un
+  abonnement qui se met à jour. C'est exactement la différence entre l'export manuel et la
+  synchronisation. Google reçoit la même URL `webcal:` via `calendar.google.com/calendar/r?cid=`.
+- **L'onglet doit s'ouvrir dans le gestionnaire de clic.** Un `window.open` appelé après un
+  `await` n'est plus rattaché à l'action de l'utilisatrice : Safari et Firefox le bloquent.
+  D'où la préparation à l'ouverture de la fenêtre, et non au clic.
+
+Le flux lui-même (`src/utils/ical.js`) doit rester strictement conforme à la RFC 5545 : un
+calendrier *abonné* que Google refuse n'affiche aucune erreur, il reste simplement vide. En
+particulier, une seule date invalide fait rejeter le flux **entier** — d'où le filtrage des
+rendez-vous incomplets, le repliage des lignes au-delà de 75 octets, et les tests de
+`src/utils/ical.test.js`.
+
 ## Stockage des photos (bucket `client-photos`)
 
 Les photos de séance vivaient à l'origine en data URL base64 **à l'intérieur** du blob
@@ -162,8 +223,9 @@ Toutes les fonctions serveur du projet tournent sur **Vercel**, pas sur Supabase
 donc aucune Edge Function à déployer dans Supabase, et elles se mettent à jour toutes seules
 à chaque `git push` :
 
-- `api/ics.js` — flux d'abonnement calendrier Google/Apple (Paramètres → "Synchronisation
-  avec Google / Apple Agenda").
+- `api/ics.js` — flux d'abonnement calendrier Google/Apple (bouton « Synchroniser mon agenda »,
+  dans Paramètres → "Réservation en ligne" et dans l'en-tête de la page Agenda). Voir la
+  section « Synchronisation d'agenda » plus bas.
 - `api/notify-booking.js` — e-mail + notification push au salon à la réception d'une nouvelle
   réservation en ligne.
 - `api/send-confirmation-email.js` — e-mail de confirmation à la cliente dès qu'un RDV est créé,

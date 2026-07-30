@@ -53,7 +53,9 @@ export default async function handler(req, res) {
         service: services.find((s) => s.id === apt.serviceId),
       }));
 
-    const ics = generateICS(enriched, settingsState.salon?.name);
+    const ics = generateICS(enriched, settingsState.salon?.name, {
+      location: settingsState.salon?.address ?? '',
+    });
 
     res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
     res.setHeader('Content-Disposition', 'inline; filename="rendez-vous.ics"');
