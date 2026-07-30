@@ -5,11 +5,14 @@ import TopBar from './TopBar';
 import ToastContainer from '../common/ToastContainer';
 import DemoBanner from '../common/DemoBanner';
 import { useBookingNotifications } from '../../hooks/useBookingNotifications';
+import { useNotificationSync } from '../../hooks/useNotifications';
 import { isDemoActive } from '../../utils/demoMode';
 import styles from './Layout.module.css';
 
 export default function Layout() {
   useBookingNotifications();
+  // Monté ici, et ici seulement : la synchronisation écrit dans un magasin persisté.
+  useNotificationSync();
   const demo = isDemoActive();
 
   return (

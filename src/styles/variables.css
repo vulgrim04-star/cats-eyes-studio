@@ -9,6 +9,13 @@
        --color-text (≈ 7:1 sur l'or) ;
      • l'or reste réservé aux aplats, bordures, icônes et éléments de valorisation. */
 :root {
+  /* Déclare le thème aux contrôles natifs du navigateur. Sans ça, un <select> ou un
+     <input type="time"> garde le noir sur blanc du système : sur un fond sombre, la valeur
+     devenait illisible (c'est ce qui rendait les horaires d'ouverture invisibles en mode
+     sombre sur Android). Aucune feuille de style ne peut corriger le menu déroulant d'un
+     <select> ouvert — seul color-scheme le peut. */
+  color-scheme: light;
+
   /* Accent doré. Les trois nuances suivent la construction historique du thème
      (même teinte, luminosité 32 % pour le texte, 85 % désaturée pour les fonds de
      pastille) afin qu'aucun composant ne change de comportement, seulement de couleur. */
@@ -45,6 +52,10 @@
   --color-warning-bg: #F5E9DA;
   --color-danger: #97423E;
   --color-danger-bg: #F6E7E5;
+  /* Couleur du texte POSÉ sur un aplat --color-danger. Elle doit s'inverser avec le thème :
+     l'aplat est sombre en clair, clair en sombre, donc du blanc en dur y serait illisible
+     une fois sur deux (cas du compteur de la cloche). */
+  --color-danger-contrast: #FFFFFF;
   --color-info: #4A5D7C;
   --color-info-bg: #E9EDF3;
   --color-neutral-bg: #F0EBE3;
@@ -112,6 +123,8 @@
    toujours de couleur de texte accentué, il doit donc être plus CLAIR ici, et
    --color-accent-light sert toujours de fond de pastille, donc plus sombre. */
 :root[data-theme='dark'] {
+  color-scheme: dark;
+
   --color-accent: #C9A961;
   --color-accent-dark: #D0C19F;
   --color-accent-light: #463D2A;
@@ -138,6 +151,7 @@
   --color-warning-bg: #302213;
   --color-danger: #E09490;
   --color-danger-bg: #2E1D1B;
+  --color-danger-contrast: #2E1D1B;
   --color-info: #9DB4D8;
   --color-info-bg: #1D2430;
   --color-neutral-bg: #2E2820;

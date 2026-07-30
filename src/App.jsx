@@ -16,6 +16,7 @@ const Stock = lazy(() => import('./pages/Stock'));
 const Finances = lazy(() => import('./pages/Finances'));
 const Catalogue = lazy(() => import('./pages/Catalogue'));
 const Settings = lazy(() => import('./pages/Settings'));
+const Notifications = lazy(() => import('./pages/Notifications'));
 const Booking = lazy(() => import('./pages/Booking'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const ConfirmDeleteAccount = lazy(() => import('./pages/ConfirmDeleteAccount'));
@@ -49,6 +50,7 @@ export default function App() {
               <Route path="/clientes/:id" element={<ClientDetail />} />
               <Route path="/clientes/:id/lash-map/:mapId" element={<LashMapPage />} />
               <Route path="/lash-map" element={<LashMaps />} />
+              <Route path="/notifications" element={<Notifications />} />
               <Route path="/stock" element={<Stock />} />
               <Route path="/finances" element={<Finances />} />
               <Route path="/catalogue" element={<Catalogue />} />

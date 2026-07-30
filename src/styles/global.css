@@ -77,6 +77,11 @@ button {
 input, select, textarea {
   font-family: var(--font-body);
   font-size: 15px;
+  /* Filet de sécurité du mode sombre : un champ qui se donne un fond sans se donner de
+     couleur de texte hérite du noir du navigateur, pas de celui de la page. C'est ce qui
+     rendait les horaires d'ouverture illisibles. Fixer la couleur ici évite d'avoir à y
+     penser dans chaque module CSS. */
+  color: var(--color-text);
 }
 
 ::-webkit-scrollbar {

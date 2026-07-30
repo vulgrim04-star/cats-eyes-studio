@@ -8,6 +8,7 @@ import { useSettingsStore } from './useSettingsStore';
 import { useExpensesStore } from './useExpensesStore';
 import { useWaitlistStore } from './useWaitlistStore';
 import { useLashTemplatesStore } from './useLashTemplatesStore';
+import { useNotificationsStore } from './useNotificationsStore';
 
 const PERSISTED_STORES = [
   useClientsStore,
@@ -18,6 +19,7 @@ const PERSISTED_STORES = [
   useExpensesStore,
   useWaitlistStore,
   useLashTemplatesStore,
+  useNotificationsStore,
 ];
 
 // Supabase déclenche onAuthStateChange plusieurs fois de suite pour une même connexion

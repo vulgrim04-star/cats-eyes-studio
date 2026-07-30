@@ -5,13 +5,15 @@
   background: transparent;
 }
 
+/* Ancré à la fenêtre, plus à la cloche : le panneau est désormais porté dans <body> pour
+   passer au-dessus du voile (voir le commentaire dans NotificationsPanel.jsx). */
 .panel {
-  position: absolute;
-  top: calc(100% + 10px);
-  right: 0;
-  width: 320px;
+  position: fixed;
+  top: calc(var(--header-height) + 8px);
+  right: var(--space-5);
+  width: 340px;
   max-width: calc(100vw - 32px);
-  max-height: 420px;
+  max-height: min(440px, calc(100vh - var(--header-height) - 24px));
   overflow-y: auto;
   background: var(--color-white);
   border-radius: var(--radius-lg);
@@ -20,26 +22,85 @@
   z-index: 151;
 }
 
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
 .title {
   font-family: var(--font-title);
   font-size: 1rem;
   color: var(--color-accent-dark);
-  margin-bottom: var(--space-3);
 }
 
+.headerAction {
+  border: none;
+  background: none;
+  padding: 4px 0;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--color-accent-dark);
+  white-space: nowrap;
+}
+.headerAction:hover {
+  text-decoration: underline;
+}
+
+/* La ligne n'est plus un seul bouton : ouvrir et supprimer sont deux gestes distincts, donc
+   deux cibles distinctes — imbriquer un bouton dans un bouton n'est pas du HTML valide et
+   rendrait la croix inatteignable au clavier. */
 .row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-radius: var(--radius-md);
+}
+.row:hover {
+  background: var(--color-cream);
+}
+
+.rowMain {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  flex: 1;
+  min-width: 0;
   padding: 10px 4px;
-  border-radius: var(--radius-md);
-  width: 100%;
   border: none;
   background: none;
   text-align: left;
 }
-.row:hover {
-  background: var(--color-cream);
+
+.unreadDot {
+  position: absolute;
+  left: -2px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-accent-dark);
+}
+
+.dismiss {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  border-radius: 50%;
+  color: var(--color-text-muted);
+}
+.dismiss:hover {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
 }
 
 .iconWrap {
@@ -65,12 +126,20 @@
 .text {
   flex: 1;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
 
-.rowTitle {
+.rowTitle,
+.rowTitleUnread {
   font-size: 0.82rem;
-  font-weight: 600;
   color: var(--color-text);
+}
+.rowTitle {
+  font-weight: 500;
+}
+.rowTitleUnread {
+  font-weight: 700;
 }
 
 .rowSubtitle {
@@ -83,4 +152,32 @@
   color: var(--color-text-muted);
   text-align: center;
   padding: var(--space-4) 0;
+}
+
+.footerLink {
+  display: block;
+  width: 100%;
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border: none;
+  border-top: 1px solid var(--color-border);
+  background: none;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-accent-dark);
+  text-align: center;
+}
+.footerLink:hover {
+  text-decoration: underline;
+}
+
+/* Sur téléphone le panneau prend toute la largeur disponible : à 340 px fixes il frôlait
+   les bords, et chaque pixel gagné rend la croix de suppression plus facile à viser. */
+@media (max-width: 560px) {
+  .panel {
+    right: var(--space-3);
+    left: var(--space-3);
+    width: auto;
+    max-width: none;
+  }
 }
