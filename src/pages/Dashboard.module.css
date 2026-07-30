@@ -25,7 +25,7 @@
 
 .nextCard {
   background: var(--color-accent);
-  color: var(--color-text);
+  color: var(--color-on-accent);
   border-radius: var(--radius-lg);
   padding: var(--space-5);
   box-shadow: var(--shadow-md);
@@ -90,7 +90,9 @@
   min-height: 36px;
   font-size: 0.82rem;
   font-weight: 600;
-  color: var(--color-accent);
+  /* --color-accent (l'or pur) est interdit en couleur de texte : 1,9:1 sur fond clair.
+     La charte réserve -dark à cet usage. */
+  color: var(--color-accent-dark);
 }
 
 @media (min-width: 640px) {

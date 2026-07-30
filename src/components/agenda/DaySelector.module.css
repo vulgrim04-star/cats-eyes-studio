@@ -45,7 +45,7 @@
 
 .dayActive {
   background: var(--color-accent);
-  color: var(--color-text);
+  color: var(--color-on-accent);
   box-shadow: var(--shadow-md);
 }
 

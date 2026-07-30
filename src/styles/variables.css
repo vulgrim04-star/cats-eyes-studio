@@ -6,7 +6,8 @@
    qu'environ 1,9:1, très en dessous du seuil WCAG AA (4,5:1). Donc :
      • jamais d'or en couleur de texte sur fond clair → utiliser --color-accent-dark ;
      • jamais de texte blanc sur un aplat doré → le texte des boutons primaires est
-       --color-text (≈ 7:1 sur l'or) ;
+       --color-on-accent (≈ 7:1 sur l'or), et surtout PAS --color-text, qui s'éclaircit
+       en mode sombre et retombait alors à 2:1 sur le même or ;
      • l'or reste réservé aux aplats, bordures, icônes et éléments de valorisation. */
 :root {
   /* Déclare le thème aux contrôles natifs du navigateur. Sans ça, un <select> ou un
@@ -20,7 +21,10 @@
      (même teinte, luminosité 32 % pour le texte, 85 % désaturée pour les fonds de
      pastille) afin qu'aucun composant ne change de comportement, seulement de couleur. */
   --color-accent: #C9A961;
-  --color-accent-dark: #7A612A;  /* texte et liens accentués — 5,5:1 sur le crème */
+  /* Assombri : à #7A612A il donnait 5,5:1 sur le crème mais seulement 4,39:1 sur le sable
+     --color-accent-light, qui est le fond de TOUS les boutons secondaires. Le seuil AA se
+     juge sur le fond réel, pas sur le fond principal. Désormais ≈ 4,75:1 sur le sable. */
+  --color-accent-dark: #745C27;
   --color-accent-light: #E8DDD0; /* sable : fonds de pastille, survols */
   --color-accent-light-hover: #DCCEBC;
 
@@ -56,6 +60,10 @@
      l'aplat est sombre en clair, clair en sombre, donc du blanc en dur y serait illisible
      une fois sur deux (cas du compteur de la cloche). */
   --color-danger-contrast: #FFFFFF;
+  /* Texte posé sur un aplat --color-accent (bouton primaire, pastille active). L'or est le
+     MÊME dans les deux thèmes : cette couleur ne doit donc pas suivre --color-text, qui
+     s'éclaircit en mode sombre et donnait un texte crème sur or à 2:1. */
+  --color-on-accent: #2B2724;
   --color-info: #4A5D7C;
   --color-info-bg: #E9EDF3;
   --color-neutral-bg: #F0EBE3;
@@ -140,7 +148,10 @@
   --color-white: #26221E;
   --color-text: #F5F0EA;
   --color-text-soft: #C4BAAE;
-  --color-text-muted: #8F8578;
+  /* Éclairci : à #8F8578 il ne donnait que 4,36:1 sur la carte sombre (#26221E) — sous le
+     plancher AA. C'est la couleur de tous les sous-titres et métadonnées, donc ce quart de
+     point manquant concernait la moitié des textes de l'application. Désormais ≈ 5,1:1. */
+  --color-text-muted: #9B9184;
   --color-border: #38312B;
 
   /* Les couleurs sémantiques doivent s'éclaircir avec leur fond. Seuls les -bg étaient
@@ -152,6 +163,7 @@
   --color-danger: #E09490;
   --color-danger-bg: #2E1D1B;
   --color-danger-contrast: #2E1D1B;
+  --color-on-accent: #2B2724;
   --color-info: #9DB4D8;
   --color-info-bg: #1D2430;
   --color-neutral-bg: #2E2820;
