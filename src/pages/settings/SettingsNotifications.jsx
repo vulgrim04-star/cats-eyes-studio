@@ -12,10 +12,10 @@ const NOTIFICATION_ROWS = [
   { key: 'newBookingAlert', title: 'Notification nouvelle réservation', subtitle: "Notification sur ton téléphone dès qu'une cliente réserve via le lien en ligne, même app fermée" },
   { key: 'newBookingEmail', title: 'E-mail nouvelle réservation', subtitle: "Recevoir un e-mail à l'adresse du salon dès qu'une cliente réserve via le lien en ligne" },
   { key: 'autoConfirm', title: 'Confirmation automatique', subtitle: "Envoyer un e-mail de confirmation à la cliente dès qu'un RDV est créé (si son adresse e-mail est enregistrée)" },
-  // Ces deux réglages étaient enregistrés mais lus nulle part : aucun rappel n'a jamais été
-  // envoyé. Les laisser activables faisait compter sur une fonctionnalité inexistante.
-  { key: 'reminder24h', title: 'Rappel 24h avant', subtitle: 'Envoyer un rappel automatique la veille du rendez-vous.', comingSoon: true },
-  { key: 'reminder2h', title: 'Rappel 2h avant', subtitle: 'Envoyer un rappel automatique quelques heures avant le rendez-vous.', comingSoon: true },
+  // Ces deux réglages ont longtemps été enregistrés sans être lus nulle part : aucun rappel
+  // n'était envoyé. Ils sont désormais traités par api/send-reminders.js.
+  { key: 'reminder24h', title: 'Rappel 24h avant', subtitle: "Envoyer à la cliente un e-mail de rappel la veille du rendez-vous, si son adresse est enregistrée." },
+  { key: 'reminder2h', title: 'Rappel 2h avant', subtitle: "Envoyer à la cliente un e-mail de rappel deux heures avant le rendez-vous." },
 ];
 
 /** Une ligne du diagnostic. `state` vaut true (OK), false (bloquant) ou null (inconnu). */
@@ -96,6 +96,22 @@ export default function SettingsNotifications() {
   };
 
   const hasClientKey = Boolean(clientVapidKey());
+
+  // Les trois réglages qui écrivent à une cliente (confirmation, rappel 24h, rappel 2h)
+  // dépendent tous d'un domaine d'expédition vérifié. `server === null` = diagnostic pas
+  // encore lu : on n'affiche rien plutôt qu'une alerte qui se révélerait fausse.
+  const clientEmailBlocked =
+    server !== null &&
+    (server.resendConfigured === false || server.senderDomainConfigured === false) &&
+    (notifications.autoConfirm || notifications.reminder24h || notifications.reminder2h);
+
+  // Cause distincte de la précédente : les e-mails peuvent très bien être configurés alors
+  // que le balayage périodique, lui, ne tourne pas. Rien d'autre ne le signalerait — un
+  // rappel qui n'est jamais envoyé ne produit aucune erreur visible côté salon.
+  const remindersBlocked =
+    server !== null &&
+    server.remindersConfigured === false &&
+    (notifications.reminder24h || notifications.reminder2h);
 
   return (
     <SettingsPage title="Notifications" subtitle="Ce que l'application t'envoie, et sur quels appareils">
@@ -192,22 +208,40 @@ export default function SettingsNotifications() {
       </div>
 
       <div className="card" style={{ marginTop: 'var(--space-5)' }}>
-        <h3 className="card-title" style={{ marginBottom: 'var(--space-2)' }}>Ce que tu reçois</h3>
+        <h3 className="card-title" style={{ marginBottom: 'var(--space-2)' }}>Ce que tu reçois, ce que tes clientes reçoivent</h3>
+
+        {/* Sans domaine vérifié, Resend refuse (403) tout destinataire autre que le titulaire
+            du compte : les trois réglages qui écrivent à une CLIENTE sont alors actifs et
+            sans effet. Exactement le genre de promesse muette que le reste de cet écran
+            s'emploie à supprimer — il faut donc le dire, pas le laisser deviner. */}
+        {clientEmailBlocked && (
+          <p className={styles.emailWarning} role="alert">
+            <Icon name="alert-triangle" size={14} />
+            <span>
+              Les e-mails adressés à tes clientes (confirmation et rappels) ne peuvent pas partir : aucun domaine
+              d’expédition n’est vérifié. Les réglages ci-dessous resteront sans effet tant que ce n’est pas fait —
+              voir <code>RESEND_FROM</code> dans supabase/README.md.
+            </span>
+          </p>
+        )}
+
+        {remindersBlocked && (
+          <p className={styles.emailWarning} role="alert">
+            <Icon name="alert-triangle" size={14} />
+            <span>
+              Les rappels automatiques ne sont pas encore branchés côté serveur (variable <code>CRON_SECRET</code>
+              {' '}absente). Les bascules ci-dessous resteront sans effet — voir supabase/README.md.
+            </span>
+          </p>
+        )}
+
         {NOTIFICATION_ROWS.map((row) => (
-          <div key={row.key} className={styles.prefRow} style={row.comingSoon ? { opacity: 0.55 } : undefined}>
+          <div key={row.key} className={styles.prefRow}>
             <div className={styles.prefText}>
-              <div className={styles.prefTitle}>
-                {row.title}
-                {row.comingSoon && <span className={styles.soonBadge}>Bientôt disponible</span>}
-              </div>
+              <div className={styles.prefTitle}>{row.title}</div>
               <div className={styles.prefSubtitle}>{row.subtitle}</div>
             </div>
-            <Toggle
-              active={row.comingSoon ? false : notifications[row.key]}
-              onChange={() => toggleNotification(row.key)}
-              label={row.title}
-              disabled={row.comingSoon}
-            />
+            <Toggle active={notifications[row.key]} onChange={() => toggleNotification(row.key)} label={row.title} />
           </div>
         ))}
       </div>

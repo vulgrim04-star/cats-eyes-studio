@@ -150,6 +150,102 @@ n'était pas toujours le cas, et ces quatre-là ne se voyaient dans aucun diagno
   session Supabase, et lui ouvrir un endpoint d'écriture non authentifié permettrait de
   détourner les notifications d'un compte vers un autre appareil.
 
+## Étape manuelle requise : créer la table `reminder_log`
+
+Comme `push_subscriptions`, cette table doit être créée une fois dans le SQL Editor du
+dashboard Supabase :
+
+```sql
+create table if not exists public.reminder_log (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  appointment_id text not null,
+  kind text not null check (kind in ('24h', '2h')),
+  sent_at timestamptz not null default now(),
+  unique (user_id, appointment_id, kind)
+);
+
+alter table public.reminder_log enable row level security;
+
+create policy owner_select_reminder_log on public.reminder_log
+  for select using (auth.uid() = user_id);
+```
+
+**La contrainte d'unicité n'est pas de l'hygiène, c'est le mécanisme central.** Le balayage
+repasse toutes les quinze minutes sur la même échéance tant que la fenêtre de rattrapage est
+ouverte : sans elle, une cliente recevrait le même rappel quatre fois par heure. Elle couvre
+aussi deux exécutions simultanées, cas qu'une simple vérification « déjà envoyé ? » en amont
+laisserait passer.
+
+Aucune policy d'écriture, volontairement : seul le serveur écrit ici, avec la clé
+`service_role` qui contourne la RLS. Ouvrir l'insertion au rôle authentifié permettrait à un
+client de pré-remplir le journal et de faire ainsi **sauter** ses propres rappels.
+
+Sans cette table, `claimReminder` échoue et **aucun rappel ne part** — c'est délibéré :
+envoyer sans pouvoir s'en souvenir provoquerait un envoi toutes les quinze minutes, bien pire
+qu'un rappel manquant. La cause apparaît dans les journaux Vercel.
+
+## Rappels automatiques aux clientes (24h / 2h)
+
+`api/send-reminders.js` envoie à la cliente un e-mail de rappel la veille et deux heures avant
+son rendez-vous, selon les bascules de Paramètres → Notifications. La décision (« quel rappel
+est dû ? ») vit dans `src/utils/reminders.js`, en fonctions pures et testées ; l'endpoint ne
+fait que lire, envoyer et journaliser.
+
+### Ce qu'il faut brancher
+
+1. **`CRON_SECRET`** dans Vercel — n'importe quelle chaîne aléatoire longue. L'endpoint
+   refuse toute requête sans elle, et **refuse aussi de tourner si elle n'est pas définie** :
+   il expédie de vrais e-mails à de vraies clientes, il ne doit jamais être ouvert.
+2. **La même valeur** dans les secrets GitHub du dépôt (Settings → Secrets and variables →
+   Actions), avec **`REMINDERS_URL`** = `https://<domaine>/api/send-reminders`.
+3. **`RESEND_FROM` sur un domaine vérifié.** Ce n'est plus optionnel : sans domaine vérifié,
+   Resend refuse (403) tout destinataire autre que le titulaire du compte, et un rappel
+   s'adresse par définition à une cliente. Paramètres → Notifications affiche l'avertissement
+   quand c'est le cas, via `/api/health`.
+4. **Le SQL de `reminder_log`** ci-dessus.
+
+### Pourquoi GitHub Actions et pas un cron Vercel
+
+Le rappel « 2h avant » exige un passage toutes les quinze minutes. **Le plan Vercel Hobby ne
+permet qu'une exécution par jour** : un bloc `"crons"` dans `vercel.json` marcherait en Pro et
+échouerait ailleurs. `.github/workflows/reminders.yml` fonctionne quel que soit le plan.
+
+Si le projet passe en Pro, le branchement natif est un ajout à `vercel.json` — Vercel envoie
+alors automatiquement l'en-tête `Authorization: Bearer $CRON_SECRET`, le code n'a pas à changer :
+
+```json
+"crons": [{ "path": "/api/send-reminders", "schedule": "*/15 * * * *" }]
+```
+
+Il faut alors désactiver le workflow GitHub, sinon les deux tournent (sans dommage — la
+contrainte d'unicité empêche le doublon — mais pour rien).
+
+### Le fuseau horaire, et pourquoi il a fallu l'ajouter
+
+Un rendez-vous est enregistré en heure flottante (`date` + `time`, sans fuseau) : suffisant
+pour l'afficher, insuffisant pour décider quand envoyer un rappel. « 24h avant mardi 14h »
+n'est pas une date tant qu'on ignore de quel 14h il s'agit.
+
+D'où `salon.timezone` (Paramètres → Salon), détecté à l'inscription depuis le navigateur.
+Les comptes créés avant héritent d'`Europe/Zurich` par la migration v6 → v7 — et non d'une
+détection, qui pourrait tourner sur l'appareil d'un déplacement à l'étranger et figer alors un
+fuseau faux. La conversion vit dans `src/utils/timezone.js`, avec les deux bascules d'heure
+d'été couvertes par des tests : c'est là que se joue l'heure d'écart deux fois par an.
+
+### Vérifier que ça marche
+
+```bash
+curl -X POST https://<domaine>/api/send-reminders \
+     -H "Authorization: Bearer $CRON_SECRET"
+```
+
+Réponse attendue : `{"ok":true,"accounts":N,"sent":N,"skipped":N,"failed":N}`.
+
+**Rappeler immédiatement.** La seconde réponse doit indiquer `sent: 0` et `skipped: 1` — c'est
+ce qui prouve que le verrou anti-doublon fonctionne réellement, et c'est le point le plus
+coûteux à rater. `api/send-reminders.test.js` fige ce comportement.
+
 ## Synchronisation d'agenda (Google / Apple)
 
 Le bouton « Synchroniser mon agenda » abonne l'agenda personnel de la salonnière au flux
@@ -230,6 +326,9 @@ donc aucune Edge Function à déployer dans Supabase, et elles se mettent à jou
   réservation en ligne.
 - `api/send-confirmation-email.js` — e-mail de confirmation à la cliente dès qu'un RDV est créé,
   si "Confirmation automatique" est activé.
+- `api/send-reminders.js` — rappels automatiques à la cliente 24h et 2h avant son rendez-vous.
+  Seule fonction du projet appelée par un ordonnanceur externe et non par l'application : voir
+  la section « Rappels automatiques » plus bas.
 - `api/delete-account.js` — suppression définitive du compte et de toutes ses données
   (Paramètres → "Supprimer mon compte", après confirmation par e-mail).
 
@@ -272,12 +371,17 @@ bord Vercel du projet (Project Settings → Environment Variables) :
   - la **notification de réservation** (adressée à la salonnière) ne part que si l'e-mail du
     salon est exactement celui du compte Resend ;
   - la **confirmation à la cliente** échoue systématiquement, puisqu'elle écrit par définition
-    à une adresse tierce.
+    à une adresse tierce ;
+  - les **rappels automatiques** échouent tous, pour la même raison. Paramètres → Notifications
+    l'affiche désormais explicitement, plutôt que de laisser croire à une bascule active.
 
   Pour lever la limite : dashboard Resend → Domains → Add Domain, ajouter les enregistrements
   DNS fournis chez le registrar, attendre la vérification, puis définir `RESEND_FROM` dans
-  Vercel. Aucune modification de code n'est nécessaire. Les deux endpoints journalisent
+  Vercel. Aucune modification de code n'est nécessaire. Les endpoints concernés journalisent
   explicitement ce diagnostic (`unverified-sender-domain`) en cas de 403.
+- `CRON_SECRET` — secret partagé protégeant `/api/send-reminders`, à recopier dans les secrets
+  GitHub du dépôt avec `REMINDERS_URL`. Voir « Rappels automatiques » ci-dessus. Sans elle,
+  l'endpoint refuse **toute** requête : aucun rappel ne part.
 - `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` — paire de clés Web Push (norme ouverte, aucun compte
   tiers à créer) générée pour ce projet le 2026-07-24 :
   ```

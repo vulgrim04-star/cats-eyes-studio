@@ -77,6 +77,18 @@ create policy feedback_select_own on public.feedback
   for select
   using (auth.uid() = user_id);
 
+-- ── reminder_log ────────────────────────────────────────────────────────────
+-- Lecture seule, et pour soi uniquement : c'est un journal d'envois, le salon peut vouloir
+-- vérifier qu'un rappel est bien parti, jamais le réécrire.
+--
+-- AUCUNE policy d'écriture, volontairement : seul `api/send-reminders.js` écrit ici, avec
+-- la clé `service_role`, qui contourne la RLS. Ouvrir l'insertion au rôle authentifié
+-- permettrait à un client de pré-remplir le journal et de faire ainsi SAUTER ses propres
+-- rappels — le verrou anti-doublon deviendrait un interrupteur.
+create policy owner_select_reminder_log on public.reminder_log
+  for select
+  using (auth.uid() = user_id);
+
 -- ── storage.objects — bucket « client-photos » ──────────────────────────────
 -- Les photos avant/après ne sont pas dans une table mais dans un bucket privé, dont les
 -- policies vivent sur storage.objects. Elles étaient jusqu'ici décrites uniquement en prose

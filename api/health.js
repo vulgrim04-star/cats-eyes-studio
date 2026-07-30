@@ -37,6 +37,10 @@ export default async function handler(req, res) {
     // perdu au collage et chaque envoi est refusé par un 403, alors que tous les autres
     // contrôles restent verts. null = indéterminable, une des deux manque.
     vapidKeysMatch: vapidKeysMatch(),
+    // Sans ce secret, /api/send-reminders refuse toute requête : aucun rappel automatique ne
+    // part, et l'ordonnanceur reçoit un 401 qu'il est le seul à voir. La bascule dans
+    // Paramètres serait alors activée et sans effet.
+    remindersConfigured: Boolean(process.env.CRON_SECRET?.trim()),
   };
 
   if (checks.supabaseConfigured) {
