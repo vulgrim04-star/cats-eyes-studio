@@ -40,6 +40,19 @@
   gap: var(--space-3);
   padding: 13px 0;
   border-bottom: 1px solid var(--color-border);
+  flex-wrap: wrap;
+}
+
+/* Sur téléphone, libellé et action ne tiennent pas côte à côte : le texte était comprimé en
+   une colonne de quelques caractères et les boutons « Confidentialité / Conditions » lui
+   passaient dessus. L'action descend donc sous son libellé, alignée à droite. */
+@media (max-width: 560px) {
+  .prefRow > *:not(.prefText) {
+    margin-left: auto;
+  }
+  .prefText {
+    flex: 1 1 100%;
+  }
 }
 .prefRow:last-child {
   border-bottom: none;
@@ -123,3 +136,159 @@
 
 /* --- Couleur du thème --- */
 
+
+/* --- Index des rubriques ---------------------------------------------------------- */
+
+.sections {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-3);
+}
+
+@media (min-width: 720px) {
+  .sections {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.sectionCard {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  width: 100%;
+  min-height: 76px;
+  padding: var(--space-4);
+  text-align: left;
+  background: var(--color-white);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 180ms ease-in-out, transform 180ms ease-in-out;
+}
+.sectionCard:hover {
+  border-color: var(--color-accent);
+  transform: translateY(-1px);
+}
+
+.sectionIcon {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-accent-light);
+  color: var(--color-accent-dark);
+}
+
+/* Les libellés sont des <span> dans un <a> : sans display flex ils resteraient sur la même
+   ligne. */
+.sectionText {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.sectionTitle {
+  font-size: 0.94rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.sectionSubtitle {
+  font-size: 0.76rem;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.sectionChevron {
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+/* --- En-tête d'une sous-page ------------------------------------------------------ */
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  margin-bottom: var(--space-2);
+  color: var(--color-text-soft);
+  font-size: 0.85rem;
+  font-weight: 600;
+  background: none;
+  border: none;
+  text-decoration: none;
+}
+.backLink:hover {
+  color: var(--color-accent-dark);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sectionCard {
+    transition: none;
+  }
+  .sectionCard:hover {
+    transform: none;
+  }
+}
+
+/* --- Paires et trios de champs ----------------------------------------------------- */
+
+/* Les grilles à 2 et 3 colonnes étaient écrites en style en ligne, donc sans point de
+   rupture : sur un téléphone, « Devise / TVA / Tampon » se partageaient 110 px chacun. */
+.fieldPair,
+.fieldTrio {
+  display: grid;
+  gap: 12px;
+}
+
+@media (min-width: 560px) {
+  .fieldPair {
+    grid-template-columns: 1fr 1fr;
+  }
+  .fieldTrio {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (min-width: 860px) {
+  .fieldTrio {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+
+/* --- Diagnostic des notifications -------------------------------------------------- */
+
+.checkList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-cream);
+}
+
+.checkRow {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+}
+
+.checkLabel {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.checkHint {
+  font-size: 0.74rem;
+  line-height: 1.45;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}

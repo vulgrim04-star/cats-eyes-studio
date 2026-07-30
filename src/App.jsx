@@ -16,6 +16,12 @@ const Stock = lazy(() => import('./pages/Stock'));
 const Finances = lazy(() => import('./pages/Finances'));
 const Catalogue = lazy(() => import('./pages/Catalogue'));
 const Settings = lazy(() => import('./pages/Settings'));
+const SettingsSalon = lazy(() => import('./pages/settings/SettingsSalon'));
+const SettingsNotifications = lazy(() => import('./pages/settings/SettingsNotifications'));
+const SettingsBooking = lazy(() => import('./pages/settings/SettingsBooking'));
+const SettingsAppearance = lazy(() => import('./pages/settings/SettingsAppearance'));
+const SettingsData = lazy(() => import('./pages/settings/SettingsData'));
+const SettingsAccount = lazy(() => import('./pages/settings/SettingsAccount'));
 const Notifications = lazy(() => import('./pages/Notifications'));
 const Booking = lazy(() => import('./pages/Booking'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
@@ -55,6 +61,12 @@ export default function App() {
               <Route path="/finances" element={<Finances />} />
               <Route path="/catalogue" element={<Catalogue />} />
               <Route path="/parametres" element={<Settings />} />
+              <Route path="/parametres/salon" element={<SettingsSalon />} />
+              <Route path="/parametres/notifications" element={<SettingsNotifications />} />
+              <Route path="/parametres/reservation" element={<SettingsBooking />} />
+              <Route path="/parametres/apparence" element={<SettingsAppearance />} />
+              <Route path="/parametres/donnees" element={<SettingsData />} />
+              <Route path="/parametres/compte" element={<SettingsAccount />} />
               <Route path="/guide" element={<Guide />} />
             </Route>
           </Route>

@@ -9,7 +9,7 @@ export const GUIDE_STEPS = [
   },
   {
     title: '2. Réglez vos horaires',
-    where: 'Paramètres → Horaires d\'ouverture',
+    where: 'Paramètres → Salon → Horaires d\'ouverture',
     body:
       "Vos jours et heures d'ouverture déterminent les créneaux proposés à vos clientes. Vous pouvez aussi définir un temps de battement entre deux rendez-vous, pour souffler ou nettoyer le poste.",
   },
@@ -33,9 +33,9 @@ export const GUIDE_STEPS = [
   },
   {
     title: '6. Partagez votre lien de réservation',
-    where: 'Paramètres → Lien de réservation en ligne',
+    where: 'Paramètres → Réservation en ligne',
     body:
-      "Vos clientes réservent seules, vous validez. Activez les notifications dans Paramètres pour être prévenue dès qu'une demande arrive, même l'application fermée.",
+      "Vos clientes réservent seules, vous validez. Activez les notifications dans Paramètres → Notifications pour être prévenue dès qu'une demande arrive, même l'application fermée.",
   },
 ];
 
@@ -48,11 +48,11 @@ export const GUIDE_TIPS = [
   {
     title: 'Faites des sauvegardes',
     body:
-      "Paramètres → Sauvegarde des données. Vos données sont synchronisées sur votre compte, mais pendant la phase de test, gardez aussi une copie sur votre appareil.",
+      "Paramètres → Données → Sauvegarde. Vos données sont synchronisées sur votre compte, mais pendant la phase de test, gardez aussi une copie sur votre appareil.",
   },
   {
     title: 'Dites-moi ce qui coince',
     body:
-      "Paramètres → « Envoyer un retour ». C'est le moyen le plus rapide de faire avancer l'application : chaque remarque est lue.",
+      "Paramètres → Compte → « Envoyer un retour ». C'est le moyen le plus rapide de faire avancer l'application : chaque remarque est lue.",
   },
 ];
