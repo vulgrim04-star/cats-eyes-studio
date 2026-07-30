@@ -88,29 +88,57 @@ export async function subscribeToPush(ownerId) {
   }
 }
 
-/** État réel de cet appareil : la permission accordée ne dit RIEN de l'abonnement.
+/** L'abonnement de cet appareil est-il ENREGISTRÉ, c'est-à-dire connu du serveur ?
  *
- *  C'est toute la différence qui manquait à Paramètres, qui annonçait « Activées — même app
- *  fermée » sur la seule foi de `Notification.permission`. Une permission accordée alors que
- *  la clé publique manquait, ou que l'enregistrement avait échoué, donnait un écran
- *  parfaitement rassurant et aucune notification. */
-export async function localPushState() {
-  if (!isPushSupported()) return { supported: false, permission: 'unsupported', subscribed: false };
+ *  Distinction essentielle, et je l'avais d'abord manquée : le navigateur peut très bien
+ *  avoir créé un abonnement valide sans que la ligne correspondante existe en base. Le
+ *  serveur n'a alors personne à qui écrire, et l'écran affirmait pourtant « tu seras alertée
+ *  même app fermée ». Un diagnostic qui se contente de regarder le navigateur ne diagnostique
+ *  que la moitié de la chaîne. */
+async function isRegisteredOnServer(ownerId, endpoint) {
+  if (!ownerId || !endpoint) return { registered: false, reason: 'signed-out' };
+  const { data, error } = await supabase
+    .from('push_subscriptions')
+    .select('id')
+    .eq('user_id', ownerId)
+    .eq('endpoint', endpoint)
+    .maybeSingle();
+
+  if (error) {
+    console.error('[push] lecture de l’abonnement en échec', error);
+    // PGRST205 = table absente du schéma : la cause la plus fréquente, et la seule qui se
+    // corrige par une commande SQL plutôt que par un réglage.
+    return { registered: false, reason: error.code === 'PGRST205' ? 'table-missing' : 'save-failed' };
+  }
+  return { registered: Boolean(data), reason: data ? null : 'not-registered' };
+}
+
+/** État réel de cet appareil, des deux côtés de la chaîne.
+ *
+ *  La permission accordée ne dit rien de l'abonnement, et l'abonnement du navigateur ne dit
+ *  rien de son enregistrement côté serveur. Paramètres annonçait « Activées — même app
+ *  fermée » sur la seule foi de `Notification.permission` ; il faut les trois. */
+export async function localPushState(ownerId) {
+  if (!isPushSupported()) {
+    return { supported: false, permission: 'unsupported', subscribed: false, registered: false };
+  }
 
   const permission = typeof Notification !== 'undefined' ? Notification.permission : 'default';
-  if (permission !== 'granted') return { supported: true, permission, subscribed: false };
+  if (permission !== 'granted') {
+    return { supported: true, permission, subscribed: false, registered: false };
+  }
 
   try {
     const registration = await navigator.serviceWorker.getRegistration('/sw.js');
     const subscription = await registration?.pushManager?.getSubscription();
     const key = clientVapidKey();
-    return {
-      supported: true,
-      permission,
-      subscribed: Boolean(subscription && key && matchesCurrentKey(subscription, key)),
-    };
+    const subscribed = Boolean(subscription && key && matchesCurrentKey(subscription, key));
+    if (!subscribed) return { supported: true, permission, subscribed: false, registered: false };
+
+    const server = await isRegisteredOnServer(ownerId, subscription.endpoint);
+    return { supported: true, permission, subscribed: true, ...server };
   } catch {
-    return { supported: true, permission, subscribed: false };
+    return { supported: true, permission, subscribed: false, registered: false };
   }
 }
 
@@ -150,7 +178,11 @@ export const PUSH_REASON_TEXT = {
   'permission-missing': "L'autorisation n'a pas encore été donnée sur cet appareil — appuie sur « Activer ».",
   'missing-client-key':
     "La clé de notification n'est pas présente dans cette version de l'app (variable VITE_VAPID_PUBLIC_KEY). À ajouter dans Vercel, puis redéployer.",
-  'save-failed': "L'abonnement de cet appareil n'a pas pu être enregistré (table push_subscriptions).",
+  'save-failed': "L'abonnement de cet appareil n'a pas pu être enregistré dans Supabase.",
+  'table-missing':
+    "La table push_subscriptions n'existe pas encore dans Supabase. C'est elle qui retient quels appareils doivent sonner : sans elle, le serveur n'a personne à qui écrire. Le script à exécuter une fois se trouve dans supabase/README.md.",
+  'not-registered':
+    "Cet appareil a bien un abonnement, mais il n'est pas enregistré côté serveur — appuie sur « Envoyer une notification de test » pour connaître la cause exacte.",
   'subscribe-failed': "Le navigateur a refusé de créer l'abonnement sur cet appareil.",
   'missing-server-keys':
     "Le serveur n'a pas ses clés de notification (VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY). À ajouter dans Vercel, puis redéployer.",

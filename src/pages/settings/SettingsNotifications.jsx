@@ -40,14 +40,14 @@ export default function SettingsNotifications() {
   const { showToast } = useToast();
   const ownerId = useAuthStore((s) => s.session?.user?.id);
 
-  const [pushState, setPushState] = useState({ supported: true, permission: 'default', subscribed: false });
+  const [pushState, setPushState] = useState({ supported: true, permission: 'default', subscribed: false, registered: false });
   const [server, setServer] = useState(null); // null = pas encore lu
   const [message, setMessage] = useState(null);
   const [testing, setTesting] = useState(false);
 
   const refresh = useCallback(async () => {
-    setPushState(await localPushState());
-  }, []);
+    setPushState(await localPushState(ownerId));
+  }, [ownerId]);
 
   useEffect(() => {
     refresh();
@@ -123,15 +123,31 @@ export default function SettingsNotifications() {
             label={server === null ? 'Vérification du serveur…' : server.vapidConfigured ? 'Serveur prêt à envoyer' : "Clés absentes côté serveur"}
             hint={server && !server.vapidConfigured ? 'VAPID_PUBLIC_KEY et VAPID_PRIVATE_KEY à ajouter dans Vercel.' : null}
           />
+          {/* Deux lignes, et non une : l'abonnement du navigateur et son enregistrement en
+              base peuvent diverger, et c'est justement le cas qui laissait croire que tout
+              allait bien alors qu'aucune notification ne pouvait partir. */}
           <CheckRow
             state={pushState.subscribed}
-            label={pushState.subscribed ? 'Cet appareil est abonné' : "Cet appareil n'est pas abonné"}
-            hint={pushState.subscribed ? 'Tu seras alertée même app fermée.' : null}
+            label={pushState.subscribed ? 'Abonnement créé sur cet appareil' : "Aucun abonnement sur cet appareil"}
+          />
+          <CheckRow
+            state={pushState.registered}
+            label={pushState.registered ? 'Appareil enregistré côté serveur' : "Appareil inconnu du serveur"}
+            hint={
+              pushState.registered
+                ? 'Tu seras alertée même app fermée.'
+                : pushState.subscribed
+                  ? pushReasonText(pushState.reason ?? 'not-registered')
+                  : null
+            }
           />
         </div>
 
         <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap', marginTop: 'var(--space-4)' }}>
-          {pushState.supported && !pushState.subscribed && pushState.permission !== 'denied' && (
+          {/* Proposé tant que le serveur ne connaît pas l'appareil, et non seulement tant que
+              le navigateur n'a pas d'abonnement : c'est l'enregistrement qui manquait, et
+              c'est lui que ce bouton refait. */}
+          {pushState.supported && !pushState.registered && pushState.permission !== 'denied' && (
             <button type="button" className="btn btn-primary btn-sm" onClick={requestPermission}>
               <Icon name="bell" size={14} /> Activer sur cet appareil
             </button>
