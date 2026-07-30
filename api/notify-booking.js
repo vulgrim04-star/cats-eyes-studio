@@ -47,7 +47,10 @@ function sendPush(supabase, ownerId, clientName, { serviceName, date, time }) {
   return sendPushToUser(supabase, ownerId, {
     title: 'Nouvelle réservation en ligne',
     body: `${clientName} — ${serviceName || 'Prestation'} le ${date} à ${time}`,
-    url: '/agenda',
+    // Le tableau de bord, pas l'agenda : une demande en attente n'entre dans l'agenda
+    // qu'une fois validée. La notification menait donc à une page où elle n'apparaissait
+    // pas, et il fallait la chercher soi-même (voir BookingRequestsCard, sur « / »).
+    url: '/',
   });
 }
 
