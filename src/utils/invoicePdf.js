@@ -1,8 +1,9 @@
 import { fullName, formatPriceFull } from './format';
+import { PAYMENT_LABELS_LONG } from './payments';
+import { extrasOf, serviceRevenue, tipOf } from './billing';
 import { formatDateLong } from './date';
 import { MARGIN, PAGE_WIDTH, CONTENT_WIDTH, slug, addHeader, addSectionBand, addFooterToAllPages, hexToRgb } from './pdfHelpers';
 
-const PAYMENT_LABELS = { cb: 'Carte bancaire', especes: 'Espèces', virement: 'Virement' };
 
 function totalRow(doc, label, value, y, { bold = false, rgb } = {}) {
   doc.setFont('helvetica', bold ? 'bold' : 'normal');
@@ -45,7 +46,12 @@ export async function generateInvoicePdf(appointment, salon) {
 
   const vatRate = salon?.vatRate ?? 20;
   const subjectToVat = vatRate > 0;
-  const priceTTC = appointment.price ?? 0;
+  const extras = extrasOf(appointment);
+  const tip = tipOf(appointment);
+  // La TVA porte sur la prestation ET ses suppléments — ce sont des prestations vendues.
+  // Le pourboire en est exclu : il s'ajoute après le total, sans jamais entrer dans
+  // l'assiette taxable.
+  const priceTTC = serviceRevenue(appointment);
   const priceHT = priceTTC / (1 + vatRate / 100);
   const vatAmount = priceTTC - priceHT;
 
@@ -63,8 +69,15 @@ export async function generateInvoicePdf(appointment, salon) {
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(10.5);
   doc.text(appointment.service?.name || 'Prestation', MARGIN + 4, y);
-  doc.text(formatPriceFull(priceTTC), PAGE_WIDTH - MARGIN - 4, y, { align: 'right' });
+  doc.text(formatPriceFull(appointment.price ?? 0), PAGE_WIDTH - MARGIN - 4, y, { align: 'right' });
   y += 6;
+  // Une ligne par supplément : une facture qui affiche un total supérieur au tarif annoncé
+  // sans dire pourquoi est une facture qu'on doit justifier de vive voix.
+  extras.forEach((extra) => {
+    doc.text(extra.label, MARGIN + 4, y);
+    doc.text(formatPriceFull(extra.amount), PAGE_WIDTH - MARGIN - 4, y, { align: 'right' });
+    y += 6;
+  });
   doc.setDrawColor(220);
   doc.line(MARGIN, y, PAGE_WIDTH - MARGIN, y);
   y += 10;
@@ -83,13 +96,17 @@ export async function generateInvoicePdf(appointment, salon) {
   doc.setDrawColor(0);
   y += 7;
   y = totalRow(doc, subjectToVat ? 'Total TTC' : 'Total', formatPriceFull(priceTTC), y, { bold: true, rgb });
+  if (tip > 0) {
+    y = totalRow(doc, 'Pourboire', formatPriceFull(tip), y);
+    y = totalRow(doc, 'Total réglé', formatPriceFull(priceTTC + tip), y, { bold: true, rgb });
+  }
   y += 6;
 
   if (appointment.paymentMethod) {
     y = addSectionBand(doc, 'Paiement', y);
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(10.5);
-    doc.text(PAYMENT_LABELS[appointment.paymentMethod] || appointment.paymentMethod, MARGIN, y);
+    doc.text(PAYMENT_LABELS_LONG[appointment.paymentMethod] || appointment.paymentMethod, MARGIN, y);
     y += 8;
   }
 

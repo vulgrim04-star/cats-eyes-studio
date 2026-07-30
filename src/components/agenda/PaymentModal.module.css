@@ -44,3 +44,79 @@
   background: var(--color-accent-light);
   color: var(--color-accent-dark);
 }
+
+/* --- Suppléments et pourboire ------------------------------------------------------- */
+
+.block {
+  margin-bottom: var(--space-5);
+}
+
+.blockHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+
+.hint {
+  margin: 6px 0 0;
+  font-size: 0.74rem;
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}
+
+/* Le montant garde une largeur fixe : sans elle, il se réduit à trois caractères dès que le
+   libellé s'allonge, et l'on ne voit plus ce qu'on tape. */
+.extraRow {
+  display: grid;
+  grid-template-columns: 1fr 96px 40px;
+  gap: 8px;
+  align-items: start;
+  margin-bottom: 8px;
+}
+
+.removeExtra {
+  width: 40px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  border-radius: var(--radius-sm);
+  color: var(--color-text-muted);
+}
+.removeExtra:hover {
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+/* --- Récapitulatif ------------------------------------------------------------------ */
+
+.totals {
+  background: var(--color-cream);
+  border-radius: var(--radius-md);
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-5);
+}
+
+.totalLine,
+.totalLineStrong {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  font-size: 0.84rem;
+  color: var(--color-text-soft);
+  padding: 3px 0;
+}
+
+.totalLineStrong {
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border);
+  font-size: 0.94rem;
+  font-weight: 700;
+  color: var(--color-text);
+}

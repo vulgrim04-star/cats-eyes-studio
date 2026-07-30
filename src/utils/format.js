@@ -14,10 +14,18 @@ function currentCurrency() {
   return useSettingsStore.getState().salon.currency ?? 'EUR';
 }
 
-export function formatPrice(value) {
+/** Symbole de la devise choisie, pour les LIBELLÉS.
+ *
+ *  Les montants passaient déjà par `formatPrice`, donc suivaient la devise ; mais des
+ *  étiquettes comme « Prix (€) » la portaient en dur, si bien qu'un salon en francs suisses
+ *  se voyait réclamer un prix en euros au-dessus d'un champ qui affichait des francs. */
+export function currencySymbol() {
   const currency = currentCurrency();
-  const symbol = CURRENCY_SYMBOLS[currency] ?? currency;
-  return `${value.toFixed(2).replace('.00', '')} ${symbol}`;
+  return CURRENCY_SYMBOLS[currency] ?? currency;
+}
+
+export function formatPrice(value) {
+  return `${value.toFixed(2).replace('.00', '')} ${currencySymbol()}`;
 }
 
 export function formatPriceFull(value) {

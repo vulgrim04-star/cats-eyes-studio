@@ -1,5 +1,6 @@
 import { getServiceById } from '../data/services';
 import { addDaysISO, todayISO } from './date';
+import { serviceRevenue } from './billing';
 
 const ACTIVE_STATUSES = new Set(['confirmed', 'pending', 'completed']);
 
@@ -10,7 +11,9 @@ export function appointmentsOnDate(appointments, date) {
 export function revenueForDate(appointments, date) {
   return appointments
     .filter((a) => a.date === date && a.status === 'completed')
-    .reduce((sum, a) => sum + a.price, 0);
+    // serviceRevenue et non `price` : les suppléments font partie du chiffre d'affaires,
+    // le pourboire n'en fait pas partie.
+    .reduce((sum, a) => sum + serviceRevenue(a), 0);
 }
 
 /** Variation en pourcentage, ou `null` quand elle n'a pas de sens.

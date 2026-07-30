@@ -1,12 +1,14 @@
 import { getServiceById } from '../data/services';
 import { addDaysISO, todayISO } from './date';
+import { serviceRevenue } from './billing';
 
 export function completedInRange(appointments, startISO, endISO) {
   return appointments.filter((a) => a.status === 'completed' && a.date >= startISO && a.date <= endISO);
 }
 
 export function revenueInRange(appointments, startISO, endISO) {
-  return completedInRange(appointments, startISO, endISO).reduce((sum, a) => sum + a.price, 0);
+  // Chiffre d'affaires : prestation et suppléments, jamais le pourboire.
+  return completedInRange(appointments, startISO, endISO).reduce((sum, a) => sum + serviceRevenue(a), 0);
 }
 
 export function dailySeries(appointments, days) {
@@ -26,7 +28,7 @@ export function revenueByCategory(appointments, startISO, endISO) {
   rows.forEach((a) => {
     const service = getServiceById(a.serviceId);
     if (!service) return;
-    totals.set(service.category, (totals.get(service.category) ?? 0) + a.price);
+    totals.set(service.category, (totals.get(service.category) ?? 0) + serviceRevenue(a));
   });
   const grandTotal = Array.from(totals.values()).reduce((s, v) => s + v, 0);
   return Array.from(totals.entries())

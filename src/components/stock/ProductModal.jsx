@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import Modal from '../common/Modal';
 import { useProducts } from '../../hooks/useProducts';
 import { PRODUCT_CATEGORIES } from '../../data/products';
+import { currencySymbol } from '../../utils/format';
 
 const EMPTY = { name: '', category: 'colle', unit: 'flacon', stock: 0, stockMin: 3, costPerUnit: 0, supplier: '' };
 
@@ -88,7 +89,7 @@ export default function ProductModal({ open, onClose, product }) {
             <input id="prd-min" type="number" min={0} step={1} className="input-field" value={form.stockMin} onChange={(e) => update({ stockMin: e.target.value })} required />
           </div>
           <div className="field-group">
-            <label className="field-label" htmlFor="prd-cost">Coût unitaire (€)</label>
+            <label className="field-label" htmlFor="prd-cost">Coût unitaire ({currencySymbol()})</label>
             <input id="prd-cost" type="number" min={0} step={0.5} className="input-field" value={form.costPerUnit} onChange={(e) => update({ costPerUnit: e.target.value })} required />
           </div>
         </div>

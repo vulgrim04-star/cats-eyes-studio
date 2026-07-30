@@ -61,3 +61,20 @@
   color: var(--color-success);
   flex-shrink: 0;
 }
+
+/* Le pourboire porte la couleur « information » plutôt que celle des moyens de paiement :
+   ce n'est pas un mode d'encaissement de plus, c'est une part du total qu'il faut savoir
+   distinguer du chiffre d'affaires. */
+.tipChip {
+  background: var(--color-info-bg);
+  color: var(--color-info);
+}
+
+.breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 2px;
+  font-size: 0.72rem;
+  color: var(--color-text-muted);
+}

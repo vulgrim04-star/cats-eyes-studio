@@ -3,6 +3,7 @@ import Modal from '../common/Modal';
 import Toggle from '../common/Toggle';
 import { useServices } from '../../hooks/useServices';
 import { SERVICE_CATEGORIES } from '../../data/services';
+import { currencySymbol } from '../../utils/format';
 
 const EMPTY = { name: '', category: 'cils', duration: 60, price: 40, costOverride: '', hideFromMargin: false };
 
@@ -77,13 +78,13 @@ export default function ServiceModal({ open, onClose, service }) {
             <input id="svc-duration" type="number" min={5} step={5} className="input-field" value={form.duration} onChange={(e) => update({ duration: e.target.value })} required />
           </div>
           <div className="field-group">
-            <label className="field-label" htmlFor="svc-price">Prix (€)</label>
+            <label className="field-label" htmlFor="svc-price">Prix ({currencySymbol()})</label>
             <input id="svc-price" type="number" min={0} step={1} className="input-field" value={form.price} onChange={(e) => update({ price: e.target.value })} required />
           </div>
         </div>
 
         <div className="field-group">
-          <label className="field-label" htmlFor="svc-cost">Coût de revient (€, optionnel)</label>
+          <label className="field-label" htmlFor="svc-cost">Coût de revient ({currencySymbol()}, optionnel)</label>
           <input
             id="svc-cost"
             type="number"

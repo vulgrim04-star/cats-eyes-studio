@@ -12,8 +12,9 @@ import { dailySeries, revenueInRange, revenueByCategory, completedInRange } from
 import { addDaysISO, todayISO } from '../utils/date';
 import { monthPrefix } from '../utils/stats';
 import { downloadCsv } from '../utils/csv';
-import { fullName } from '../utils/format';
-import { PAYMENT_LABELS } from '../components/agenda/PaymentModal';
+import { currencySymbol, fullName } from '../utils/format';
+import { paymentLabel } from '../utils/payments';
+import { collectedTotal, extrasTotal, serviceRevenue, tipOf } from '../utils/billing';
 import styles from './Finances.module.css';
 
 const PERIODS = [
@@ -33,7 +34,9 @@ export default function Finances() {
     () => getAppointmentsByDate(appointments, today).filter((a) => a.status === 'completed').map(enrich),
     [appointments, today]
   );
-  const cashToday = todayCompleted.reduce((sum, a) => sum + a.price, 0);
+  // La caisse compte l'argent encaissé, pourboires compris — à la différence du chiffre
+  // d'affaires affiché juste à côté, qui les exclut.
+  const cashToday = todayCompleted.reduce((sum, a) => sum + collectedTotal(a), 0);
 
   const range = useMemo(() => {
     if (period === 'day') return [today, today];
@@ -66,7 +69,11 @@ export default function Finances() {
         apt.client ? fullName(apt.client) : '',
         apt.service?.name ?? '',
         apt.price,
-        PAYMENT_LABELS[apt.paymentMethod] ?? '',
+        extrasTotal(apt) || '',
+        serviceRevenue(apt),
+        tipOf(apt) || '',
+        collectedTotal(apt),
+        paymentLabel(apt.paymentMethod),
       ]);
     if (rows.length === 0) {
       showToast('Aucune prestation terminée sur cette période', 'warning');
@@ -74,7 +81,18 @@ export default function Finances() {
     }
     downloadCsv(
       `cats-eyes-ca-${range[0]}_${range[1]}.csv`,
-      ['Date', 'Heure', 'Cliente', 'Prestation', 'Prix (€)', 'Paiement'],
+      [
+        'Date',
+        'Heure',
+        'Cliente',
+        'Prestation',
+        `Tarif (${currencySymbol()})`,
+        `Suppléments (${currencySymbol()})`,
+        `Chiffre d'affaires (${currencySymbol()})`,
+        `Pourboire (${currencySymbol()})`,
+        `Total encaissé (${currencySymbol()})`,
+        'Paiement',
+      ],
       rows
     );
     showToast(`Export CSV téléchargé (${rows.length} lignes)`, 'success');

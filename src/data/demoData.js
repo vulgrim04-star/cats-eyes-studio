@@ -50,12 +50,12 @@ export const DEMO_SERVICES = [
 export const DEMO_APPOINTMENTS = [
   { id: 'apt_demo_1', clientId: 'cli_1', serviceId: 'srv_demo_1', date: addDaysISO(todayISO(), -21), time: '09:00', duration: 150, price: 130, status: 'completed', paymentMethod: 'cb', notes: '' },
   { id: 'apt_demo_2', clientId: 'cli_2', serviceId: 'srv_demo_6', date: addDaysISO(todayISO(), -18), time: '14:00', duration: 60, price: 70, status: 'completed', paymentMethod: 'especes', notes: '' },
-  { id: 'apt_demo_3', clientId: 'cli_3', serviceId: 'srv_demo_2', date: addDaysISO(todayISO(), -14), time: '10:30', duration: 120, price: 95, status: 'completed', paymentMethod: 'cb', notes: '' },
+  { id: 'apt_demo_3', clientId: 'cli_3', serviceId: 'srv_demo_2', date: addDaysISO(todayISO(), -14), time: '10:30', duration: 120, price: 95, status: 'completed', paymentMethod: 'twint', extras: [{ label: 'Pose de 6 cils', amount: 12 }], notes: '' },
   { id: 'apt_demo_4', clientId: 'cli_1', serviceId: 'srv_demo_3', date: addDaysISO(todayISO(), -7), time: '16:00', duration: 75, price: 65, status: 'completed', paymentMethod: 'cb', notes: '' },
   { id: 'apt_demo_5', clientId: 'cli_4', serviceId: 'srv_demo_4', date: addDaysISO(todayISO(), -5), time: '09:30', duration: 180, price: 150, status: 'completed', paymentMethod: 'virement', notes: '' },
   { id: 'apt_demo_6', clientId: 'cli_2', serviceId: 'srv_demo_7', date: addDaysISO(todayISO(), -3), time: '11:00', duration: 45, price: 45, status: 'no-show', notes: 'Ne s\'est pas présentée, pas de nouvelles.' },
 
-  { id: 'apt_demo_7', clientId: 'cli_3', serviceId: 'srv_demo_3', date: todayISO(), time: '09:00', duration: 75, price: 65, status: 'completed', paymentMethod: 'cb', notes: '' },
+  { id: 'apt_demo_7', clientId: 'cli_3', serviceId: 'srv_demo_3', date: todayISO(), time: '09:00', duration: 75, price: 65, status: 'completed', paymentMethod: 'twint', tip: 5, notes: '' },
   { id: 'apt_demo_8', clientId: 'cli_5', serviceId: 'srv_demo_1', date: todayISO(), time: '11:00', duration: 150, price: 130, status: 'confirmed', notes: 'Première pose, prévoir un peu plus de temps pour le conseil.' },
   { id: 'apt_demo_9', clientId: 'cli_4', serviceId: 'srv_demo_6', date: todayISO(), time: '15:00', duration: 60, price: 70, status: 'confirmed', notes: '' },
   { id: 'apt_demo_10', clientId: 'cli_1', serviceId: 'srv_demo_8', date: todayISO(), time: '17:00', duration: 30, price: 35, status: 'pending', notes: '' },
