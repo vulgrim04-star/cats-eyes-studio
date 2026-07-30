@@ -71,6 +71,32 @@ create table if not exists public.feedback (
 
 alter table public.feedback enable row level security;
 
+-- Journal des rappels automatiques déjà envoyés (voir api/send-reminders.js).
+--
+-- Sa raison d'être tient dans la contrainte d'unicité : c'est ELLE qui garantit qu'une
+-- cliente ne reçoit pas deux fois le même rappel. Le balayage tourne toutes les quinze
+-- minutes et rattrape les échéances manquées sur plusieurs heures ; sans verrou, chaque
+-- passage renverrait les mêmes e-mails. Deux exécutions qui se chevauchent (reprise de
+-- l'ordonnanceur, relance manuelle) sont elles aussi couvertes : la seconde insertion
+-- échoue, elle ne double pas l'envoi.
+--
+-- Ce suivi ne pouvait PAS vivre dans `app_state` : le navigateur réécrit ce blob en entier
+-- à chaque enregistrement, en dernier-écrivain-gagne. Il aurait effacé le journal sans
+-- prévenir, et les rappels seraient repartis en boucle.
+--
+-- `appointment_id` est du texte, pas un uuid : les identifiants de rendez-vous sont générés
+-- côté client au format `apt_xxx` (voir src/utils/id.js).
+create table if not exists public.reminder_log (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  appointment_id text not null,
+  kind text not null check (kind in ('24h', '2h')),
+  sent_at timestamptz not null default now(),
+  unique (user_id, appointment_id, kind)
+);
+
+alter table public.reminder_log enable row level security;
+
 -- ── Diffusion temps réel ────────────────────────────────────────────────────
 -- Supabase n'inscrit AUCUNE table dans la publication `supabase_realtime` par défaut.
 -- Sans la ligne ci-dessous, l'abonnement `postgres_changes` de useBookingNotifications

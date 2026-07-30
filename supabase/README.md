@@ -124,6 +124,163 @@ Sur **iPhone/iPad**, une notification app fermée exige que l'app soit ajoutée 
 d'accueil (Partager → « Sur l'écran d'accueil ») et ouverte **depuis cette icône** : Safari en
 onglet ne donne pas accès au push, quelle que soit la configuration serveur.
 
+### Quatre pannes qui n'étaient PAS des pannes de configuration
+
+Les points ci-dessus supposent tous que le problème vient d'une variable ou d'une table. Ce
+n'était pas toujours le cas, et ces quatre-là ne se voyaient dans aucun diagnostic :
+
+- **Sur Android, `new Notification(...)` lève.** Le constructeur est interdit dès qu'un service
+  worker est enregistré : « Illegal constructor. Use ServiceWorkerRegistration.showNotification()
+  instead. » L'app affichait donc son bandeau interne et rien d'autre — l'exception partait
+  dans une promesse non rattrapée. Tout passe désormais par `src/utils/localNotify.js`, qui
+  emprunte le service worker et ne retombe sur le constructeur que là où il est permis.
+- **Deux notifications identiques**, app ouverte au premier plan : celle du serveur et celle
+  de l'app. Elles partagent maintenant l'étiquette `booking-request` ; le système remplace au
+  lieu d'empiler. `renotify: true` conserve le son de la seconde, sans quoi une demande
+  arrivée pendant qu'une autre n'est pas lue passerait inaperçue.
+- **Toucher la notification n'ouvrait pas la bonne page.** Elle visait `/agenda`, alors qu'une
+  demande en attente n'entre dans l'agenda qu'une fois validée — elle se trouve sur le tableau
+  de bord. Et le rapprochement de fenêtre (`url.includes(cible)`) se trompait dans les deux
+  sens : `/` correspondait à n'importe quelle page ouverte, tandis qu'une cible absente faisait
+  ouvrir une SECONDE fenêtre de l'app par-dessus la première.
+- **Après rotation de l'abonnement par le navigateur**, l'appareil se retrouvait sans aucun
+  abonnement : l'ancien endpoint répondait 410 (le serveur supprimait la ligne) et rien n'en
+  créait de nouveau. `public/sw.js` gère désormais `pushsubscriptionchange`. Son enregistrement
+  en base, lui, reste fait par l'app à sa prochaine ouverture : le service worker n'a pas de
+  session Supabase, et lui ouvrir un endpoint d'écriture non authentifié permettrait de
+  détourner les notifications d'un compte vers un autre appareil.
+
+## Étape manuelle requise : créer la table `reminder_log`
+
+Comme `push_subscriptions`, cette table doit être créée une fois dans le SQL Editor du
+dashboard Supabase :
+
+```sql
+create table if not exists public.reminder_log (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users (id) on delete cascade,
+  appointment_id text not null,
+  kind text not null check (kind in ('24h', '2h')),
+  sent_at timestamptz not null default now(),
+  unique (user_id, appointment_id, kind)
+);
+
+alter table public.reminder_log enable row level security;
+
+create policy owner_select_reminder_log on public.reminder_log
+  for select using (auth.uid() = user_id);
+```
+
+**La contrainte d'unicité n'est pas de l'hygiène, c'est le mécanisme central.** Le balayage
+repasse toutes les quinze minutes sur la même échéance tant que la fenêtre de rattrapage est
+ouverte : sans elle, une cliente recevrait le même rappel quatre fois par heure. Elle couvre
+aussi deux exécutions simultanées, cas qu'une simple vérification « déjà envoyé ? » en amont
+laisserait passer.
+
+Aucune policy d'écriture, volontairement : seul le serveur écrit ici, avec la clé
+`service_role` qui contourne la RLS. Ouvrir l'insertion au rôle authentifié permettrait à un
+client de pré-remplir le journal et de faire ainsi **sauter** ses propres rappels.
+
+Sans cette table, `claimReminder` échoue et **aucun rappel ne part** — c'est délibéré :
+envoyer sans pouvoir s'en souvenir provoquerait un envoi toutes les quinze minutes, bien pire
+qu'un rappel manquant. La cause apparaît dans les journaux Vercel.
+
+## Rappels automatiques aux clientes (24h / 2h)
+
+`api/send-reminders.js` envoie à la cliente un e-mail de rappel la veille et deux heures avant
+son rendez-vous, selon les bascules de Paramètres → Notifications. La décision (« quel rappel
+est dû ? ») vit dans `src/utils/reminders.js`, en fonctions pures et testées ; l'endpoint ne
+fait que lire, envoyer et journaliser.
+
+### Ce qu'il faut brancher
+
+1. **`CRON_SECRET`** dans Vercel — n'importe quelle chaîne aléatoire longue. L'endpoint
+   refuse toute requête sans elle, et **refuse aussi de tourner si elle n'est pas définie** :
+   il expédie de vrais e-mails à de vraies clientes, il ne doit jamais être ouvert.
+2. **La même valeur** dans les secrets GitHub du dépôt (Settings → Secrets and variables →
+   Actions), avec **`REMINDERS_URL`** = `https://<domaine>/api/send-reminders`.
+3. **`RESEND_FROM` sur un domaine vérifié.** Ce n'est plus optionnel : sans domaine vérifié,
+   Resend refuse (403) tout destinataire autre que le titulaire du compte, et un rappel
+   s'adresse par définition à une cliente. Paramètres → Notifications affiche l'avertissement
+   quand c'est le cas, via `/api/health`.
+4. **Le SQL de `reminder_log`** ci-dessus.
+
+### Pourquoi GitHub Actions et pas un cron Vercel
+
+Le rappel « 2h avant » exige un passage toutes les quinze minutes. **Le plan Vercel Hobby ne
+permet qu'une exécution par jour** : un bloc `"crons"` dans `vercel.json` marcherait en Pro et
+échouerait ailleurs. `.github/workflows/reminders.yml` fonctionne quel que soit le plan.
+
+Si le projet passe en Pro, le branchement natif est un ajout à `vercel.json` — Vercel envoie
+alors automatiquement l'en-tête `Authorization: Bearer $CRON_SECRET`, le code n'a pas à changer :
+
+```json
+"crons": [{ "path": "/api/send-reminders", "schedule": "*/15 * * * *" }]
+```
+
+Il faut alors désactiver le workflow GitHub, sinon les deux tournent (sans dommage — la
+contrainte d'unicité empêche le doublon — mais pour rien).
+
+### Le fuseau horaire, et pourquoi il a fallu l'ajouter
+
+Un rendez-vous est enregistré en heure flottante (`date` + `time`, sans fuseau) : suffisant
+pour l'afficher, insuffisant pour décider quand envoyer un rappel. « 24h avant mardi 14h »
+n'est pas une date tant qu'on ignore de quel 14h il s'agit.
+
+D'où `salon.timezone` (Paramètres → Salon), détecté à l'inscription depuis le navigateur.
+Les comptes créés avant héritent d'`Europe/Zurich` par la migration v6 → v7 — et non d'une
+détection, qui pourrait tourner sur l'appareil d'un déplacement à l'étranger et figer alors un
+fuseau faux. La conversion vit dans `src/utils/timezone.js`, avec les deux bascules d'heure
+d'été couvertes par des tests : c'est là que se joue l'heure d'écart deux fois par an.
+
+### Vérifier que ça marche
+
+```bash
+curl -X POST https://<domaine>/api/send-reminders \
+     -H "Authorization: Bearer $CRON_SECRET"
+```
+
+Réponse attendue : `{"ok":true,"accounts":N,"sent":N,"skipped":N,"failed":N}`.
+
+**Rappeler immédiatement.** La seconde réponse doit indiquer `sent: 0` et `skipped: 1` — c'est
+ce qui prouve que le verrou anti-doublon fonctionne réellement, et c'est le point le plus
+coûteux à rater. `api/send-reminders.test.js` fige ce comportement.
+
+## Synchronisation d'agenda (Google / Apple)
+
+Le bouton « Synchroniser mon agenda » abonne l'agenda personnel de la salonnière au flux
+`.ics` servi par `api/ics.js`. **Aucune configuration supplémentaire n'est nécessaire** : ni
+compte Google, ni clé d'API, ni OAuth. On ne parle pas à l'API de Google ou d'Apple — on leur
+donne l'adresse d'un flux, ce sont eux qui viennent le relire, toutes les quelques heures.
+
+Ce qui doit être vrai pour que ça marche :
+
+1. **`SUPABASE_URL` et `SUPABASE_SERVICE_ROLE_KEY`** doivent être définies dans Vercel (voir
+   plus bas). Sans elles, `api/ics.js` répond 500 et l'abonnement échoue côté Google/Apple.
+2. **Le jeton doit avoir atteint le cloud avant l'ouverture de Google/Apple.** Le jeton
+   (`calendarToken`) est créé dans le navigateur et vérifié par le serveur, qui le relit dans
+   `app_state`. Les écritures étant regroupées sur 800 ms, ouvrir l'agenda trop tôt le fait
+   tomber sur un jeton que le serveur ne connaît pas encore — il répond « Lien invalide ou
+   expiré », et Google garde l'agenda en échec dans la liste. `src/hooks/useCalendarSync.js`
+   force donc l'envoi (`flushPendingWrites`) et attend sa confirmation avant de proposer les
+   boutons. Ne pas court-circuiter cette attente.
+
+Deux détails de mise en œuvre qui ont l'air anodins et ne le sont pas :
+
+- **Le schéma `webcal:` n'est pas décoratif.** En `https:`, iOS *télécharge* un fichier `.ics`
+  figé : les rendez-vous ajoutés ensuite n'apparaîtront jamais. En `webcal:`, il crée un
+  abonnement qui se met à jour. C'est exactement la différence entre l'export manuel et la
+  synchronisation. Google reçoit la même URL `webcal:` via `calendar.google.com/calendar/r?cid=`.
+- **L'onglet doit s'ouvrir dans le gestionnaire de clic.** Un `window.open` appelé après un
+  `await` n'est plus rattaché à l'action de l'utilisatrice : Safari et Firefox le bloquent.
+  D'où la préparation à l'ouverture de la fenêtre, et non au clic.
+
+Le flux lui-même (`src/utils/ical.js`) doit rester strictement conforme à la RFC 5545 : un
+calendrier *abonné* que Google refuse n'affiche aucune erreur, il reste simplement vide. En
+particulier, une seule date invalide fait rejeter le flux **entier** — d'où le filtrage des
+rendez-vous incomplets, le repliage des lignes au-delà de 75 octets, et les tests de
+`src/utils/ical.test.js`.
+
 ## Stockage des photos (bucket `client-photos`)
 
 Les photos de séance vivaient à l'origine en data URL base64 **à l'intérieur** du blob
@@ -162,14 +319,44 @@ Toutes les fonctions serveur du projet tournent sur **Vercel**, pas sur Supabase
 donc aucune Edge Function à déployer dans Supabase, et elles se mettent à jour toutes seules
 à chaque `git push` :
 
-- `api/ics.js` — flux d'abonnement calendrier Google/Apple (Paramètres → "Synchronisation
-  avec Google / Apple Agenda").
+- `api/ics.js` — flux d'abonnement calendrier Google/Apple (bouton « Synchroniser mon agenda »,
+  dans Paramètres → "Réservation en ligne" et dans l'en-tête de la page Agenda). Voir la
+  section « Synchronisation d'agenda » plus bas.
 - `api/notify-booking.js` — e-mail + notification push au salon à la réception d'une nouvelle
   réservation en ligne.
 - `api/send-confirmation-email.js` — e-mail de confirmation à la cliente dès qu'un RDV est créé,
   si "Confirmation automatique" est activé.
+- `api/send-reminders.js` — rappels automatiques à la cliente 24h et 2h avant son rendez-vous.
+  Seule fonction du projet appelée par un ordonnanceur externe et non par l'application : voir
+  la section « Rappels automatiques » plus bas.
 - `api/delete-account.js` — suppression définitive du compte et de toutes ses données
   (Paramètres → "Supprimer mon compte", après confirmation par e-mail).
+
+### ⚠️ `vercel.json` n'accepte AUCUN commentaire
+
+Le fichier est validé contre un schéma strict : toute clé hors schéma fait **échouer le
+déploiement entier**, avec pour seul message
+`should NOT have additional property '//'`. Le 30 juillet 2026, des clés `"//"` avaient été
+ajoutées dans `headers[]` pour documenter les règles de cache : **tous** les déploiements ont
+échoué à partir de là, production comprise, et l'application est restée figée sur le build
+précédent pendant des jours — sans que rien dans l'app ne le signale, puisque c'est le
+déploiement qui échouait, pas le code.
+
+D'où cette section : les explications qui vivaient dans le fichier vivent ici.
+
+- **`/version.json` en `no-store`.** Ce fichier doit toujours venir du serveur. Servi depuis
+  un cache, il répondrait éternellement l'ancienne version et ne détecterait donc jamais
+  rien — un détecteur de mise à jour périmé est pire qu'aucun (voir
+  `src/hooks/useAppUpdate.js`).
+- **`index.html`, `sw.js`, `manifest.webmanifest` en `must-revalidate`.** Ces trois-là ne
+  portent pas d'empreinte dans leur nom : sans revalidation, une application installée sur
+  l'écran d'accueil peut resservir la version d'hier indéfiniment. C'est particulièrement vrai
+  du service worker, dont dépendent toutes les notifications. Les fichiers de `/assets` sont
+  hachés et gardent leur cache long par défaut.
+
+Pour vérifier avant de pousser : `npx vercel build` valide le schéma localement, ou à défaut
+`node -e "JSON.parse(require('fs').readFileSync('vercel.json'))"` pour au moins garantir un
+JSON correct.
 
 Il faut en revanche ajouter, une seule fois, ces variables d'environnement dans le tableau de
 bord Vercel du projet (Project Settings → Environment Variables) :
@@ -210,12 +397,17 @@ bord Vercel du projet (Project Settings → Environment Variables) :
   - la **notification de réservation** (adressée à la salonnière) ne part que si l'e-mail du
     salon est exactement celui du compte Resend ;
   - la **confirmation à la cliente** échoue systématiquement, puisqu'elle écrit par définition
-    à une adresse tierce.
+    à une adresse tierce ;
+  - les **rappels automatiques** échouent tous, pour la même raison. Paramètres → Notifications
+    l'affiche désormais explicitement, plutôt que de laisser croire à une bascule active.
 
   Pour lever la limite : dashboard Resend → Domains → Add Domain, ajouter les enregistrements
   DNS fournis chez le registrar, attendre la vérification, puis définir `RESEND_FROM` dans
-  Vercel. Aucune modification de code n'est nécessaire. Les deux endpoints journalisent
+  Vercel. Aucune modification de code n'est nécessaire. Les endpoints concernés journalisent
   explicitement ce diagnostic (`unverified-sender-domain`) en cas de 403.
+- `CRON_SECRET` — secret partagé protégeant `/api/send-reminders`, à recopier dans les secrets
+  GitHub du dépôt avec `REMINDERS_URL`. Voir « Rappels automatiques » ci-dessus. Sans elle,
+  l'endpoint refuse **toute** requête : aucun rappel ne part.
 - `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` — paire de clés Web Push (norme ouverte, aucun compte
   tiers à créer) générée pour ce projet le 2026-07-24 :
   ```

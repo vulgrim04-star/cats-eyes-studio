@@ -52,7 +52,7 @@ export default function SettingsAccount() {
             <div className={styles.prefTitle}>Informations légales</div>
             <div className={styles.prefSubtitle}>Politique de confidentialité et conditions d'utilisation</div>
           </div>
-          <div style={{ display: 'flex', gap: 'var(--space-2)', flexWrap: 'wrap' }}>
+          <div className={styles.prefActions}>
             <Link to="/confidentialite" className="btn btn-secondary btn-sm">Confidentialité</Link>
             <Link to="/conditions" className="btn btn-secondary btn-sm">Conditions</Link>
           </div>

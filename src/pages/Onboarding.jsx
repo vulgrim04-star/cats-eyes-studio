@@ -3,6 +3,7 @@ import BrandMark from '../components/common/BrandMark';
 import { useSettings, WEEK_DAYS } from '../hooks/useSettings';
 import { APP_NAME } from '../data/brand';
 import { CURRENCIES } from '../utils/format';
+import { detectTimeZone } from '../utils/timezone';
 import styles from './Onboarding.module.css';
 
 // Régimes de TVA proposés. `null` = taux libre à saisir. Le défaut est "non assujettie" :
@@ -55,7 +56,11 @@ export default function Onboarding() {
       (acc, day) => ({ ...acc, [day]: { open: '09:00', close: '18:30', closed: !openDays.includes(day) } }),
       {}
     );
-    completeOnboarding({ ...form, vatRate, hours });
+    // Le fuseau est déduit de l'appareil sur lequel le salon est configuré, sans rien
+    // demander : c'est presque toujours le bon, et la seule question qu'on pourrait poser
+    // à la place (« dans quel fuseau êtes-vous ? ») n'a de sens pour personne. Il reste
+    // modifiable dans Paramètres → Salon pour les rares cas où la détection se trompe.
+    completeOnboarding({ ...form, vatRate, hours, timezone: detectTimeZone() });
   };
 
   return (

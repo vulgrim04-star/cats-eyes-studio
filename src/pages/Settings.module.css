@@ -43,24 +43,48 @@
   flex-wrap: wrap;
 }
 
-/* Sur téléphone, libellé et action ne tiennent pas côte à côte : le texte était comprimé en
-   une colonne de quelques caractères et les boutons « Confidentialité / Conditions » lui
-   passaient dessus. L'action descend donc sous son libellé, alignée à droite. */
-@media (max-width: 560px) {
-  .prefRow > *:not(.prefText) {
-    margin-left: auto;
-  }
-  .prefText {
-    flex: 1 1 100%;
-  }
-}
 .prefRow:last-child {
   border-bottom: none;
 }
 
+/* Sur téléphone, libellé et action ne tiennent pas côte à côte : le texte se retrouvait
+   comprimé en une colonne de un ou deux mots, et les mots insécables (une adresse e-mail,
+   « confidentialité ») sortaient de leur boîte pour aller se faire recouvrir par le bouton,
+   peint après eux.
+
+   Une media query s'en chargeait auparavant — et n'a jamais rien fait : elle était écrite
+   AVANT la règle `.prefText { flex: 1 }`, à spécificité égale (une media query n'en ajoute
+   aucune), donc c'est la seconde qui l'emportait, à toutes les largeurs.
+
+   On s'en remet donc au dimensionnement intrinsèque plutôt qu'à un point de rupture : le
+   libellé ne descend jamais sous ~13 rem, et l'action qui ne tient plus à côté passe d'elle-
+   même à la ligne suivante. Un interrupteur (42 px) reste en place, un bouton « Se
+   déconnecter » (~155 px) descend — sans qu'aucune largeur d'écran ait à être devinée. */
 .prefText {
-  flex: 1;
-  min-width: 0;
+  /* Base FIXE, et non `auto` : c'est la taille de base qui décide du retour à la ligne. En
+     `auto`, elle vaut la largeur du contenu — un sous-titre un peu long dépassait alors
+     toujours le conteneur et faisait descendre jusqu'aux interrupteurs, qui tenaient
+     pourtant. À 13 rem, la décision ne dépend plus de la longueur du texte mais seulement de
+     la largeur de l'action, ce qui est précisément le critère voulu. */
+  flex: 1 1 13rem;
+  min-width: min(100%, 13rem);
+  /* `anywhere` plutôt que `break-word` : lui seul allège aussi la largeur minimale calculée
+     de l'élément, ce qui empêche une adresse e-mail d'imposer sa longueur à toute la colonne
+     au lieu de simplement revenir à la ligne. */
+  overflow-wrap: anywhere;
+}
+
+/* Une fois passée à la ligne, l'action se colle à droite au lieu de flotter sous le texte. */
+.prefRow > *:not(.prefText) {
+  margin-left: auto;
+}
+
+/* Plusieurs actions dans une même ligne (les deux liens légaux du Compte). Était un style en
+   ligne dans SettingsAccount.jsx, donc hors de portée des règles ci-dessus. */
+.prefActions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
 }
 
 .prefTitle {
@@ -69,19 +93,30 @@
   color: var(--color-text);
 }
 
-.soonBadge {
-  display: inline-block;
-  margin-left: 6px;
-  padding: 1px 6px;
+/* Avertissement affiché quand les e-mails aux clientes ne peuvent pas partir (aucun domaine
+   d'expédition vérifié). Les réglages concernés restent activables — c'est la configuration
+   du déploiement qui bloque, pas un choix de la gérante — mais elle doit le savoir. */
+.emailWarning {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0 0 var(--space-4);
+  padding: 10px 12px;
   border-radius: var(--radius-sm);
-  background: var(--color-neutral-bg);
-  border: 1px solid var(--color-border);
-  font-size: 0.64rem;
-  font-weight: 600;
-  letter-spacing: 0.02em;
-  color: var(--color-text-muted);
-  vertical-align: middle;
-  white-space: nowrap;
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
+.emailWarning svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.emailWarning code {
+  font-size: 0.92em;
+  word-break: break-all;
 }
 
 .prefSubtitle {

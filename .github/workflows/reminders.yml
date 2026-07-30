@@ -1,0 +1,54 @@
+# Déclenche les rappels automatiques aux clientes (24h et 2h avant le rendez-vous).
+#
+# Pourquoi ici plutôt qu'un cron Vercel : le rappel « 2h avant » exige un passage toutes les
+# quinze minutes, et le plan Vercel Hobby ne permet qu'UNE exécution par jour. Un bloc
+# "crons" dans vercel.json marcherait donc en Pro et échouerait ailleurs. GitHub Actions
+# fonctionne quel que soit le plan, et gratuitement sur un dépôt public.
+# (Si le projet passe en Pro, voir supabase/README.md pour le branchement natif.)
+#
+# GitHub décale les workflows planifiés en période de charge, parfois de plusieurs minutes.
+# Sans importance ici : la fenêtre de rattrapage de six heures absorbe le retard, et la
+# contrainte d'unicité de `reminder_log` empêche le doublon lors du passage suivant.
+name: Rappels de rendez-vous
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  # Permet de déclencher un balayage à la main depuis l'onglet Actions, pour vérifier le
+  # branchement sans attendre le prochain quart d'heure.
+  workflow_dispatch:
+
+# Deux balayages simultanés ne créeraient pas de doublon (la base l'empêche), mais ils
+# feraient un travail inutile. On laisse finir celui qui tourne.
+concurrency:
+  group: reminders
+  cancel-in-progress: false
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Appeler /api/send-reminders
+        env:
+          # À définir dans Settings → Secrets and variables → Actions :
+          #   REMINDERS_URL   ex. https://cats-eyes-studio.vercel.app/api/send-reminders
+          #   CRON_SECRET     la même valeur que la variable CRON_SECRET dans Vercel
+          REMINDERS_URL: ${{ secrets.REMINDERS_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${REMINDERS_URL}" ] || [ -z "${CRON_SECRET}" ]; then
+            echo "::error::REMINDERS_URL ou CRON_SECRET absent des secrets du dépôt — aucun rappel ne peut partir."
+            exit 1
+          fi
+
+          # --fail-with-body : un 401/500 doit faire échouer l'étape (donc être visible dans
+          # l'onglet Actions) tout en affichant la réponse, qui nomme la cause.
+          # Le secret passe par un en-tête, jamais par l'URL : les URL se retrouvent dans les
+          # journaux d'accès, pas les en-têtes.
+          curl --silent --show-error --fail-with-body \
+               --max-time 120 \
+               --retry 2 --retry-delay 5 --retry-connrefused \
+               -X POST "${REMINDERS_URL}" \
+               -H "Authorization: Bearer ${CRON_SECRET}"

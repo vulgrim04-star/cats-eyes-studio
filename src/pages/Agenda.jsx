@@ -8,6 +8,7 @@ import AppointmentCard from '../components/agenda/AppointmentCard';
 import WeekView from '../components/agenda/WeekView';
 import NewAppointmentModal from '../components/agenda/NewAppointmentModal';
 import PaymentModal from '../components/agenda/PaymentModal';
+import CalendarSyncButton from '../components/settings/CalendarSyncButton';
 import { generateInvoicePdf } from '../utils/invoicePdf';
 import { generateDayPlanningPdf } from '../utils/dayPlanningPdf';
 import { generateWeekPlanningPdf } from '../utils/weekPlanningPdf';
@@ -71,7 +72,13 @@ export default function Agenda() {
       showToast('Aucun rendez-vous à exporter', 'warning');
       return;
     }
-    downloadICS(`${salon.name.replace(/\s+/g, '-').toLowerCase()}-agenda.ics`, generateICS(upcoming, salon.name));
+    // Un salon qui n'a pas fini son onboarding n'a pas encore de nom : sans ce repli, le
+    // fichier s'appelait « -agenda.ics ».
+    const slug = salon.name.trim().replace(/\s+/g, '-').toLowerCase() || 'cats-eyes';
+    downloadICS(
+      `${slug}-agenda.ics`,
+      generateICS(upcoming, salon.name, { location: salon.address })
+    );
     showToast('Fichier iCal téléchargé — importez-le dans Google Calendar ou Outlook', 'success');
   };
 
@@ -105,9 +112,10 @@ export default function Agenda() {
             <button type="button" className="btn btn-ghost" onClick={handlePrintPlanning}>
               <Icon name="download" size={16} /> Télécharger le PDF
             </button>
-            <button type="button" className="btn btn-ghost" onClick={handleExportICS}>
-              <Icon name="download" size={16} /> iCal
-            </button>
+            {/* Remplace l'ancien bouton « iCal », qui ne téléchargeait qu'un instantané. Le
+                téléchargement reste proposé dans la fenêtre, à côté de l'abonnement : c'est le
+                seul endroit où l'on peut expliquer lequel des deux se met à jour. */}
+            <CalendarSyncButton variant="btn-ghost" label="Synchroniser agenda" onDownloadFile={handleExportICS} />
             <button type="button" className="btn btn-primary" onClick={() => { setPrefill({ date: selectedDate }); setModalOpen(true); }}>
               <Icon name="plus" size={16} /> Nouveau RDV
             </button>

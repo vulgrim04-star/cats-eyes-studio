@@ -41,7 +41,10 @@ export default async function handler(req, res) {
     const result = await sendPushToUser(supabase, data.user.id, {
       title: 'Notification de test',
       body: "Tout est en place : tu recevras les demandes de réservation, même app fermée.",
-      url: '/parametres',
+      url: '/parametres/notifications',
+      // Étiquette distincte de celle des réservations : un test ne doit ni remplacer une
+      // vraie demande encore non lue, ni se faire remplacer par elle.
+      tag: 'push-test',
     });
 
     res.status(200).json({ ok: result.sent, reason: result.reason, count: result.count });

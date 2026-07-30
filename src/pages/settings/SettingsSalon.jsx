@@ -4,6 +4,7 @@ import Icon from '../../components/common/Icon';
 import Toggle from '../../components/common/Toggle';
 import { useSettings, WEEK_DAYS } from '../../hooks/useSettings';
 import { CURRENCIES } from '../../utils/format';
+import { timeZoneOptions } from '../../utils/timezone';
 import styles from '../Settings.module.css';
 
 const DAY_LABELS = { lun: 'Lun', mar: 'Mar', mer: 'Mer', jeu: 'Jeu', ven: 'Ven', sam: 'Sam', dim: 'Dim' };
@@ -73,6 +74,20 @@ export default function SettingsSalon() {
             <label className="field-label" htmlFor="st-buffer">Tampon entre RDV (min)</label>
             <input id="st-buffer" type="number" min={0} max={60} step={5} className="input-field" value={form.bufferMinutes} onChange={(e) => update({ bufferMinutes: Number(e.target.value) })} />
           </div>
+        </div>
+
+        <div className="field-group">
+          <label className="field-label" htmlFor="st-timezone">Fuseau horaire</label>
+          <select id="st-timezone" className="input-field" value={form.timezone} onChange={(e) => update({ timezone: e.target.value })}>
+            {timeZoneOptions(form.timezone).map((zone) => (
+              <option key={zone} value={zone}>{zone.replace(/_/g, ' ')}</option>
+            ))}
+          </select>
+          <p style={{ fontSize: '0.74rem', color: 'var(--color-text-muted)', marginTop: 8 }}>
+            Détecté automatiquement à l'inscription. Il sert à savoir à quelle heure réelle
+            correspond un rendez-vous, donc à envoyer les rappels au bon moment — à ne corriger
+            que s'il ne correspond pas à celui du salon.
+          </p>
         </div>
 
         <div className="field-group" style={{ marginBottom: 0 }}>

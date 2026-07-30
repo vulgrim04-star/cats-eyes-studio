@@ -7,6 +7,7 @@ import { useBookingRequestsStore } from '../store/useBookingRequestsStore';
 import { usePollWhileVisible } from './usePollWhileVisible';
 import { alertText, emptyWatermark, selectNewRequests } from '../utils/bookingAlerts';
 import { subscribeToPush } from '../utils/push';
+import { BOOKING_TAG, showLocalNotification } from '../utils/localNotify';
 
 /** Intervalle du sondage de repli. Une minute : assez court pour qu'une demande ne
  *  dorme pas pendant qu'on travaille sur une cliente, assez long pour rester
@@ -88,9 +89,16 @@ export function useBookingNotifications() {
 
       const { title, body } = alertText(fresh);
       useUIStore.getState().showToast(`${title} — ${body}`, 'success');
-      if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
-        new Notification(title, { body, icon: '/icon-192.png', tag: 'booking-request' });
-      }
+      // Passe par le service worker quand il y en a un : le constructeur `Notification`
+      // lève sur Android Chrome (voir utils/localNotify.js). Ne rejette jamais — une
+      // notification impossible à afficher ne doit pas emporter la mise à jour du repère.
+      showLocalNotification(title, {
+        body,
+        icon: '/icon-192.png',
+        badge: '/icon-192.png',
+        tag: BOOKING_TAG,
+        data: { url: '/' },
+      });
     },
     [ownerId, alertEnabled]
   );
