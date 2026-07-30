@@ -38,9 +38,18 @@ jobs:
         run: |
           set -euo pipefail
 
+          # Passage à vide, PAS une panne — et la nuance compte : un `exit 1` sur un workflow
+          # planifié envoie une notification d'échec à la propriétaire du dépôt, ici toutes
+          # les quinze minutes. « Pas encore configuré » est l'état normal d'un dépôt qui
+          # vient d'être livré, pas une alarme à faire sonner 96 fois par jour.
+          #
+          # Ça ne masque rien : une fois les secrets en place, `curl --fail-with-body`
+          # ci-dessous fait échouer l'étape bruyamment sur un 401, un 500 ou un délai dépassé.
+          # Et l'absence de configuration est déjà signalée à la gérante là où elle regarde —
+          # Paramètres → Notifications l'affiche à partir de `remindersConfigured` (/api/health).
           if [ -z "${REMINDERS_URL}" ] || [ -z "${CRON_SECRET}" ]; then
-            echo "::error::REMINDERS_URL ou CRON_SECRET absent des secrets du dépôt — aucun rappel ne peut partir."
-            exit 1
+            echo "::warning::Rappels non configurés (REMINDERS_URL / CRON_SECRET absents des secrets du dépôt) — rien à envoyer."
+            exit 0
           fi
 
           # --fail-with-body : un 401/500 doit faire échouer l'étape (donc être visible dans
