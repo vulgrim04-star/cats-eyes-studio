@@ -1,6 +1,6 @@
 import { fullName, formatPrice } from './format';
 import { formatDateLong } from './date';
-import { MARGIN, PAGE_WIDTH, CONTENT_WIDTH, addHeader, addFooterToAllPages, ensureSpace, hexToRgb, shade } from './pdfHelpers';
+import { MARGIN, PAGE_WIDTH, CONTENT_WIDTH, addHeader, addFooterToAllPages, ensureSpace, hexToRgb, shade, BRAND_GOLD } from './pdfHelpers';
 
 const STATUS_LABELS = { cancelled: 'Annulé', 'no-show': 'No-show' };
 

@@ -20,7 +20,13 @@ export function imageFormatOf(dataUrl) {
 }
 
 // Couleur de marque unique : Cat's Eyes n'a plus de thème personnalisable.
-const BRAND_GOLD = '#C9A961';
+/** Or de la marque, pour les aplats et filets des PDF.
+ *
+ *  EXPORTÉ, et ce n'est pas un détail : trois générateurs l'utilisaient sans l'importer, en
+ *  comptant sur une variable qui n'existait pas chez eux. Chaque bouton « Télécharger le
+ *  PDF » levait donc `BRAND_GOLD is not defined` et ne produisait rien — sans message, la
+ *  planche de bord, la fiche cliente et le reçu restaient muets. */
+export const BRAND_GOLD = '#C9A961';
 
 export function hexToRgb(hex) {
   const clean = (hex || '').replace('#', '');

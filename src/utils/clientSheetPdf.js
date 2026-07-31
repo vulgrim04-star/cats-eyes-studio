@@ -13,6 +13,7 @@ import {
   imageFormatOf,
   hexToRgb,
   shade,
+  BRAND_GOLD,
 } from './pdfHelpers';
 import { pathToDataUrl } from './photoStorage';
 import { eyeLengths, normalizeLashMap } from './lashModel';
@@ -78,8 +79,6 @@ export async function buildClientSheetPdf(client, appointments, salon, sections)
       ['Type de cils', client.lashType],
       ['État des cils', client.lashCondition],
       ['Longueur naturelle', client.naturalLength],
-      ['Courbure habituelle', client.curl],
-      ['Longueur habituelle', client.length],
       ['Allergies', client.allergies],
       ['Contre-indications', client.contraindications],
     ], y, rgb);

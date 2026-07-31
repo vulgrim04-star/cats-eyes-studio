@@ -2,7 +2,7 @@ import { fullName, formatPriceFull } from './format';
 import { PAYMENT_LABELS_LONG } from './payments';
 import { extrasOf, serviceRevenue, tipOf } from './billing';
 import { formatDateLong } from './date';
-import { MARGIN, PAGE_WIDTH, CONTENT_WIDTH, slug, addHeader, addSectionBand, addFooterToAllPages, hexToRgb } from './pdfHelpers';
+import { MARGIN, PAGE_WIDTH, CONTENT_WIDTH, slug, addHeader, addSectionBand, addFooterToAllPages, hexToRgb, BRAND_GOLD } from './pdfHelpers';
 
 
 function totalRow(doc, label, value, y, { bold = false, rgb } = {}) {
