@@ -27,9 +27,9 @@ export const useClientsStore = create(
           contraindications: '',
           photoUrl: '',
           birthday: '',
-          contactPreference: 'sms',
-          referralSource: '',
           instagram: '',
+          lashCondition: '',
+          naturalLength: '',
           createdAt: new Date().toISOString().slice(0, 10),
           ...data,
         };

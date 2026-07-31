@@ -337,3 +337,61 @@
   font-variant-numeric: tabular-nums;
   color: var(--color-text-muted);
 }
+
+/* --- Listes de valeurs (fiche cliente) --------------------------------------------- */
+
+.blockHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-2);
+}
+
+/* Le champ prend la place restante, les trois commandes gardent une largeur fixe : sinon
+   elles rétrécissent sous 44 px dès que le libellé s'allonge. */
+.valueRow {
+  display: grid;
+  grid-template-columns: 1fr 44px 44px 44px;
+  gap: 4px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.valueBtn {
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border);
+  background: var(--color-white);
+  border-radius: var(--radius-sm);
+  color: var(--color-text-soft);
+}
+.valueBtn:hover:not(:disabled) {
+  border-color: var(--color-accent);
+  color: var(--color-accent-dark);
+}
+.valueBtn:disabled {
+  opacity: 0.35;
+}
+
+.valueRemove:hover:not(:disabled) {
+  border-color: var(--color-danger);
+  background: var(--color-danger-bg);
+  color: var(--color-danger);
+}
+
+.valueAdd {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-top: var(--space-3);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+.valueAdd > :global(.input-field) {
+  flex: 1;
+}

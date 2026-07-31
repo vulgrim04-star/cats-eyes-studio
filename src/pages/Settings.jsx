@@ -20,6 +20,7 @@ export default function Settings() {
     { to: '/parametres/notifications', icon: 'bell', title: 'Notifications', subtitle: "Alertes sur le téléphone et par e-mail" },
     { to: '/parametres/reservation', icon: 'calendar', title: 'Réservation en ligne', subtitle: 'Lien public et synchronisation d’agenda' },
     { to: '/parametres/apparence', icon: 'camera', title: 'Apparence', subtitle: 'Logo et mode sombre' },
+    { to: '/parametres/listes', icon: 'clipboard', title: 'Listes de la fiche cliente', subtitle: 'Type, état et longueur des cils' },
     { to: '/parametres/donnees', icon: 'download', title: 'Données', subtitle: 'Sauvegarde, restauration, photos' },
     { to: '/parametres/compte', icon: 'users', title: 'Compte', subtitle: email || 'Connexion, aide, mentions légales' },
   ];

@@ -2,6 +2,8 @@ import { useState } from 'react';
 import Icon from '../common/Icon';
 import { useClients } from '../../hooks/useClients';
 import { useSettings } from '../../hooks/useSettings';
+import { useReferentialsStore } from '../../store/useReferentialsStore';
+import LashSelect from './LashSelect';
 import { formatDateLong } from '../../utils/date';
 import { generateGdprConsentPdf, generateHealthFormPdf } from '../../utils/consentPdf';
 import { HEALTH_FORM_TITLE } from '../../data/consentText';
@@ -9,17 +11,18 @@ import { HEALTH_FORM_TITLE } from '../../data/consentText';
 export default function ProfileTab({ client, onOpenConsent, onOpenHealthForm }) {
   const { updateClient } = useClients();
   const { salon } = useSettings();
+  const lashTypes = useReferentialsStore((s) => s.lashTypes);
+  const lashConditions = useReferentialsStore((s) => s.lashConditions);
+  const naturalLengths = useReferentialsStore((s) => s.naturalLengths);
   const [form, setForm] = useState({
     phone: client.phone,
     email: client.email,
-    lashType: client.lashType,
-    curl: client.curl,
-    length: client.length,
+    lashType: client.lashType ?? '',
+    lashCondition: client.lashCondition ?? '',
+    naturalLength: client.naturalLength ?? '',
     allergies: client.allergies,
     contraindications: client.contraindications,
     birthday: client.birthday ?? '',
-    contactPreference: client.contactPreference ?? 'sms',
-    referralSource: client.referralSource ?? '',
     instagram: client.instagram ?? '',
   });
   const [dirty, setDirty] = useState(false);
@@ -155,22 +158,16 @@ export default function ProfileTab({ client, onOpenConsent, onOpenHealthForm }) 
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-          <div className="field-group">
-            <label className="field-label" htmlFor="pf-lash">Type de cils</label>
-            <select id="pf-lash" className="input-field" value={form.lashType} onChange={(e) => update({ lashType: e.target.value })}>
-              <option value="fin">Fin</option>
-              <option value="normal">Normal</option>
-              <option value="épais">Épais</option>
-            </select>
-          </div>
-          <div className="field-group">
-            <label className="field-label" htmlFor="pf-curl">Courbure</label>
-            <input id="pf-curl" className="input-field" value={form.curl} onChange={(e) => update({ curl: e.target.value })} />
-          </div>
-          <div className="field-group">
-            <label className="field-label" htmlFor="pf-length">Longueur habituelle</label>
-            <input id="pf-length" className="input-field" value={form.length} onChange={(e) => update({ length: e.target.value })} />
-          </div>
+          <LashSelect id="pf-lash" label="Type de cils" options={lashTypes} value={form.lashType} onChange={(v) => update({ lashType: v })} />
+          <LashSelect id="pf-condition" label="État des cils" options={lashConditions} value={form.lashCondition} onChange={(v) => update({ lashCondition: v })} />
+          <LashSelect id="pf-natural" label="Longueur naturelle" options={naturalLengths} value={form.naturalLength} onChange={(v) => update({ naturalLength: v })} />
+        </div>
+
+        <div className="field-group">
+          <label className="field-label" htmlFor="pf-birthday">Date d'anniversaire</label>
+          {/* Remonté ici depuis la carte « Préférences », supprimée : c'est cette date qui
+              déclenche les alertes d'anniversaire, la retirer les aurait éteintes. */}
+          <input id="pf-birthday" type="date" className="input-field" value={form.birthday} onChange={(e) => update({ birthday: e.target.value })} />
         </div>
 
         <div className="field-group">
@@ -181,28 +178,6 @@ export default function ProfileTab({ client, onOpenConsent, onOpenHealthForm }) 
         <div className="field-group" style={{ marginBottom: 0 }}>
           <label className="field-label" htmlFor="pf-contra">Contre-indications</label>
           <textarea id="pf-contra" className="input-field" rows={2} value={form.contraindications} onChange={(e) => update({ contraindications: e.target.value })} />
-        </div>
-      </div>
-
-      <div className="card">
-        <h3 className="card-title" style={{ marginBottom: 'var(--space-4)' }}>Préférences</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <div className="field-group">
-            <label className="field-label" htmlFor="pf-birthday">Date d'anniversaire</label>
-            <input id="pf-birthday" type="date" className="input-field" value={form.birthday} onChange={(e) => update({ birthday: e.target.value })} />
-          </div>
-          <div className="field-group">
-            <label className="field-label" htmlFor="pf-contact-pref">Préférence de contact</label>
-            <select id="pf-contact-pref" className="input-field" value={form.contactPreference} onChange={(e) => update({ contactPreference: e.target.value })}>
-              <option value="sms">SMS</option>
-              <option value="email">Email</option>
-              <option value="whatsapp">WhatsApp</option>
-            </select>
-          </div>
-        </div>
-        <div className="field-group" style={{ marginBottom: 0 }}>
-          <label className="field-label" htmlFor="pf-referral">Comment elle a connu le salon</label>
-          <input id="pf-referral" className="input-field" value={form.referralSource} onChange={(e) => update({ referralSource: e.target.value })} placeholder="Instagram, bouche-à-oreille, Google…" />
         </div>
       </div>
 

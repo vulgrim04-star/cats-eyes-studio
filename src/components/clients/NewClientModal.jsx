@@ -2,15 +2,17 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Modal from '../common/Modal';
 import { useClients } from '../../hooks/useClients';
+import { useReferentialsStore } from '../../store/useReferentialsStore';
+import LashSelect from './LashSelect';
 
 const EMPTY = {
   firstName: '',
   lastName: '',
   phone: '',
   email: '',
-  lashType: 'normal',
-  curl: 'C',
-  length: '',
+  lashType: '',
+  lashCondition: '',
+  naturalLength: '',
   allergies: '',
   contraindications: '',
 };
@@ -18,6 +20,9 @@ const EMPTY = {
 export default function NewClientModal({ open, onClose }) {
   const { addClient } = useClients();
   const navigate = useNavigate();
+  const lashTypes = useReferentialsStore((s) => s.lashTypes);
+  const lashConditions = useReferentialsStore((s) => s.lashConditions);
+  const naturalLengths = useReferentialsStore((s) => s.naturalLengths);
   const [form, setForm] = useState(EMPTY);
 
   const update = (patch) => setForm((f) => ({ ...f, ...patch }));
@@ -66,22 +71,9 @@ export default function NewClientModal({ open, onClose }) {
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-          <div className="field-group">
-            <label className="field-label" htmlFor="cl-lash">Type de cils</label>
-            <select id="cl-lash" className="input-field" value={form.lashType} onChange={(e) => update({ lashType: e.target.value })}>
-              <option value="fin">Fin</option>
-              <option value="normal">Normal</option>
-              <option value="épais">Épais</option>
-            </select>
-          </div>
-          <div className="field-group">
-            <label className="field-label" htmlFor="cl-curl">Courbure</label>
-            <input id="cl-curl" className="input-field" value={form.curl} onChange={(e) => update({ curl: e.target.value })} placeholder="C, CC, D…" />
-          </div>
-          <div className="field-group">
-            <label className="field-label" htmlFor="cl-length">Longueur</label>
-            <input id="cl-length" className="input-field" value={form.length} onChange={(e) => update({ length: e.target.value })} placeholder="10-12mm" />
-          </div>
+          <LashSelect id="cl-lash" label="Type de cils" options={lashTypes} value={form.lashType} onChange={(v) => update({ lashType: v })} />
+          <LashSelect id="cl-condition" label="État des cils" options={lashConditions} value={form.lashCondition} onChange={(v) => update({ lashCondition: v })} />
+          <LashSelect id="cl-natural" label="Longueur naturelle" options={naturalLengths} value={form.naturalLength} onChange={(v) => update({ naturalLength: v })} />
         </div>
 
         <div className="field-group">

@@ -119,3 +119,23 @@
     display: none;
   }
 }
+
+/* Le crayon vit dans le titre, là où on le cherche pour corriger une faute de frappe.
+   44 px de cible malgré une icône de 15, pour rester atteignable au doigt. */
+.editName {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-left: 6px;
+  vertical-align: middle;
+  border: none;
+  background: none;
+  border-radius: 50%;
+  color: var(--color-text-muted);
+}
+.editName:hover {
+  background: var(--color-accent-light);
+  color: var(--color-accent-dark);
+}

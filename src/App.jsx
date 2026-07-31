@@ -22,6 +22,7 @@ const SettingsBooking = lazy(() => import('./pages/settings/SettingsBooking'));
 const SettingsAppearance = lazy(() => import('./pages/settings/SettingsAppearance'));
 const SettingsData = lazy(() => import('./pages/settings/SettingsData'));
 const SettingsAccount = lazy(() => import('./pages/settings/SettingsAccount'));
+const SettingsReferentials = lazy(() => import('./pages/settings/SettingsReferentials'));
 const Notifications = lazy(() => import('./pages/Notifications'));
 const Booking = lazy(() => import('./pages/Booking'));
 const ResetPassword = lazy(() => import('./pages/ResetPassword'));
@@ -66,6 +67,7 @@ export default function App() {
               <Route path="/parametres/reservation" element={<SettingsBooking />} />
               <Route path="/parametres/apparence" element={<SettingsAppearance />} />
               <Route path="/parametres/donnees" element={<SettingsData />} />
+              <Route path="/parametres/listes" element={<SettingsReferentials />} />
               <Route path="/parametres/compte" element={<SettingsAccount />} />
               <Route path="/guide" element={<Guide />} />
             </Route>

@@ -5,6 +5,7 @@ import EmptyState from '../components/common/EmptyState';
 import ConsentModal from '../components/clients/ConsentModal';
 import HealthConsentModal from '../components/clients/HealthConsentModal';
 import LoyaltyBadge from '../components/clients/LoyaltyBadge';
+import EditIdentityModal from '../components/clients/EditIdentityModal';
 import ProfileTab from '../components/clients/ProfileTab';
 import HistoryTab from '../components/clients/HistoryTab';
 import PhotosTab from '../components/clients/PhotosTab';
@@ -40,6 +41,7 @@ export default function ClientDetail() {
   const [consentOpen, setConsentOpen] = useState(false);
   const [healthFormOpen, setHealthFormOpen] = useState(false);
   const [exportOpen, setExportOpen] = useState(false);
+  const [identityOpen, setIdentityOpen] = useState(false);
 
   if (!client) {
     return <EmptyState icon="users" title="Cliente introuvable" subtitle="Cette fiche cliente n'existe pas ou a été supprimée." />;
@@ -93,6 +95,15 @@ export default function ClientDetail() {
         <div>
           <h1 className={styles.name}>
             {fullName(client)}
+            <button
+              type="button"
+              className={styles.editName}
+              onClick={() => setIdentityOpen(true)}
+              title="Modifier la fiche"
+              aria-label={`Modifier la fiche de ${fullName(client)}`}
+            >
+              <Icon name="edit" size={15} />
+            </button>
             <LoyaltyBadge completedCount={completedCountForClient(appointments, client.id)} />
           </h1>
           <div className={styles.contact}>
@@ -137,6 +148,7 @@ export default function ClientDetail() {
       {tab === 'photos' && <PhotosTab client={client} />}
       {tab === 'notes' && <NotesTab client={client} appointments={appointments} />}
 
+      <EditIdentityModal open={identityOpen} client={client} onClose={() => setIdentityOpen(false)} />
       <ConsentModal open={consentOpen} onClose={() => setConsentOpen(false)} client={client} />
       <HealthConsentModal open={healthFormOpen} onClose={() => setHealthFormOpen(false)} client={client} />
       <ClientSheetExportModal
