@@ -32,6 +32,22 @@
   color: var(--color-warning);
   white-space: nowrap;
 }
+/* Le bandeau est une bande fine : l'épaissir pour atteindre 44 px mangerait de la hauteur
+   utile sur chaque écran. On étend donc la zone sensible sans rien grossir, comme pour les
+   interrupteurs. Rien n'est adjacent dans ce bandeau, aucun risque de recouvrement. */
+.exitBtn {
+  position: relative;
+}
+.exitBtn::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 44px;
+  transform: translateY(-50%);
+}
+
 .exitBtn:hover {
   background: var(--color-warning);
   color: var(--color-white);

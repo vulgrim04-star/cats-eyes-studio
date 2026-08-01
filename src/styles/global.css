@@ -257,4 +257,16 @@ input[type='checkbox']:focus-visible {
     padding: 0 18px;
     min-height: 44px;
   }
+
+  /* 16 px, et pas un de moins. Safari iOS zoome sur tout champ dont le texte est
+     inférieur à 16 px dès qu'on le touche, puis laisse la page agrandie : il faut
+     pincer pour revenir. Le viewport n'interdit pas le zoom (à raison — l'interdire
+     coupe l'agrandissement aux personnes qui en ont besoin), donc la seule parade
+     correcte est la taille du texte. Réservé au téléphone : sur grand écran, 15 px
+     reste le pas typographique de l'application. */
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
 }

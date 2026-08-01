@@ -157,12 +157,25 @@
   text-transform: capitalize;
 }
 
+/* Quatorze champs d'heure alignés, c'est le formulaire le plus fastidieux de
+   l'application. Ils tombaient à 38 px de haut : sous le seuil de 44 px, et
+   précisément le geste où viser à côté coûte un aller-retour. */
 .hoursInput {
   padding: 8px 10px;
+  min-height: 44px;
   border-radius: var(--radius-sm);
   border: 1.5px solid var(--color-border);
   background: var(--color-cream);
-  font-size: 0.82rem;
+  font-size: 0.88rem;
+}
+
+/* La règle globale des 16 px sur téléphone passe par un sélecteur d'élément : elle ne
+   peut pas l'emporter sur une classe. On la reprend donc ici, sans quoi ce formulaire
+   précis resterait le seul à faire zoomer iOS. */
+@media (max-width: 767px) {
+  .hoursInput {
+    font-size: 16px;
+  }
 }
 
 .hoursInput:disabled {

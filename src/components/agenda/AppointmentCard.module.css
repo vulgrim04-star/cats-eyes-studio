@@ -60,6 +60,23 @@
   color: var(--color-text);
   cursor: pointer;
 }
+/* Même parti pris que le bandeau démo : la zone sensible monte à 44 px, la ligne garde sa
+   hauteur. Passer par min-height ajouterait douze pixels à CHAQUE carte de rendez-vous, ce
+   qui se paie cher sur une journée chargée. L'extension est purement verticale — la pastille
+   de statut qui suit sur la même ligne n'est pas recouverte. */
+.clientName {
+  position: relative;
+}
+.clientName::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 44px;
+  transform: translateY(-50%);
+}
+
 .clientName:hover {
   color: var(--color-accent-dark);
   text-decoration: underline;
@@ -100,6 +117,18 @@
 }
 .actionBtn:active {
   transform: scale(0.95);
+}
+
+/* « Terminé », « No-show », « Annuler », « Confirmer » : les gestes les plus répétés de la
+   journée, et les seuls dont une erreur de visée change l'état d'un rendez-vous. Ici pas
+   d'extension par pseudo-élément — ces boutons sont côte à côte, les zones se
+   recouvriraient et on cliquerait « No-show » en visant « Terminé ». On grossit donc pour
+   de bon, sur téléphone seulement : la rangée passe à la ligne toute seule. */
+@media (max-width: 767px) {
+  .actionBtn {
+    min-height: 44px;
+    padding: 0 14px;
+  }
 }
 
 .confirm {
