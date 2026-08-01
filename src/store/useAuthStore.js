@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { supabase } from '../lib/supabaseClient';
 import { setSyncUserId, flushPendingWrites } from '../utils/supabaseSyncStorage';
 import { rehydrateAllStores } from './rehydrate';
+import { appOrigin } from '../utils/appOrigin';
 
 export const useAuthStore = create(() => ({
   session: null,
@@ -28,7 +29,7 @@ export async function signOut() {
 
 export async function requestPasswordReset(email) {
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/reset-password`,
+    redirectTo: `${appOrigin()}/reset-password`,
   });
   if (error) useAuthStore.setState({ authError: error.message });
   return !error;
@@ -46,7 +47,7 @@ export async function updatePassword(newPassword) {
  * d'envoi d'email supplémentaire. */
 export async function requestAccountDeletion(email) {
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${window.location.origin}/confirmer-suppression`,
+    redirectTo: `${appOrigin()}/confirmer-suppression`,
   });
   if (error) useAuthStore.setState({ authError: error.message });
   return !error;

@@ -1,0 +1,11 @@
+{
+  "appId": "ch.catseyes.manager",
+  "appName": "Cat's Eyes",
+  "webDir": "dist",
+  "android": {
+    "backgroundColor": "#FAF7F2"
+  },
+  "server": {
+    "androidScheme": "https"
+  }
+}

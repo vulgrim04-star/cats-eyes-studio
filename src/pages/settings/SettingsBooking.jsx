@@ -3,12 +3,13 @@ import Icon from '../../components/common/Icon';
 import CalendarSyncButton from '../../components/settings/CalendarSyncButton';
 import { useToast } from '../../hooks/useToast';
 import { useAuthStore } from '../../store/useAuthStore';
+import { appOrigin } from '../../utils/appOrigin';
 
 export default function SettingsBooking() {
   const { showToast } = useToast();
   const ownerId = useAuthStore((s) => s.session?.user?.id);
 
-  const bookingLink = ownerId ? `${window.location.origin}/r/${ownerId}` : '';
+  const bookingLink = ownerId ? `${appOrigin()}/r/${ownerId}` : '';
 
   const copy = async (value, label) => {
     try {

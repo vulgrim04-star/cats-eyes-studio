@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabaseClient';
+import { apiUrl } from './appOrigin';
 
 // Convertit la clé VAPID publique (base64url) au format Uint8Array attendu par
 // PushManager.subscribe — conversion standard documentée par le Push API.
@@ -150,7 +151,7 @@ export async function sendTestPush() {
     const token = data?.session?.access_token;
     if (!token) return { ok: false, reason: 'signed-out' };
 
-    const response = await fetch('/api/push-test', {
+    const response = await fetch(apiUrl('/api/push-test'), {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
     });

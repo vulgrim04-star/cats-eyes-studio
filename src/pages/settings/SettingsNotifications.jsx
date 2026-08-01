@@ -6,6 +6,7 @@ import { useSettings } from '../../hooks/useSettings';
 import { useToast } from '../../hooks/useToast';
 import { useAuthStore } from '../../store/useAuthStore';
 import { clientVapidKey, localPushState, pushReasonText, sendTestPush, subscribeToPush } from '../../utils/push';
+import { apiUrl } from '../../utils/appOrigin';
 import styles from '../Settings.module.css';
 
 const NOTIFICATION_ROWS = [
@@ -53,7 +54,7 @@ export default function SettingsNotifications() {
     refresh();
     // Le diagnostic serveur est affiché d'emblée, sans attendre un clic : la cause la plus
     // fréquente (une clé absente du déploiement) se voit alors sans rien avoir à chercher.
-    fetch('/api/health')
+    fetch(apiUrl('/api/health'))
       .then((r) => r.json())
       .then((data) => setServer(data?.checks ?? null))
       .catch(() => setServer({}));

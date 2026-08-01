@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabaseClient';
+import { apiUrl } from './appOrigin';
 
 /** Lit la configuration publique du salon (infos + catalogue) directement dans le cloud,
  * pour un visiteur non connecté (lien de réservation public). */
@@ -53,7 +54,7 @@ export async function submitBookingRequest(ownerId, payload, attempt = 1) {
 /** Déclenche l'e-mail de notification (si activé côté salon) sans jamais faire échouer
  * la réservation elle-même en cas de souci d'envoi — la demande est déjà enregistrée. */
 function notifyNewBooking(ownerId, payload) {
-  fetch('/api/notify-booking', {
+  fetch(apiUrl('/api/notify-booking'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

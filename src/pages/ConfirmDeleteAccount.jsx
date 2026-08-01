@@ -4,6 +4,7 @@ import BrandMark from '../components/common/BrandMark';
 import { APP_NAME } from '../data/brand';
 import { useAuthStore } from '../store/useAuthStore';
 import { supabase } from '../lib/supabaseClient';
+import { apiUrl } from '../utils/appOrigin';
 import styles from './Login.module.css';
 
 export default function ConfirmDeleteAccount() {
@@ -17,7 +18,7 @@ export default function ConfirmDeleteAccount() {
     setStatus('deleting');
     setError('');
     try {
-      const response = await fetch('/api/delete-account', {
+      const response = await fetch(apiUrl('/api/delete-account'), {
         method: 'POST',
         headers: { Authorization: `Bearer ${session.access_token}` },
       });

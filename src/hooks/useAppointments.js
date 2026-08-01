@@ -5,10 +5,11 @@ import { useSettingsStore } from '../store/useSettingsStore';
 import { useAuthStore } from '../store/useAuthStore';
 import { getServiceById } from '../data/services';
 import { todayISO, timeToMinutes } from '../utils/date';
+import { apiUrl } from '../utils/appOrigin';
 
 // Best-effort : ne doit jamais faire échouer la création du RDV en cas de souci d'envoi.
 function sendConfirmationEmail(ownerId, appointment, serviceName) {
-  fetch('/api/send-confirmation-email', {
+  fetch(apiUrl('/api/send-confirmation-email'), {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({

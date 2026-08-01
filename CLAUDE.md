@@ -45,3 +45,9 @@ Ne pas ouvrir de *pull request* sans demande explicite.
   toute clé inconnue fait échouer *tous* les déploiements, en silence côté application. Cette
   erreur a déjà bloqué la production plusieurs heures sans que rien ne le signale.
 - **Variables `VITE_`** : figées au moment du build. Les modifier impose un redéploiement.
+- **Application empaquetée (Capacitor, Android)** : `npm run build:app` construit en mode
+  `capacitor` puis synchronise le projet natif. Ne jamais écrire `fetch('/api/…')` ni
+  `window.location.origin` : dans l'app empaquetée, la page est servie par le téléphone et
+  ces deux formes désignent l'appareil, pas le déploiement. Passer par `apiUrl()` et
+  `appOrigin()` de `src/utils/appOrigin.js`. Le dossier `android/` est versionné, mais pas
+  les fichiers copiés dedans (`.gitignore` de Capacitor) ni les clés de signature.

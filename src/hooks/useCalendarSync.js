@@ -4,6 +4,7 @@ import { useAuthStore } from '../store/useAuthStore';
 import { flushPendingWrites } from '../utils/supabaseSyncStorage';
 import { isDemoActive } from '../utils/demoFlag';
 import { calendarFeedUrl, currentCalendarTarget, googleSubscribeUrl, webcalUrl } from '../utils/calendarSync';
+import { appOrigin } from '../utils/appOrigin';
 
 /** Tout ce dont le bouton « Synchroniser mon agenda » a besoin.
  *
@@ -33,7 +34,7 @@ export function useCalendarSync() {
     if (!ownerId) return { ok: false, feedUrl: '', reason: 'signed-out' };
 
     const token = ensureCalendarToken();
-    const feedUrl = calendarFeedUrl({ origin: window.location.origin, ownerId, token });
+    const feedUrl = calendarFeedUrl({ origin: appOrigin(), ownerId, token });
     if (!feedUrl) return { ok: false, feedUrl: '', reason: 'signed-out' };
 
     // Laisse le middleware de persistance enregistrer l'écriture déclenchée juste au-dessus
