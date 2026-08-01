@@ -19,7 +19,7 @@
   margin: 0 auto;
 }
 
-@media (min-width: 720px) {
+@media (min-width: 768px) {
   .content {
     padding: var(--space-8);
     padding-bottom: var(--space-10);

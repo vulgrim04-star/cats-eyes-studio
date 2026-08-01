@@ -5,7 +5,7 @@
   margin-bottom: var(--space-5);
 }
 
-@media (min-width: 560px) {
+@media (min-width: 640px) {
   .statsRow {
     grid-template-columns: repeat(4, 1fr);
   }

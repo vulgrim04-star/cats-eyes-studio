@@ -80,7 +80,7 @@
   flex-shrink: 0;
 }
 
-@media (min-width: 720px) {
+@media (min-width: 768px) {
   .overlay {
     align-items: center;
   }

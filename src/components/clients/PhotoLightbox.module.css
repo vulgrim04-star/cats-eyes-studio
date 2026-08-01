@@ -67,7 +67,7 @@
   background: var(--color-accent);
 }
 
-@media (max-width: 480px) {
+@media (max-width: 639px) {
   .pair {
     grid-template-columns: 1fr;
   }

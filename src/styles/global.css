@@ -251,7 +251,7 @@ input[type='checkbox']:focus-visible {
   display: none;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 767px) {
   .btn {
     /* Le padding reduit ramenait les boutons a 37 px : on garantit la hauteur de touche. */
     padding: 0 18px;

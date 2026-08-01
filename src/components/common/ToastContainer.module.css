@@ -56,7 +56,7 @@
   to { transform: translateX(0); opacity: 1; }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 767px) {
   .container {
     top: auto;
     bottom: calc(var(--bottom-nav-height) + 12px);

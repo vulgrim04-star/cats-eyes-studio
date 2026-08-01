@@ -118,10 +118,26 @@
   --transition-slow: 360ms var(--ease);
 }
 
-/* Tablette en portrait (iPad : 768–834 px). La barre latérale y apparaît désormais — elle
-   n'arrivait qu'à 960 px, si bien qu'un iPad tenu verticalement recevait la mise en page
-   téléphone. À 260 px elle laisserait moins de 510 px de contenu : on la resserre. */
-@media (min-width: 768px) and (max-width: 959px) {
+/* ---------- Points de bascule ----------
+   Trois crans, et trois seulement. Le projet en comptait sept (480, 560, 640, 720, 900,
+   960, 1100) : selon la page, une même tablette basculait à un endroit différent. Les
+   media queries n'acceptant pas les variables CSS, cette échelle se tient par convention —
+   d'où ce bloc, à consulter avant d'en ajouter une.
+
+     640 px  — reflux du contenu DANS la colonne : grilles de 1 → 2 ou 4, tailles de titre.
+     768 px  — bascule de l'OSSATURE : barre latérale, disparition de la nav du bas,
+               modale centrée plutôt qu'en feuille, marges de contenu.
+     1024 px — reflux LARGE : mises en page à deux colonnes (tableau de bord, finances,
+               stock, paramètres).
+
+   Les bornes hautes s'écrivent 639 / 767 / 1023, jamais 640 / 768 / 1024 : à la valeur
+   pivot exacte, les deux règles s'appliqueraient sinon en même temps.
+
+   Tablette en portrait (iPad : 768–834 px). La barre latérale y apparaît depuis que la
+   bascule est passée de 960 à 768 px — auparavant un iPad tenu verticalement recevait la
+   mise en page téléphone. À 260 px elle laisserait moins de 510 px de contenu : on la
+   resserre sur toute la plage intermédiaire. */
+@media (min-width: 768px) and (max-width: 1023px) {
   :root {
     --sidebar-width: 210px;
   }
