@@ -173,7 +173,7 @@
 
 /* Sur téléphone le panneau prend toute la largeur disponible : à 340 px fixes il frôlait
    les bords, et chaque pixel gagné rend la croix de suppression plus facile à viser. */
-@media (max-width: 560px) {
+@media (max-width: 639px) {
   .panel {
     right: var(--space-3);
     left: var(--space-3);

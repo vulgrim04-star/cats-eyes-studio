@@ -33,7 +33,7 @@
   margin-bottom: var(--space-5);
 }
 
-@media (min-width: 700px) {
+@media (min-width: 640px) {
   .summary {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }

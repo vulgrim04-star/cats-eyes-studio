@@ -72,7 +72,9 @@
   padding: 0 var(--space-5) calc(var(--space-5) + var(--bottom-nav-height));
 }
 
-@media (min-width: 960px) {
+/* 768 et non 960 : c'est à 768 que la nav du bas disparaît. Entre les deux, la feuille
+   réservait 68 px de vide pour une barre qui n'était déjà plus là. */
+@media (min-width: 768px) {
   .body {
     padding-bottom: var(--space-5);
   }
@@ -88,9 +90,11 @@
   to { transform: translateY(0); opacity: 1; }
 }
 
-@media (min-width: 900px) {
+@media (min-width: 1024px) {
   /* Sur grand écran les propriétés vivent dans la colonne de droite : la feuille
-     n'est qu'un filet de sécurité, on la centre comme une modale classique. */
+     n'est qu'un filet de sécurité, on la centre comme une modale classique.
+     Le seuil doit être CELUI de la colonne de droite (LashMapPage, 1024 px) : à 900 px
+     la feuille se centrait alors qu'elle était encore le seul accès aux propriétés. */
   .overlay {
     align-items: center;
   }

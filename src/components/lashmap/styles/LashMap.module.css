@@ -367,7 +367,7 @@
   gap: var(--space-3);
 }
 
-@media (min-width: 520px) {
+@media (min-width: 640px) {
   .grid2 {
     grid-template-columns: 1fr 1fr;
   }
@@ -578,7 +578,7 @@
   margin-bottom: var(--space-4);
 }
 
-@media (min-width: 760px) {
+@media (min-width: 768px) {
   .mapCard {
     grid-template-columns: 260px 1fr;
     align-items: start;
@@ -732,7 +732,7 @@
   color: var(--color-text-muted);
 }
 
-@media (max-width: 720px) {
+@media (max-width: 767px) {
   .exportSummary {
     min-height: 44px;
   }
