@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { to: '/lash-map', icon: 'eye', label: 'Lash map' },
   { to: '/stock', icon: 'package', label: 'Stock' },
   { to: '/finances', icon: 'euro', label: 'Finances' },
+  { to: '/charges', icon: 'trending-down', label: 'Charges' },
   { to: '/catalogue', icon: 'sparkles', label: 'Catalogue' },
   { to: '/parametres', icon: 'settings', label: 'Paramètres' },
 ];

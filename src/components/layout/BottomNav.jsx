@@ -13,6 +13,7 @@ const MAIN_ITEMS = [
 const MORE_ITEMS = [
   { to: '/lash-map', icon: 'eye', label: 'Lash map' },
   { to: '/finances', icon: 'euro', label: 'Finances' },
+  { to: '/charges', icon: 'trending-down', label: 'Charges' },
   { to: '/catalogue', icon: 'sparkles', label: 'Catalogue' },
   { to: '/parametres', icon: 'settings', label: 'Paramètres' },
   { to: '/reservation', icon: 'clipboard', label: 'Espace cliente' },

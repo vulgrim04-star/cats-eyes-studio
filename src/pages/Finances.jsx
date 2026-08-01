@@ -12,9 +12,9 @@ import { dailySeries, revenueInRange, revenueByCategory, completedInRange } from
 import { addDaysISO, todayISO } from '../utils/date';
 import { monthPrefix } from '../utils/stats';
 import { downloadCsv } from '../utils/csv';
-import { currencySymbol, fullName } from '../utils/format';
-import { paymentLabel } from '../utils/payments';
-import { collectedTotal, extrasTotal, serviceRevenue, tipOf } from '../utils/billing';
+import { buildFinanceExport } from '../utils/financeExport';
+import { currencySymbol } from '../utils/format';
+import { collectedTotal } from '../utils/billing';
 import styles from './Finances.module.css';
 
 const PERIODS = [
@@ -60,42 +60,17 @@ export default function Finances() {
   const periodExpensesTotal = useMemo(() => totalExpenses(expenses, range[0], range[1]), [expenses, range]);
 
   const handleExport = () => {
-    const rows = completedInRange(appointments, range[0], range[1])
-      .map(enrich)
-      .sort((a, b) => (a.date + a.time > b.date + b.time ? 1 : -1))
-      .map((apt) => [
-        apt.date,
-        apt.time,
-        apt.client ? fullName(apt.client) : '',
-        apt.service?.name ?? '',
-        apt.price,
-        extrasTotal(apt) || '',
-        serviceRevenue(apt),
-        tipOf(apt) || '',
-        collectedTotal(apt),
-        paymentLabel(apt.paymentMethod),
-      ]);
-    if (rows.length === 0) {
-      showToast('Aucune prestation terminée sur cette période', 'warning');
+    const done = completedInRange(appointments, range[0], range[1]).map(enrich);
+    // Une période sans rendez-vous mais avec un loyer reste exportable : c'est justement le
+    // mois qu'on veut pouvoir montrer. On ne refuse que le fichier réellement vide.
+    if (done.length === 0 && periodExpenses.length === 0) {
+      showToast('Aucune prestation ni charge sur cette période', 'warning');
       return;
     }
-    downloadCsv(
-      `cats-eyes-ca-${range[0]}_${range[1]}.csv`,
-      [
-        'Date',
-        'Heure',
-        'Cliente',
-        'Prestation',
-        `Tarif (${currencySymbol()})`,
-        `Suppléments (${currencySymbol()})`,
-        `Chiffre d'affaires (${currencySymbol()})`,
-        `Pourboire (${currencySymbol()})`,
-        `Total encaissé (${currencySymbol()})`,
-        'Paiement',
-      ],
-      rows
-    );
-    showToast(`Export CSV téléchargé (${rows.length} lignes)`, 'success');
+    const { header, rows } = buildFinanceExport(done, periodExpenses, currencySymbol());
+    // Le nom ne dit plus « ca » : le fichier porte désormais les charges et le résultat net.
+    downloadCsv(`cats-eyes-finances-${range[0]}_${range[1]}.csv`, header, rows);
+    showToast(`Export CSV téléchargé (${done.length} prestation(s), ${periodExpenses.length} charge(s))`, 'success');
   };
 
   return (

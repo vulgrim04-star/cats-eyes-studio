@@ -14,6 +14,7 @@ const LashMapPage = lazy(() => import('./pages/LashMapPage'));
 const LashMaps = lazy(() => import('./pages/LashMaps'));
 const Stock = lazy(() => import('./pages/Stock'));
 const Finances = lazy(() => import('./pages/Finances'));
+const Charges = lazy(() => import('./pages/Charges'));
 const Catalogue = lazy(() => import('./pages/Catalogue'));
 const Settings = lazy(() => import('./pages/Settings'));
 const SettingsSalon = lazy(() => import('./pages/settings/SettingsSalon'));
@@ -60,6 +61,7 @@ export default function App() {
               <Route path="/notifications" element={<Notifications />} />
               <Route path="/stock" element={<Stock />} />
               <Route path="/finances" element={<Finances />} />
+              <Route path="/charges" element={<Charges />} />
               <Route path="/catalogue" element={<Catalogue />} />
               <Route path="/parametres" element={<Settings />} />
               <Route path="/parametres/salon" element={<SettingsSalon />} />
