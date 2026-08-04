@@ -274,3 +274,67 @@
     transition: none;
   }
 }
+
+/* --- Bandeau de reprise ----------------------------------------------------------
+   Annonce d'où vient une fiche pré-remplie. Discret mais explicite : sans lui, la
+   praticienne croirait avoir ouvert la fiche de la séance précédente et hésiterait à
+   la modifier. */
+
+.carryBanner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-5);
+  border-radius: var(--radius-lg);
+  background: var(--color-accent-light);
+  color: var(--color-text);
+  box-shadow: var(--shadow-sm);
+}
+
+.carryText {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.carryText strong {
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.carryText span {
+  font-size: 0.78rem;
+  color: var(--color-text-soft);
+}
+
+/* --- Alerte de sécurité ----------------------------------------------------------
+   Le garde-fou du module : une extension trop longue casse le cil qui la porte.
+   Informative et jamais bloquante — la praticienne décide, l'outil renseigne. */
+
+.safetyBanner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-3);
+  border-radius: var(--radius-lg);
+  /* Ces deux variables s'inversent avec le thème : le bandeau reste lisible en mode
+     sombre sans qu'on ait à le traiter à part. */
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+  border: 1px solid currentColor;
+}
+
+.safetyText {
+  flex: 1;
+  min-width: 220px;
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.4;
+}

@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useClients } from './useClients';
 import {
+  carryOverMap,
   copyEye as copyEyeTo,
   getEye,
   mirrorEye,
@@ -14,6 +15,7 @@ import {
 } from '../utils/lashModel';
 import { sectorCountForWidth } from '../utils/lashGeometry';
 import { cycleForPoseType } from '../utils/lashPresets';
+import { todayISO } from '../utils/date';
 
 /** Identifiant d'URL d'une fiche encore jamais enregistrée. */
 export const NEW_MAP_ID = 'nouvelle';
@@ -40,16 +42,36 @@ export function useLashMapEditor(client, mapId) {
     [client, mapId, isNew]
   );
 
-  /** Fiche de départ. Une fiche NEUVE adopte le découpage adapté à l'écran ; une fiche
-   *  déjà enregistrée est reprise telle quelle — la redécouper à l'ouverture réécrirait
-   *  le travail de la praticienne. */
+  /** Séance la plus récente de la cliente : c'est d'elle que part une fiche neuve. */
+  const previousSession = useMemo(() => {
+    if (!isNew) return null;
+    const maps = client?.lashMaps ?? [];
+    if (maps.length === 0) return null;
+    return [...maps].sort((a, b) => String(b.date).localeCompare(String(a.date)))[0];
+  }, [client, isNew]);
+
+  /** Fiche de départ.
+   *
+   *  Une fiche NEUVE reprend la séance précédente quand il y en a une : une retouche à
+   *  trois semaines rejoue la même pose, et tout ressaisir en cabine est du temps perdu.
+   *  À défaut, elle adopte le découpage adapté à l'écran.
+   *
+   *  Une fiche déjà enregistrée est reprise telle quelle — la redécouper à l'ouverture
+   *  réécrirait le travail de la praticienne.
+   */
   const buildInitialMap = useCallback(() => {
-    const base = normalizeLashMap(stored);
-    return stored ? base : resizeSectors(base, sectorCountForWidth(window.innerWidth));
-  }, [stored]);
+    if (stored) return normalizeLashMap(stored);
+    if (previousSession) return carryOverMap(previousSession, todayISO());
+    return resizeSectors(normalizeLashMap(null), sectorCountForWidth(window.innerWidth));
+  }, [stored, previousSession]);
 
   const [map, setMap] = useState(buildInitialMap);
-  const [dirty, setDirty] = useState(false);
+  // Une fiche reprise est déjà porteuse de contenu : la déclarer vierge griserait
+  // « Enregistrer » sur une fiche pourtant prête à l'être.
+  const [dirty, setDirty] = useState(Boolean(previousSession));
+  // La praticienne a-t-elle explicitement refusé la reprise ? Sans ce drapeau, le bandeau
+  // continuerait d'annoncer une reprise sur une fiche qu'on vient justement de vider.
+  const [blanked, setBlanked] = useState(false);
   const [savedId, setSavedId] = useState(isNew ? null : mapId);
   const [side, setSide] = useState('right');
   const [selected, setSelected] = useState(null);
@@ -63,10 +85,22 @@ export function useLashMapEditor(client, mapId) {
   const identity = stored?.id ?? mapId;
   useEffect(() => {
     setMap(buildInitialMap());
+    setDirty(Boolean(previousSession));
+    setSelected(null);
+    setBlanked(false);
+    undoStack.current = [];
+  }, [identity, buildInitialMap, previousSession]);
+
+  /** Repartir d'une fiche vierge : la reprise est une commodité, jamais une contrainte.
+   *  Une cliente qui change complètement de pose ne doit pas avoir à défaire la
+   *  précédente réglage par réglage. */
+  const startBlank = useCallback(() => {
+    setMap(resizeSectors(normalizeLashMap(null), sectorCountForWidth(window.innerWidth)));
     setDirty(false);
     setSelected(null);
+    setBlanked(true);
     undoStack.current = [];
-  }, [identity, buildInitialMap]);
+  }, []);
 
   // Filet de sécurité navigateur : fermeture d'onglet ou rechargement avec des
   // modifications en cours.
@@ -205,5 +239,9 @@ export function useLashMapEditor(client, mapId) {
     copySector,
     pasteSector,
     save,
+    /** Séance dont la fiche neuve est issue, ou `null` — y compris après un retour à la
+     *  fiche vierge, qui doit faire disparaître le bandeau. */
+    carriedFrom: blanked ? null : previousSession,
+    startBlank,
   };
 }

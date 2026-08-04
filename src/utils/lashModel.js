@@ -318,6 +318,50 @@ export function sampleProfileAt(profile, index, count) {
   return roundMm(profile[low] * (1 - local) + profile[high] * local);
 }
 
+// --- Reprise d'une séance à l'autre ----------------------------------------------
+
+/** Ce qui SE REPORTE d'une séance à la suivante : la technique et l'anatomie.
+ *
+ *  Une retouche à trois semaines reprend la pose précédente ; la ressaisir en entier est
+ *  du temps perdu en cabine. Mais tout ne se reporte pas : la date, les notes, les durées
+ *  et le rendez-vous lié racontent UNE séance et n'ont aucun sens sur la suivante.
+ *
+ *  `poseType` en est délibérément absent : une pose complète est suivie d'une retouche,
+ *  reconduire « Pose complète » ferait entrer une erreur dans le dossier à chaque fois.
+ */
+export const CARRIED_FIELDS = [
+  'eyeShape',
+  'setShape',
+  'lashHealth',
+  'sensitivities',
+  'adhesive',
+  'products',
+  'templateId',
+];
+
+/**
+ * Fiche neuve pré-remplie à partir de la séance précédente.
+ * @param {object} previous fiche de la dernière séance
+ * @param {string} today date du jour, au format ISO
+ * @returns {object} fiche normalisée, datée du jour
+ */
+export function carryOverMap(previous, today) {
+  const source = normalizeLashMap(previous);
+  const carried = {};
+  CARRIED_FIELDS.forEach((field) => {
+    if (source[field]) carried[field] = source[field];
+  });
+  return {
+    ...EMPTY_LASH_MAP,
+    ...carried,
+    date: today,
+    // Le découpage suit celui de la séance reprise : les deux fiches se comparent alors
+    // secteur à secteur, ce qui est tout l'intérêt de la reprise.
+    leftEye: { global: { ...source.leftEye.global }, zones: source.leftEye.zones.map((z) => ({ ...z })) },
+    rightEye: { global: { ...source.rightEye.global }, zones: source.rightEye.zones.map((z) => ({ ...z })) },
+  };
+}
+
 // --- Comparaison entre séances ---------------------------------------------------
 
 const GLOBAL_LABELS = {

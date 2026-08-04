@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
+  EMPTY_LASH_MAP,
   applyProfile,
+  carryOverMap,
   copyEye,
   createEye,
   diffLashMaps,
@@ -216,5 +218,71 @@ describe('diffLashMaps', () => {
 
   it('rend un résultat vide sans fiche de comparaison', () => {
     expect(diffLashMaps(normalizeLashMap(LEGACY_MAP), null).globals).toEqual([]);
+  });
+});
+
+describe('carryOverMap', () => {
+  const previous = {
+    id: 'lm_1',
+    date: '2026-07-12',
+    appointmentId: 'apt_9',
+    poseType: 'Pose complète',
+    eyeShape: 'Amande',
+    setShape: 'Cat Eye',
+    adhesive: 'Sensitive 1-2 s',
+    products: 'Bouquets 0.05',
+    sensitivities: 'Larmoiement en fin de pose',
+    notes: 'Cliente très bavarde',
+    advice: 'Brosser chaque matin',
+    poseDuration: '2 h 15',
+    leftEye: createEye(6, { curl: 'CC', diameter: '0.05', style: 'Volume Russe' }),
+    rightEye: createEye(6, { curl: 'CC', diameter: '0.05', style: 'Volume Russe' }),
+  };
+
+  it('reporte la technique et le profil de longueurs', () => {
+    const next = carryOverMap(previous, '2026-08-02');
+    expect(next.rightEye.global.curl).toBe('CC');
+    expect(next.rightEye.global.style).toBe('Volume Russe');
+    expect(next.rightEye.zones).toHaveLength(6);
+    expect(eyeLengths(next.rightEye)).toEqual(eyeLengths(normalizeLashMap(previous).rightEye));
+  });
+
+  it("reporte l'anatomie et les produits, qui ne changent pas d'une séance à l'autre", () => {
+    const next = carryOverMap(previous, '2026-08-02');
+    expect(next.eyeShape).toBe('Amande');
+    expect(next.setShape).toBe('Cat Eye');
+    expect(next.adhesive).toBe('Sensitive 1-2 s');
+    expect(next.sensitivities).toBe('Larmoiement en fin de pose');
+  });
+
+  // Ce qui raconte UNE séance ne doit jamais déteindre sur la suivante : le dossier
+  // deviendrait faux sans que personne ne s'en aperçoive.
+  it('ne reporte ni la date, ni les notes, ni les durées, ni le rendez-vous lié', () => {
+    const next = carryOverMap(previous, '2026-08-02');
+    expect(next.date).toBe('2026-08-02');
+    expect(next.notes).toBe('');
+    expect(next.advice).toBe('');
+    expect(next.poseDuration).toBe('');
+    expect(next.appointmentId).toBeNull();
+  });
+
+  // Une pose complète est suivie d'une retouche : reconduire « Pose complète » ferait
+  // entrer une erreur dans le dossier à chaque reprise.
+  it('ne reconduit pas le type de séance', () => {
+    expect(carryOverMap(previous, '2026-08-02').poseType).toBe(EMPTY_LASH_MAP.poseType);
+  });
+
+  it('ne modifie pas la fiche source', () => {
+    const copie = JSON.parse(JSON.stringify(previous));
+    const next = carryOverMap(previous, '2026-08-02');
+    next.rightEye.global.curl = 'D';
+    next.rightEye.zones[0].length = 99;
+    expect(previous).toEqual(copie);
+  });
+
+  it('accepte une fiche de l’ancien format', () => {
+    const next = carryOverMap({ date: '2026-06-01', curl: 'D', zonesRight: ['9', '11', '13'], zonesLeft: ['9', '11', '13'] }, '2026-08-02');
+    expect(next.rightEye.global.curl).toBe('D');
+    expect(next.rightEye.zones.length).toBeGreaterThanOrEqual(6);
   });
 });

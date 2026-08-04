@@ -43,6 +43,10 @@ export const PALETTE = {
   accentDark: '#7A612A',
   muted: '#9C8A73',
   text: '#2B2724',
+  /** Alerte de sécurité. Un ambre franchement plus orangé que l'or de la marque : ces
+   *  deux couleurs se côtoient sur le schéma et ne doivent pas se confondre. */
+  warnFill: '#F8E3C4',
+  warnStroke: '#B4661C',
 
   /** Valeurs du RELIEF.
    *

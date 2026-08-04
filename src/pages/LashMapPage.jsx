@@ -19,7 +19,8 @@ import { useSettings } from '../hooks/useSettings';
 import { useToast } from '../hooks/useToast';
 import { NEW_MAP_ID, useLashMapEditor } from '../hooks/useLashMapEditor';
 import { useSectorInteractions } from '../hooks/useSectorInteractions';
-import { SIDE_LABEL, changedSectorIndexes, diffLashMaps, getEye, lengthRange } from '../utils/lashModel';
+import { SIDE_LABEL, changedSectorIndexes, diffLashMaps, eyeLengths, getEye, lengthRange } from '../utils/lashModel';
+import { safetyMessage, unsafeSectors } from '../utils/lashSafety';
 import { buildSectors } from '../utils/lashGeometry';
 import { estimateNextRetouchDate } from '../utils/lashCycle';
 import { formatDateLong, todayISO } from '../utils/date';
@@ -74,6 +75,12 @@ export default function LashMapPage() {
     [eye.zones.length, side]
   );
 
+  // Garde-fou : les secteurs trop longs pour le cil naturel de CETTE cliente. Lu sur sa
+  // fiche (type, état, longueur naturelle), pas sur un réglage du schéma.
+  const unsafe = useMemo(() => unsafeSectors(eyeLengths(eye), client), [eye, client]);
+  const unsafeIndexes = useMemo(() => new Set(unsafe.map((u) => u.index)), [unsafe]);
+  const safetyText = useMemo(() => safetyMessage(eyeLengths(eye), client), [eye, client]);
+
   const handleSave = useCallback(() => {
     const savedId = editor.save();
     if (!savedId) return;
@@ -95,6 +102,11 @@ export default function LashMapPage() {
   const suggestedRetouch = estimateNextRetouchDate(map.date, map.fillCycle);
   const otherSide = side === 'left' ? 'right' : 'left';
   const openMenuSector = interactions.menuIndex === null ? null : sectors[interactions.menuIndex];
+  // Résumé de ce qui a été repris : sans lui, le bandeau annonce une reprise sans dire
+  // laquelle, et il faut aller vérifier dans le panneau ce qui a été pré-rempli.
+  const carriedSummary = [eye.global.style, eye.global.curl, `${eye.global.diameter} mm`, lengthRange(eye)]
+    .filter(Boolean)
+    .join(' · ');
 
   return (
     <div className={styles.page}>
@@ -108,7 +120,7 @@ export default function LashMapPage() {
         </button>
 
         <div className={styles.headerTitle}>
-          <h1 className={styles.title}>Lash map</h1>
+          <h1 className={styles.title}>Lash Studio</h1>
           <span className={styles.subtitle}>{SIDE_LABEL[side]}</span>
         </div>
 
@@ -153,6 +165,19 @@ export default function LashMapPage() {
         </dl>
       </section>
 
+      {editor.carriedFrom && (
+        <div className={styles.carryBanner}>
+          <Icon name="check-circle" size={16} />
+          <div className={styles.carryText}>
+            <strong>Repris de la séance du {formatDateLong(editor.carriedFrom.date)}</strong>
+            <span>{carriedSummary} — modifie ce qui change, le reste est déjà là.</span>
+          </div>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={editor.startBlank}>
+            Repartir d’une fiche vierge
+          </button>
+        </div>
+      )}
+
       <div className={styles.layout}>
         <main className={styles.canvasColumn}>
           <div className={styles.eyeTabs} role="tablist" aria-label="Œil affiché">
@@ -170,6 +195,25 @@ export default function LashMapPage() {
             ))}
           </div>
 
+          {safetyText && (
+            <div className={styles.safetyBanner} role="status">
+              <Icon name="alert-triangle" size={17} />
+              <p className={styles.safetyText}>{safetyText}</p>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                onClick={() => {
+                  // On ramène à la limite, on ne réécrit pas la pose : les secteurs qui
+                  // la respectent gardent exactement la valeur choisie.
+                  unsafe.forEach((sector) => editor.setLength(sector.index, sector.maxMm));
+                  showToast(`${unsafe.length} secteur(s) ramené(s) à ${unsafe[0].maxMm} mm`, 'success');
+                }}
+              >
+                Ramener à {unsafe[0].maxMm} mm
+              </button>
+            </div>
+          )}
+
           <div className={styles.canvasWrap}>
             <LashMapCanvas
               ref={(node) => { svgs.current[side] = node; }}
@@ -177,6 +221,7 @@ export default function LashMapPage() {
               side={side}
               selectedIndex={selected}
               changedIndexes={changed}
+              unsafeIndexes={unsafeIndexes}
               dropIndex={interactions.dropIndex}
               onSelect={interactions.select}
               onActivate={interactions.activate}

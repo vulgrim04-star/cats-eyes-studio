@@ -23,6 +23,7 @@ function LashMapEye({
   mirrored = false,
   selectedIndex = null,
   changedIndexes = null,
+  unsafeIndexes = null,
   dropIndex = null,
   readOnly = false,
   onSelect,
@@ -104,6 +105,7 @@ function LashMapEye({
             label={sectorLabel(sector.index, count)}
             selected={selectedIndex === sector.index}
             changed={Boolean(changedIndexes?.has(sector.index))}
+            unsafe={Boolean(unsafeIndexes?.has(sector.index))}
             peak={peak !== null && lengths[sector.index] === peak}
             dropActive={dropIndex === sector.index}
             readOnly={readOnly}

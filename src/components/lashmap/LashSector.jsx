@@ -7,7 +7,22 @@ import styles from './styles/LashMap.module.css';
  *  en CSS : le schéma doit s'exporter tel quel (SVG, PNG, PDF), or une feuille de style
  *  de l'application ne suit pas le fichier exporté. Le CSS ne sert qu'aux états
  *  éphémères — survol et focus — qui n'ont aucune raison d'apparaître dans un export. */
-function appearanceOf({ selected, changed, dropActive }) {
+function appearanceOf({ selected, changed, dropActive, unsafe }) {
+  // L'alerte prime sur tout le reste : un secteur qui met le cil naturel en danger doit
+  // se voir même sélectionné, même comparé. C'est la seule information du schéma qui
+  // engage la santé de la cliente.
+  if (unsafe) {
+    return {
+      fill: PALETTE.warnFill,
+      fillOpacity: selected ? 0.95 : 0.62,
+      stroke: PALETTE.warnStroke,
+      strokeWidth: selected ? 2.6 : 2,
+    };
+  }
+  return baseAppearanceOf({ selected, changed, dropActive });
+}
+
+function baseAppearanceOf({ selected, changed, dropActive }) {
   // Le secteur retenu se remplit d'un crème chaud, jamais de blanc pur : posé sur une
   // paupière désormais modelée, un aplat blanc y ferait un trou et casserait le relief
   // qu'on vient de lui donner.
@@ -33,6 +48,7 @@ function LashSector({
   changed = false,
   peak = false,
   dropActive = false,
+  unsafe = false,
   readOnly = false,
   onSelect,
   onActivate,
@@ -42,7 +58,7 @@ function LashSector({
   onDragLeave,
   onDrop,
 }) {
-  const appearance = appearanceOf({ selected, changed, dropActive });
+  const appearance = appearanceOf({ selected, changed, dropActive, unsafe });
 
   const description = [
     label,
@@ -51,6 +67,9 @@ function LashSector({
     `épaisseur ${zone.diameter}`,
     zone.density,
     zone.overrides.length > 0 ? 'réglages personnalisés' : '',
+    // Énoncée aussi aux technologies d'assistance : une alerte de sécurité qui ne serait
+    // que colorée n'existerait pas pour qui navigue au lecteur d'écran.
+    unsafe ? 'longueur au-delà de la limite conseillée' : '',
   ]
     .filter(Boolean)
     .join(', ');
@@ -109,7 +128,7 @@ function LashSector({
         mm
       </text>
 
-      {zone.overrides.length > 0 && (
+      {zone.overrides.length > 0 && !unsafe && (
         <circle
           cx={sector.labelPoint.x}
           cy={sector.labelPoint.y - 24}
@@ -117,6 +136,23 @@ function LashSector({
           fill={PALETTE.accent}
           pointerEvents="none"
         />
+      )}
+
+      {/* Le point d'exclamation double la couleur : en impression noir et blanc, comme
+          pour qui distingue mal l'ambre du doré, l'alerte doit rester lisible. */}
+      {unsafe && (
+        <text
+          x={sector.labelPoint.x}
+          y={sector.labelPoint.y - 20}
+          textAnchor="middle"
+          fontFamily={PALETTE.fontStack}
+          fontSize="15"
+          fontWeight="700"
+          fill={PALETTE.warnStroke}
+          pointerEvents="none"
+        >
+          !
+        </text>
       )}
     </g>
   );
