@@ -749,3 +749,63 @@
     animation: none;
   }
 }
+
+/* --- Conseil de pose --------------------------------------------------------------
+   Découle de la forme de l'œil saisie juste au-dessus. Affiché seulement quand une
+   forme reconnue est renseignée : un encart permanent devient un décor. */
+
+.advice {
+  margin-top: var(--space-4);
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--color-cream);
+  border: 1px solid var(--color-border);
+}
+
+.adviceHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+  color: var(--color-accent-dark);
+  font-size: 0.82rem;
+}
+
+.adviceLine {
+  margin: 0 0 6px;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--color-text-soft);
+}
+
+.adviceGood {
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.adviceBad {
+  font-weight: 700;
+  color: var(--color-text-muted);
+}
+
+/* La mise en garde ne s'allume que si le modèle déconseillé est celui qui est posé. */
+.adviceWarn {
+  color: var(--color-warning);
+}
+
+.adviceWarn .adviceBad {
+  color: var(--color-warning);
+}
+
+.adviceActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin-top: var(--space-3);
+}
+
+.adviceAlt {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}

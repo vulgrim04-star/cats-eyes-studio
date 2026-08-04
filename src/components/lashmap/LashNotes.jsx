@@ -1,5 +1,6 @@
 import { useId } from 'react';
 import Icon from '../common/Icon';
+import LashAdvice from './LashAdvice';
 import { EYE_SHAPES, POSE_TYPES, SET_SHAPES } from '../../utils/lashPresets';
 import { formatDateLong } from '../../utils/date';
 import styles from './styles/LashMap.module.css';
@@ -98,6 +99,10 @@ export default function LashNotes({ editor, suggestedRetouch }) {
             </datalist>
           </div>
         </div>
+
+        {/* Placé sous les deux champs de forme : le conseil découle de ce qu'on vient
+            d'y saisir, et se lit dans la foulée. */}
+        <LashAdvice editor={editor} />
       </details>
 
       <details className={styles.section}>
