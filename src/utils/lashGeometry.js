@@ -35,11 +35,33 @@ export const PALETTE = {
   ink: '#241A12',
   lidTint: '#F1E7DA',
   sectorFill: '#FFFFFF',
+  /** Remplissage du secteur retenu : crème chaud plutôt que blanc pur, qui ferait un
+   *  trou dans la paupière modelée. */
+  sectorActiveFill: '#FBF4E7',
   sectorStroke: '#E0D5C6',
   accent: '#C9A961',
   accentDark: '#7A612A',
   muted: '#9C8A73',
   text: '#2B2724',
+
+  /** Valeurs du RELIEF.
+   *
+   *  Un cil n'est pas d'une seule encre : il est dense et presque noir à la racine, et
+   *  s'éclaircit en s'affinant vers la pointe. Tout était auparavant tracé dans le seul
+   *  `ink`, d'où l'aspect de peigne à dents égales. Ces deux bornes alimentent un unique
+   *  dégradé partagé par les ~250 tracés — une définition, aucun surcoût de rendu. */
+  lashRoot: '#161009',
+  lashTip: '#6B5540',
+  /** Plan arrière de la frange : plus clair et légèrement flouté, il creuse la
+   *  profondeur au lieu d'ajouter des traits. */
+  lashBackRoot: '#4A3B2C',
+  lashBackTip: '#A08D74',
+  browRoot: '#3B2C1E',
+  browTip: '#A2896C',
+  /** Modelé de la paupière : du creux de l'orbite (haut) au bord ciliaire (bas). */
+  lidHigh: '#FBF5EC',
+  lidLow: '#EADCC7',
+  creaseLine: '#DAC7AC',
 };
 
 /** Bord ciliaire de l'œil fermé.
@@ -96,10 +118,15 @@ export function sectorCountForWidth(width) {
 const LASH_PX_MIN = 38;
 const LASH_PX_MAX = 82;
 
-/** Densité de la frange : cils naturels (fins, clairs) et extensions (marquées). */
-export const NATURAL_LASH_COUNT = 132;
-export const EXTENSION_LASH_COUNT = 96;
-export const BROW_HAIR_COUNT = 116;
+/** Densité de la frange.
+ *
+ *  Volontairement élevée : c'est la densité qui fait la différence entre une frange et un
+ *  peigne. Chaque cil étant désormais une silhouette fuselée et non un trait d'épaisseur
+ *  constante, on peut en poser beaucoup plus sans que le dessin ne s'empâte — les pointes
+ *  s'affinent et se chevauchent au lieu de s'additionner. */
+export const NATURAL_LASH_COUNT = 208;
+export const EXTENSION_LASH_COUNT = 156;
+export const BROW_HAIR_COUNT = 190;
 
 const round = (n) => Math.round(n * 100) / 100;
 
@@ -245,16 +272,44 @@ export function axisLabelPoints(mirrored = false) {
 
 // --- Frange de cils --------------------------------------------------------------
 
-function lashPath(t, length, bend, curveRatio = 0.55) {
+/** Cil FUSELÉ : une silhouette pleine, épaisse à la racine et effilée en pointe.
+ *
+ *  C'est le geste qui change tout. Un `<path>` au trait a une épaisseur constante : cent
+ *  cils tracés ainsi donnent un peigne à dents égales, jamais une frange. Un vrai cil
+ *  s'amincit sur toute sa longueur — on décrit donc ses DEUX bords, qui se rejoignent à la
+ *  pointe, et on remplit. Le surcoût est nul : c'est toujours un seul chemin par cil.
+ *
+ * @param {number} t position sur le bord ciliaire
+ * @param {number} length longueur dessinée
+ * @param {number} bend courbure latérale
+ * @param {number} width épaisseur à la racine
+ * @param {number} curveRatio position du point de contrôle le long du cil
+ */
+export function taperedPath(base, control, tip, width) {
+  const axis = unit(base, tip);
+  const perp = { x: -axis.y, y: axis.x };
+  const half = width / 2;
+  const leftBase = { x: base.x + perp.x * half, y: base.y + perp.y * half };
+  const rightBase = { x: base.x - perp.x * half, y: base.y - perp.y * half };
+  const leftControl = { x: control.x + perp.x * half * 0.42, y: control.y + perp.y * half * 0.42 };
+  const rightControl = { x: control.x - perp.x * half * 0.42, y: control.y - perp.y * half * 0.42 };
+  return (
+    `M${round(leftBase.x)},${round(leftBase.y)} ` +
+    `Q${round(leftControl.x)},${round(leftControl.y)} ${round(tip.x)},${round(tip.y)} ` +
+    `Q${round(rightControl.x)},${round(rightControl.y)} ${round(rightBase.x)},${round(rightBase.y)} Z`
+  );
+}
+
+function lashShape(t, length, bend, width, curveRatio = 0.55) {
   const base = lidPoint(t);
   const dir = lashDirection(t);
   const perp = { x: -dir.y, y: dir.x };
-  const end = { x: base.x + dir.x * length, y: base.y + dir.y * length };
+  const tip = { x: base.x + dir.x * length, y: base.y + dir.y * length };
   const control = {
     x: base.x + dir.x * length * curveRatio + perp.x * bend,
     y: base.y + dir.y * length * curveRatio + perp.y * bend,
   };
-  return `M${round(base.x)},${round(base.y)} Q${round(control.x)},${round(control.y)} ${round(end.x)},${round(end.y)}`;
+  return taperedPath(base, control, tip, width);
 }
 
 /** Profil naturel : les cils sont plus courts aux deux coins qu'au centre. */
@@ -274,12 +329,20 @@ export function buildNaturalLashes({ mirrored = false, count = NATURAL_LASH_COUN
     const t0 = spread + (random() - 0.5) * 0.008;
     const t = mirrored ? 1 - t0 : t0;
     const length = (26 + random() * 22) * naturalProfile(t0);
-    const bend = (0.5 - t) * 2 * (6 + random() * 7);
+    // Courbure franche : un cil qui ne se recourbe pas est un piquant. L'amplitude croît
+    // vers les coins, où la frange s'évase naturellement.
+    const bend = (0.5 - t) * 2 * (11 + random() * 10);
+    // Un cil sur trois passe au PLAN ARRIÈRE. Tiré du même flux à graine que le reste,
+    // donc stable d'un rendu à l'autre : le dessin ne doit jamais frémir entre deux
+    // rendus, ni différer entre deux exports de la même fiche.
+    const back = random() < 0.34;
+    const width = round(1.1 + random() * 0.8);
     return {
       key: i,
-      d: lashPath(t, length, bend, 0.5 + random() * 0.12),
-      width: round(0.7 + random() * 0.5),
-      opacity: round(0.32 + random() * 0.26),
+      d: lashShape(t, length * (back ? 1.06 : 1), bend, width, 0.48 + random() * 0.12),
+      width,
+      opacity: round(0.3 + random() * 0.24),
+      back,
     };
   });
 }
@@ -302,12 +365,17 @@ export function buildExtensionLashes(lengths, sectors, { mirrored = false, count
     const t = T_MIN + ((T_MAX - T_MIN) * i) / (count - 1) + (random() - 0.5) * 0.006;
     const mm = interpolateLength(t, ordered, orderedLengths);
     const length = mmToLashLength(mm) * (0.94 + random() * 0.12);
-    const bend = (0.5 - t) * 2 * (7 + random() * 8);
+    const bend = (0.5 - t) * 2 * (13 + random() * 11);
+    // Même principe que la frange naturelle : une part des extensions passe derrière,
+    // ce qui donne l'épaisseur d'un vrai bouquet plutôt qu'une rangée de traits égaux.
+    const back = random() < 0.32;
+    const width = round(1.5 + random() * 0.9);
     return {
       key: i,
-      d: lashPath(t, length, bend, 0.52 + random() * 0.1),
-      width: round(1.15 + random() * 0.45),
-      opacity: round(0.72 + random() * 0.24),
+      d: lashShape(t, length * (back ? 0.93 : 1), bend, width, 0.5 + random() * 0.1),
+      width,
+      opacity: round(0.74 + random() * 0.22),
+      back,
       mm,
     };
   });
@@ -316,6 +384,18 @@ export function buildExtensionLashes(lengths, sectors, { mirrored = false, count
 // --- Sourcil ---------------------------------------------------------------------
 
 const BROW = { p0: { x: 98, y: 86 }, p1: { x: 292, y: -6 }, p2: { x: 522, y: 66 } };
+
+/** Bornes verticales des dégradés, en unités du viewBox.
+ *
+ *  Déduites de la géométrie plutôt qu'écrites en dur dans les composants : le bord
+ *  ciliaire culmine à `LID.p0.y`, les cils descendent au plus de `LASH_PX_MAX`. Si la
+ *  courbe de l'œil bouge un jour, le relief suivra sans qu'on ait à y repenser.
+ */
+export const GRADIENT_BOUNDS = {
+  lash: { y0: LID.p0.y - 10, y1: LID.p1.y + LASH_PX_MAX },
+  brow: { y0: BROW.p1.y - 10, y1: BROW.p0.y + 40 },
+  lid: { y0: LID.p1.y - 150, y1: LID.p1.y },
+};
 
 function browPoint(t) {
   const u = 1 - t;
@@ -341,9 +421,12 @@ export function buildBrow({ mirrored = false, count = BROW_HAIR_COUNT, seed = 90
     const spine = browPoint(t);
     const tangent = browTangent(t);
     const perp = { x: -tangent.y, y: tangent.x };
-    const thickness = 22 - 15 * t;
+    // Arête resserrée et poils plus courts : un sourcil se lit à sa forme, pas à
+    // l'éparpillement de ses poils. L'ancien réglage étalait la touffe sur 22 unités,
+    // d'où l'aspect broussailleux qui tirait le dessin vers le croquis.
+    const thickness = 15 - 9 * t;
     const offset = (random() - 0.5) * thickness;
-    const length = (13 + random() * 17) * (1 - 0.35 * t);
+    const length = (10 + random() * 12) * (1 - 0.35 * t);
     const lift = 0.34 + random() * 0.3;
     const start = { x: spine.x + perp.x * offset, y: spine.y + perp.y * offset };
     const end = {
@@ -356,11 +439,14 @@ export function buildBrow({ mirrored = false, count = BROW_HAIR_COUNT, seed = 90
     };
     const mirror = (p) => (mirrored ? { x: VIEWBOX.width - p.x, y: p.y } : p);
     const [s, c, e] = [mirror(start), mirror(control), mirror(end)];
+    // Poils fuselés eux aussi : c'est ce qui distingue un sourcil d'un gribouillis. Et
+    // une opacité plus franche, sans quoi la forme d'ensemble ne se lit pas.
+    const width = round(1 + random() * 0.7);
     return {
       key: i,
-      d: `M${round(s.x)},${round(s.y)} Q${round(c.x)},${round(c.y)} ${round(e.x)},${round(e.y)}`,
-      width: round(0.6 + random() * 0.5),
-      opacity: round(0.16 + random() * 0.2),
+      d: taperedPath(s, c, e, width),
+      width,
+      opacity: round(0.3 + random() * 0.3),
     };
   });
 }
@@ -377,6 +463,28 @@ export function lidSurfacePath() {
   const end = lidPoint(1);
   const crease = { x: LID.p1.x, y: LID.p1.y - 132 };
   return `M${round(start.x)},${round(start.y)} Q${LID.p1.x},${LID.p1.y} ${round(end.x)},${round(end.y)} Q${crease.x},${round(crease.y)} ${round(start.x)},${round(start.y)} Z`;
+}
+
+/** Pli de la paupière : l'arc supérieur de la surface, tracé seul.
+ *
+ *  C'est ce trait qui fait basculer le dessin d'un « trait avec des cils » à un œil :
+ *  sans lui, la paupière n'a pas d'épaisseur et le regard n'a pas de creux. Volontairement
+ *  très pâle — il asseoit l'anatomie, il ne doit jamais concurrencer la frange. */
+export function lidCreasePath() {
+  const start = lidPoint(0);
+  const end = lidPoint(1);
+  const crease = { x: LID.p1.x, y: LID.p1.y - 132 };
+  return `M${round(start.x)},${round(start.y)} Q${crease.x},${round(crease.y)} ${round(end.x)},${round(end.y)}`;
+}
+
+/** Renflement du bord ciliaire : une bande étroite juste au-dessus du liner, plus dense
+ *  que le reste de la paupière. C'est là que la peau est la plus épaisse, et c'est ce
+ *  ressaut qui donne au bord son relief. */
+export function lidRidgePath() {
+  const start = lidPoint(0);
+  const end = lidPoint(1);
+  const ridge = { x: LID.p1.x, y: LID.p1.y - 34 };
+  return `M${round(start.x)},${round(start.y)} Q${LID.p1.x},${LID.p1.y} ${round(end.x)},${round(end.y)} Q${ridge.x},${round(ridge.y)} ${round(start.x)},${round(start.y)} Z`;
 }
 
 /** Longueur en mm d'un secteur, telle qu'elle sera dessinée (bornée). */

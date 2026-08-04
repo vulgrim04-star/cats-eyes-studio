@@ -8,10 +8,14 @@ import styles from './styles/LashMap.module.css';
  *  de l'application ne suit pas le fichier exporté. Le CSS ne sert qu'aux états
  *  éphémères — survol et focus — qui n'ont aucune raison d'apparaître dans un export. */
 function appearanceOf({ selected, changed, dropActive }) {
-  if (dropActive) return { fillOpacity: 0.9, stroke: PALETTE.accentDark, strokeWidth: 2.6 };
-  if (selected) return { fillOpacity: 0.8, stroke: PALETTE.accent, strokeWidth: 2.4 };
-  if (changed) return { fillOpacity: 0.42, stroke: PALETTE.accent, strokeWidth: 2 };
-  return { fillOpacity: 0.001, stroke: PALETTE.sectorStroke, strokeWidth: 1.1 };
+  // Le secteur retenu se remplit d'un crème chaud, jamais de blanc pur : posé sur une
+  // paupière désormais modelée, un aplat blanc y ferait un trou et casserait le relief
+  // qu'on vient de lui donner.
+  if (dropActive) return { fill: PALETTE.sectorActiveFill, fillOpacity: 0.92, stroke: PALETTE.accentDark, strokeWidth: 2.4 };
+  if (selected) return { fill: PALETTE.sectorActiveFill, fillOpacity: 0.82, stroke: PALETTE.accent, strokeWidth: 2.2 };
+  if (changed) return { fill: PALETTE.sectorActiveFill, fillOpacity: 0.4, stroke: PALETTE.accent, strokeWidth: 1.8 };
+  // Au repos : un liseré fin et rien d'autre. Le dessin doit primer sur le découpage.
+  return { fill: PALETTE.sectorFill, fillOpacity: 0.001, stroke: PALETTE.sectorStroke, strokeWidth: 0.9 };
 }
 
 /** Un secteur du schéma : un `<path>` indépendant, sa longueur, et ses marques d'état
@@ -72,7 +76,7 @@ function LashSector({
       <path
         className={styles.sectorShape}
         d={sector.path}
-        fill={PALETTE.sectorFill}
+        fill={appearance.fill}
         fillOpacity={appearance.fillOpacity}
         stroke={appearance.stroke}
         strokeWidth={appearance.strokeWidth}

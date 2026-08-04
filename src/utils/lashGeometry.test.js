@@ -195,12 +195,24 @@ describe('frange de cils', () => {
     expect(buildNaturalLashes({ seed: 1 })).not.toEqual(buildNaturalLashes({ seed: 2 }));
   });
 
+  // Un cil est une silhouette FERMÉE : deux bords qui partent de la racine et se
+  // rejoignent à la pointe (`M racineG Q … pointe Q … racineD Z`). Le tracé revient donc
+  // à son point de départ, et c'est le point MÉDIAN — la pointe — qui doit descendre.
+  // La garantie testée reste la même qu'avant le passage aux cils fuselés : la frange
+  // pend sous la paupière et ne sort pas du cadre.
   it('dessine les cils naturels sous la paupière, dans le cadre', () => {
     const lashes = buildNaturalLashes({ count: 40 });
     expect(lashes).toHaveLength(40);
     lashes.forEach((lash) => {
       const points = pointsOf(lash.d);
-      expect(points[points.length - 1].y).toBeGreaterThan(points[0].y);
+      const tip = points[Math.floor(points.length / 2)];
+      const [rootLeft] = points;
+      const rootRight = points[points.length - 1];
+      expect(tip.y).toBeGreaterThan(rootLeft.y);
+      expect(tip.y).toBeGreaterThan(rootRight.y);
+      // Les deux racines encadrent le même point du bord ciliaire : même hauteur, à
+      // l'épaisseur du cil près.
+      expect(Math.abs(rootLeft.y - rootRight.y)).toBeLessThan(3);
       points.forEach((point) => expect(insideViewBox(point)).toBe(true));
     });
   });

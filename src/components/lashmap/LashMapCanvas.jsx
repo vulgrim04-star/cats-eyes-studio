@@ -1,5 +1,6 @@
-import { forwardRef } from 'react';
+import { forwardRef, useId } from 'react';
 import LashMapEye from './LashMapEye';
+import LashDefs from './LashDefs';
 import { PALETTE, VIEWBOX } from '../../utils/lashGeometry';
 import { SIDE_LABEL, getEye, lengthRange } from '../../utils/lashModel';
 import styles from './styles/LashMap.module.css';
@@ -17,6 +18,12 @@ const LashMapCanvas = forwardRef(function LashMapCanvas(
 ) {
   const eye = getEye(map, side);
   const mirrored = side === 'left';
+  // Identifiant propre à CETTE planche. Plusieurs schémas cohabitent dans la page — l'œil
+  // affiché, le second monté hors écran pour les exports, les vignettes de la liste — et
+  // des `id` de dégradés identiques s'écraseraient entre eux. `useId` produit aussi des
+  // caractères réservés en CSS (« : »), qu'on retire : ces identifiants finissent dans des
+  // `url(#…)`, où ils doivent rester des noms simples.
+  const prefix = `lm${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
 
   return (
     <div className={`${styles.plate} ${compact ? styles.plateCompact : ''}`}>
@@ -31,8 +38,9 @@ const LashMapCanvas = forwardRef(function LashMapCanvas(
         role={readOnly ? 'img' : 'group'}
         aria-label={`${SIDE_LABEL[side]} — ${eye.zones.length} secteurs, ${lengthRange(eye)}`}
       >
+        <LashDefs prefix={prefix} />
         <rect x="0" y="0" width={VIEWBOX.width} height={VIEWBOX.height} fill={PALETTE.paper} />
-        <LashMapEye eye={eye} mirrored={mirrored} readOnly={readOnly} {...eyeProps} />
+        <LashMapEye eye={eye} mirrored={mirrored} readOnly={readOnly} prefix={prefix} {...eyeProps} />
       </svg>
     </div>
   );

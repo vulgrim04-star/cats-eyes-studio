@@ -19,6 +19,7 @@ import styles from './styles/LashMap.module.css';
  */
 function LashMapEye({
   eye,
+  prefix,
   mirrored = false,
   selectedIndex = null,
   changedIndexes = null,
@@ -52,11 +53,19 @@ function LashMapEye({
 
   return (
     <g>
-      <LashArtwork mirrored={mirrored} />
+      <LashArtwork mirrored={mirrored} prefix={prefix} />
 
-      <g fill="none" stroke={PALETTE.ink} strokeLinecap="round" aria-hidden="true">
-        {extensions.map((lash) => (
-          <path key={`ext-${lash.key}`} d={lash.d} strokeWidth={lash.width} opacity={lash.opacity} />
+      {/* Les extensions aussi se répartissent sur deux plans : c'est ce qui donne
+          l'épaisseur d'un bouquet posé, là où une rangée unique fait peigne. */}
+      <g fill={`url(#${prefix}-lash-back)`} stroke="none" filter={`url(#${prefix}-depth)`} aria-hidden="true">
+        {extensions.filter((lash) => lash.back).map((lash) => (
+          <path key={`ext-b-${lash.key}`} d={lash.d} opacity={lash.opacity * 0.72} />
+        ))}
+      </g>
+
+      <g fill={`url(#${prefix}-lash)`} stroke="none" aria-hidden="true">
+        {extensions.filter((lash) => !lash.back).map((lash) => (
+          <path key={`ext-f-${lash.key}`} d={lash.d} opacity={lash.opacity} />
         ))}
       </g>
 
