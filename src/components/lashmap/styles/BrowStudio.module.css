@@ -341,3 +341,52 @@
 .iconBtn:hover {
   color: var(--color-text);
 }
+
+/* --- Frise d'évolution -----------------------------------------------------------
+   Chaque séance est redessinée depuis le look enregistré : on revoit ce qui a été
+   posé, pas une vignette générique. */
+
+.timeline {
+  grid-column: 1 / -1;
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-5);
+}
+
+.timelineTrack {
+  display: flex;
+  gap: var(--space-3);
+  overflow-x: auto;
+  padding: 2px;
+}
+
+.timelineCard {
+  flex: 0 0 190px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-cream);
+  cursor: pointer;
+  text-align: left;
+}
+
+.timelineCard:hover {
+  border-color: var(--color-accent);
+}
+
+.timelineDate {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.timelineChange {
+  font-size: 0.68rem;
+  line-height: 1.35;
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}

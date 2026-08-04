@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react';
 import Icon from '../common/Icon';
 import BrowCanvas from './BrowCanvas';
 import BrowSimulation from './BrowSimulation';
+import BrowTimeline from './BrowTimeline';
 import { useClients } from '../../hooks/useClients';
 import { useToast } from '../../hooks/useToast';
 import {
@@ -331,6 +332,8 @@ export default function BrowStudio({ client }) {
           )}
         </div>
       </div>
+
+      <BrowTimeline sessions={sessions} onOpen={edit} />
 
       <div className={styles.history}>
         <h3 className={styles.historyTitle}>Séances précédentes</h3>
