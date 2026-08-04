@@ -23,6 +23,7 @@ import { NEW_MAP_ID, useLashMapEditor } from '../hooks/useLashMapEditor';
 import { useSectorInteractions } from '../hooks/useSectorInteractions';
 import { SIDE_LABEL, changedSectorIndexes, diffLashMaps, eyeLengths, getEye, lengthRange } from '../utils/lashModel';
 import { safetyMessage, unsafeSectors } from '../utils/lashSafety';
+import { enabledModules, firstEnabled } from '../utils/modules';
 import { buildSectors } from '../utils/lashGeometry';
 import { estimateNextRetouchDate } from '../utils/lashCycle';
 import { formatDateLong, todayISO } from '../utils/date';
@@ -45,7 +46,7 @@ export default function LashMapPage() {
   const navigate = useNavigate();
   const client = useClient(id);
   const { appointments } = useAppointments();
-  const { salon } = useSettings();
+  const { salon, modules } = useSettings();
   const { showToast } = useToast();
 
   // Les deux yeux sont montés en permanence (le second hors écran) : l'export PDF et
@@ -54,7 +55,11 @@ export default function LashMapPage() {
 
   // Le studio affiché. Les cils et les sourcils sont deux métiers qui se pratiquent dans
   // la même séance : deux onglets d'une même page, pas deux pages.
-  const [studio, setStudio] = useState('lash');
+  const availableStudios = useMemo(() => enabledModules(modules), [modules]);
+  const [studio, setStudio] = useState(() => firstEnabled(modules));
+  // Le module qu'on regardait vient d'être masqué depuis les Réglages : on retombe sur le
+  // premier actif plutôt que d'afficher une page vide.
+  const activeStudio = availableStudios.some((m) => m.id === studio) ? studio : firstEnabled(modules);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [comparedId, setComparedId] = useState(null);
@@ -128,14 +133,14 @@ export default function LashMapPage() {
         </button>
 
         <div className={styles.headerTitle}>
-          <h1 className={styles.title}>{STUDIO_TITLES[studio]}</h1>
-          <span className={styles.subtitle}>{STUDIO_SUBTITLES[studio] ?? SIDE_LABEL[side]}</span>
+          <h1 className={styles.title}>{STUDIO_TITLES[activeStudio]}</h1>
+          <span className={styles.subtitle}>{STUDIO_SUBTITLES[activeStudio] ?? SIDE_LABEL[side]}</span>
         </div>
 
         <div className={styles.headerActions}>
           {/* Enregistrement et export ne concernent que la lash map : le Brow Studio a
               son propre bouton, au bas de son panneau, et n'a rien à exporter. */}
-          {studio === 'lash' && (
+          {activeStudio === 'lash' && (
             <>
               {dirty && (
                 <span className={styles.dirtyFlag}>
@@ -152,13 +157,13 @@ export default function LashMapPage() {
       </header>
 
       <div className={styles.studioTabs} role="tablist" aria-label="Studio affiché">
-        {[['lash', 'Lash Studio', 'eye'], ['brow', 'Brow Studio', 'sparkles'], ['simulation', 'Simulation', 'camera']].map(([value, label, icon]) => (
+        {availableStudios.map(({ id: value, label, icon }) => (
           <button
             key={value}
             type="button"
             role="tab"
-            aria-selected={studio === value}
-            className={`${styles.studioTab} ${studio === value ? styles.studioTabActive : ''}`}
+            aria-selected={activeStudio === value}
+            className={`${styles.studioTab} ${activeStudio === value ? styles.studioTabActive : ''}`}
             onClick={() => setStudio(value)}
           >
             <Icon name={icon} size={15} /> {label}
@@ -194,11 +199,11 @@ export default function LashMapPage() {
         </dl>
       </section>
 
-      {studio === 'brow' && <BrowStudio client={client} />}
+      {activeStudio === 'brow' && <BrowStudio client={client} />}
 
-      {studio === 'simulation' && <LashSimulation client={client} map={map} side={side} />}
+      {activeStudio === 'simulation' && <LashSimulation client={client} map={map} side={side} />}
 
-      {studio === 'lash' && (
+      {activeStudio === 'lash' && (
       <>
       {editor.carriedFrom && (
         <div className={styles.carryBanner}>

@@ -1,5 +1,6 @@
 import { useSettingsStore, WEEK_DAYS } from '../store/useSettingsStore';
 import { useUIStore } from '../store/useUIStore';
+import { normalizeModules } from '../utils/modules';
 
 /**
  * Couche d'accès aux paramètres du salon. Découplée du store interne
@@ -12,6 +13,8 @@ export function useSettings() {
   const ensureCalendarToken = useSettingsStore((s) => s.ensureCalendarToken);
   const notifications = useSettingsStore((s) => s.notifications);
   const appearance = useSettingsStore((s) => s.appearance);
+  const modulesRaw = useSettingsStore((s) => s.modules);
+  const setModules = useSettingsStore((s) => s.setModules);
   const updateSalonRaw = useSettingsStore((s) => s.updateSalon);
   const completeOnboarding = useSettingsStore((s) => s.completeOnboarding);
   const updateDayHours = useSettingsStore((s) => s.updateDayHours);
@@ -31,6 +34,8 @@ export function useSettings() {
     ensureCalendarToken,
     notifications,
     appearance,
+    modules: normalizeModules(modulesRaw),
+    setModules,
     updateSalon,
     completeOnboarding,
     updateDayHours,

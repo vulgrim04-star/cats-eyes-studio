@@ -54,14 +54,14 @@ export const PALETTE = {
    *  s'éclaircit en s'affinant vers la pointe. Tout était auparavant tracé dans le seul
    *  `ink`, d'où l'aspect de peigne à dents égales. Ces deux bornes alimentent un unique
    *  dégradé partagé par les ~250 tracés — une définition, aucun surcoût de rendu. */
-  lashRoot: '#161009',
-  lashTip: '#6B5540',
+  lashRoot: '#0B0705',
+  lashTip: '#4A3728',
   /** Plan arrière de la frange : plus clair et légèrement flouté, il creuse la
    *  profondeur au lieu d'ajouter des traits. */
-  lashBackRoot: '#4A3B2C',
-  lashBackTip: '#A08D74',
-  browRoot: '#3B2C1E',
-  browTip: '#A2896C',
+  lashBackRoot: '#33281E',
+  lashBackTip: '#8A7660',
+  browRoot: '#2A1E14',
+  browTip: '#7E6549',
   /** Modelé de la paupière : du creux de l'orbite (haut) au bord ciliaire (bas). */
   lidHigh: '#FBF5EC',
   lidLow: '#EADCC7',
@@ -128,9 +128,9 @@ const LASH_PX_MAX = 82;
  *  peigne. Chaque cil étant désormais une silhouette fuselée et non un trait d'épaisseur
  *  constante, on peut en poser beaucoup plus sans que le dessin ne s'empâte — les pointes
  *  s'affinent et se chevauchent au lieu de s'additionner. */
-export const NATURAL_LASH_COUNT = 208;
-export const EXTENSION_LASH_COUNT = 156;
-export const BROW_HAIR_COUNT = 190;
+export const NATURAL_LASH_COUNT = 300;
+export const EXTENSION_LASH_COUNT = 240;
+export const BROW_HAIR_COUNT = 280;
 
 const round = (n) => Math.round(n * 100) / 100;
 
@@ -345,7 +345,7 @@ export function buildNaturalLashes({ mirrored = false, count = NATURAL_LASH_COUN
       key: i,
       d: lashShape(t, length * (back ? 1.06 : 1), bend, width, 0.48 + random() * 0.12),
       width,
-      opacity: round(0.3 + random() * 0.24),
+      opacity: round(0.44 + random() * 0.3),
       back,
     };
   });
@@ -378,7 +378,7 @@ export function buildExtensionLashes(lengths, sectors, { mirrored = false, count
       key: i,
       d: lashShape(t, length * (back ? 0.93 : 1), bend, width, 0.5 + random() * 0.1),
       width,
-      opacity: round(0.74 + random() * 0.22),
+      opacity: round(0.86 + random() * 0.14),
       back,
       mm,
     };
@@ -450,7 +450,7 @@ export function buildBrow({ mirrored = false, count = BROW_HAIR_COUNT, seed = 90
       key: i,
       d: taperedPath(s, c, e, width),
       width,
-      opacity: round(0.3 + random() * 0.3),
+      opacity: round(0.52 + random() * 0.34),
     };
   });
 }

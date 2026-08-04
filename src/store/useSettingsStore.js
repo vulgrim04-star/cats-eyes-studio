@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { DEFAULT_MODULES, normalizeModules } from '../utils/modules';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { supabaseSyncStorage } from '../utils/supabaseSyncStorage';
 import { newUuid } from '../utils/id';
@@ -53,6 +54,8 @@ export const useSettingsStore = create(
       appearance: {
         darkMode: false,
       },
+      /** Modules optionnels du studio. Masquer n'efface jamais les données. */
+      modules: DEFAULT_MODULES,
 
       ensureCalendarToken: () => {
         if (get().calendarToken) return get().calendarToken;
@@ -60,6 +63,8 @@ export const useSettingsStore = create(
         set({ calendarToken: token });
         return token;
       },
+
+      setModules: (modules) => set({ modules: normalizeModules(modules) }),
 
       updateSalon: (patch) => set((s) => ({ salon: { ...s.salon, ...patch } })),
       completeOnboarding: (salonPatch) => set((s) => ({ salon: { ...s.salon, ...salonPatch }, onboarded: true })),
@@ -108,6 +113,9 @@ export const useSettingsStore = create(
           ...(persisted?.notifications ?? {}),
         },
         appearance: { darkMode: false },
+        // Un réglage absent réactive tout : une mise à jour ne doit jamais livrer un
+        // module invisible, sans quoi personne ne saurait qu'il existe.
+        modules: normalizeModules(persisted?.modules),
       }),
     }
   )
