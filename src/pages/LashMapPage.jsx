@@ -13,6 +13,7 @@ import LashTimeline from '../components/lashmap/LashTimeline';
 import LashHistory from '../components/lashmap/LashHistory';
 import LashTemplates from '../components/lashmap/LashTemplates';
 import LashExportMenu from '../components/lashmap/LashExportMenu';
+import BrowStudio from '../components/lashmap/BrowStudio';
 import { useClient } from '../hooks/useClients';
 import { useAppointments, getAppointmentsByClient } from '../hooks/useAppointments';
 import { useSettings } from '../hooks/useSettings';
@@ -47,6 +48,9 @@ export default function LashMapPage() {
   // l'impression les sérialisent tous les deux sans avoir à changer d'onglet.
   const svgs = useRef({ left: null, right: null });
 
+  // Le studio affiché. Les cils et les sourcils sont deux métiers qui se pratiquent dans
+  // la même séance : deux onglets d'une même page, pas deux pages.
+  const [studio, setStudio] = useState('lash');
   const [sheetOpen, setSheetOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [comparedId, setComparedId] = useState(null);
@@ -120,22 +124,43 @@ export default function LashMapPage() {
         </button>
 
         <div className={styles.headerTitle}>
-          <h1 className={styles.title}>Lash Studio</h1>
-          <span className={styles.subtitle}>{SIDE_LABEL[side]}</span>
+          <h1 className={styles.title}>{studio === 'brow' ? 'Brow Studio' : 'Lash Studio'}</h1>
+          <span className={styles.subtitle}>{studio === 'brow' ? 'Sourcils' : SIDE_LABEL[side]}</span>
         </div>
 
         <div className={styles.headerActions}>
-          {dirty && (
-            <span className={styles.dirtyFlag}>
-              <span className={styles.dirtyDot} aria-hidden="true" /> Non enregistré
-            </span>
+          {/* Enregistrement et export ne concernent que la lash map : le Brow Studio a
+              son propre bouton, au bas de son panneau, et n'a rien à exporter. */}
+          {studio === 'lash' && (
+            <>
+              {dirty && (
+                <span className={styles.dirtyFlag}>
+                  <span className={styles.dirtyDot} aria-hidden="true" /> Non enregistré
+                </span>
+              )}
+              <LashExportMenu client={client} map={map} salon={salon} svgs={svgs} side={side} />
+              <button type="button" className="btn btn-primary btn-sm" onClick={handleSave} disabled={!dirty}>
+                <Icon name="check" size={15} /> Enregistrer
+              </button>
+            </>
           )}
-          <LashExportMenu client={client} map={map} salon={salon} svgs={svgs} side={side} />
-          <button type="button" className="btn btn-primary btn-sm" onClick={handleSave} disabled={!dirty}>
-            <Icon name="check" size={15} /> Enregistrer
-          </button>
         </div>
       </header>
+
+      <div className={styles.studioTabs} role="tablist" aria-label="Studio affiché">
+        {[['lash', 'Lash Studio', 'eye'], ['brow', 'Brow Studio', 'sparkles']].map(([value, label, icon]) => (
+          <button
+            key={value}
+            type="button"
+            role="tab"
+            aria-selected={studio === value}
+            className={`${styles.studioTab} ${studio === value ? styles.studioTabActive : ''}`}
+            onClick={() => setStudio(value)}
+          >
+            <Icon name={icon} size={15} /> {label}
+          </button>
+        ))}
+      </div>
 
       <section className={styles.clientBar}>
         <span className={styles.avatar}>{initials(client.firstName, client.lastName)}</span>
@@ -165,6 +190,10 @@ export default function LashMapPage() {
         </dl>
       </section>
 
+      {studio === 'brow' && <BrowStudio client={client} />}
+
+      {studio === 'lash' && (
+      <>
       {editor.carriedFrom && (
         <div className={styles.carryBanner}>
           <Icon name="check-circle" size={16} />
@@ -285,6 +314,8 @@ export default function LashMapPage() {
       </BottomSheet>
 
       <LashTemplates open={templatesOpen} onClose={() => setTemplatesOpen(false)} editor={editor} />
+      </>
+      )}
     </div>
   );
 }

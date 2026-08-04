@@ -338,3 +338,33 @@
   font-weight: 600;
   line-height: 1.4;
 }
+
+/* --- Onglets de studio -----------------------------------------------------------
+   Cils et sourcils se pratiquent dans la même séance : deux onglets d'une même page,
+   pas deux pages entre lesquelles il faudrait naviguer les mains gantées. */
+
+.studioTabs {
+  display: flex;
+  gap: var(--space-2);
+  margin-bottom: var(--space-5);
+}
+
+.studioTab {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-4);
+  min-height: 44px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--color-white);
+  box-shadow: var(--shadow-sm);
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--color-text-soft);
+}
+
+.studioTabActive {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}

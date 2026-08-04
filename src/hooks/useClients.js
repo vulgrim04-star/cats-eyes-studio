@@ -23,6 +23,9 @@ export function useClients() {
   const addLashMap = useClientsStore((s) => s.addLashMap);
   const updateLashMap = useClientsStore((s) => s.updateLashMap);
   const removeLashMap = useClientsStore((s) => s.removeLashMap);
+  const addBrowSession = useClientsStore((s) => s.addBrowSession);
+  const updateBrowSession = useClientsStore((s) => s.updateBrowSession);
+  const removeBrowSession = useClientsStore((s) => s.removeBrowSession);
 
   const removeClient = (id) => {
     // Les photos vivent dans Supabase Storage : supprimer la fiche ne les efface pas
@@ -50,6 +53,9 @@ export function useClients() {
     addLashMap,
     updateLashMap,
     removeLashMap,
+    addBrowSession,
+    updateBrowSession,
+    removeBrowSession,
   };
 }
 

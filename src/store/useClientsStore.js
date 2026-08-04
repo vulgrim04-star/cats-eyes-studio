@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from 'zustand/middleware';
 import { createId } from '../utils/id';
 import { supabaseSyncStorage } from '../utils/supabaseSyncStorage';
 import { normalizeLashMap } from '../utils/lashModel';
+import { normalizeBrowSession } from '../utils/browModel';
 
 export const useClientsStore = create(
   persist(
@@ -23,6 +24,7 @@ export const useClientsStore = create(
           notes: '',
           photos: [],
           lashMaps: [],
+          browSessions: [],
           allergies: '',
           contraindications: '',
           photoUrl: '',
@@ -116,6 +118,41 @@ export const useClientsStore = create(
         }));
       },
 
+      /** Séances sourcils. Rangées sur la fiche cliente comme les lash maps, et pour la
+       *  même raison : elles décrivent CETTE cliente et doivent disparaître avec elle. */
+      addBrowSession: (id, session) => {
+        const entry = normalizeBrowSession({ id: createId('bs'), ...session });
+        set((state) => ({
+          clients: state.clients.map((c) =>
+            c.id === id ? { ...c, browSessions: [entry, ...(c.browSessions ?? [])] } : c
+          ),
+        }));
+        return entry;
+      },
+
+      updateBrowSession: (id, sessionId, patch) => {
+        set((state) => ({
+          clients: state.clients.map((c) =>
+            c.id === id
+              ? {
+                  ...c,
+                  browSessions: (c.browSessions ?? []).map((s) =>
+                    s.id === sessionId ? normalizeBrowSession({ ...s, ...patch, id: sessionId }) : s
+                  ),
+                }
+              : c
+          ),
+        }));
+      },
+
+      removeBrowSession: (id, sessionId) => {
+        set((state) => ({
+          clients: state.clients.map((c) =>
+            c.id === id ? { ...c, browSessions: (c.browSessions ?? []).filter((s) => s.id !== sessionId) } : c
+          ),
+        }));
+      },
+
       removeLashMap: (id, mapId) => {
         set((state) => ({
           clients: state.clients.map((c) =>
@@ -141,6 +178,9 @@ export const useClientsStore = create(
           healthFormAnswers: null,
           ...c,
           lashMaps: (c.lashMaps ?? []).map(normalizeLashMap),
+          // Les fiches antérieures au Brow Studio n'ont pas ce tableau : sans ce repli,
+          // le premier composant qui itère dessus planterait sur une fiche existante.
+          browSessions: (c.browSessions ?? []).map((s) => normalizeBrowSession(s)),
         })),
       }),
     }

@@ -1,0 +1,208 @@
+/* Brow Studio — même sobriété que le Lash Studio : crème, blanc, or, beaucoup d'air.
+   La couleur étant ici la matière du travail, c'est le nuancier qui domine la page. */
+
+.wrap {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-5);
+}
+
+@media (min-width: 1000px) {
+  .wrap {
+    grid-template-columns: minmax(0, 1.15fr) minmax(320px, 1fr);
+    align-items: start;
+  }
+  .history {
+    grid-column: 1 / -1;
+  }
+}
+
+/* --- Aperçu --------------------------------------------------------------------- */
+
+.stage {
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-5) var(--space-4) var(--space-4);
+  text-align: center;
+}
+
+.preview {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.stageCaption {
+  margin: var(--space-3) 0 0;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+/* --- Panneau de réglages -------------------------------------------------------- */
+
+.panel {
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  font-size: 0.74rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.label strong {
+  font-size: 0.86rem;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--color-text);
+}
+
+/* --- Nuancier ------------------------------------------------------------------- */
+
+.swatches {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.swatch {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 5px;
+  padding: 5px;
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  background: var(--color-cream);
+  cursor: pointer;
+}
+
+.swatchActive {
+  border-color: var(--color-accent);
+  background: var(--color-accent-light);
+}
+
+.chip {
+  display: block;
+  height: 42px;
+  border-radius: var(--radius-sm);
+  /* Un liseré sombre : sans lui, les teintes très claires du nuancier se confondent
+     avec le fond crème de la pastille. */
+  box-shadow: inset 0 0 0 1px rgba(43, 39, 36, 0.18);
+}
+
+.swatchLabel {
+  font-size: 0.62rem;
+  line-height: 1.25;
+  font-weight: 600;
+  color: var(--color-text-soft);
+  text-align: center;
+}
+
+.slider {
+  width: 100%;
+  accent-color: var(--color-accent);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+/* --- Historique ----------------------------------------------------------------- */
+
+.history {
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-5);
+}
+
+.historyTitle {
+  margin: 0 0 var(--space-3);
+  font-size: 0.95rem;
+}
+
+.empty {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+
+.historyRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 10px 0;
+  border-bottom: 1px solid var(--color-border);
+}
+.historyRow:last-child {
+  border-bottom: none;
+}
+
+.historyChip {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px rgba(43, 39, 36, 0.18);
+}
+
+.historyMain {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.historyMain strong {
+  font-size: 0.86rem;
+}
+
+.historyMain span {
+  font-size: 0.74rem;
+  color: var(--color-text-muted);
+}
+
+.iconBtn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: none;
+  background: var(--color-cream);
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.iconBtn:hover {
+  color: var(--color-text);
+}
