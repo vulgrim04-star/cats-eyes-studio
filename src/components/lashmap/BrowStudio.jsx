@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import Icon from '../common/Icon';
 import BrowCanvas from './BrowCanvas';
+import BrowSimulation from './BrowSimulation';
 import { useClients } from '../../hooks/useClients';
 import { useToast } from '../../hooks/useToast';
 import {
@@ -38,6 +39,7 @@ const COLOR_SLIDERS = [
 const PANELS = [
   ['shape', 'Forme', 'sparkles'],
   ['color', 'Couleur', 'droplet'],
+  ['simulation', 'Simulation', 'camera'],
   ['session', 'Séance', 'clipboard'],
 ];
 
@@ -260,6 +262,10 @@ export default function BrowStudio({ client }) {
               </label>
             ))}
           </>
+        )}
+
+        {panel === 'simulation' && (
+          <BrowSimulation client={client} look={look} onApplyAdvice={(patch) => setLookField(patch)} />
         )}
 
         {panel === 'session' && (

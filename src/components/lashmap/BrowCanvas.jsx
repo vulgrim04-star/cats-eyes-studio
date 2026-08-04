@@ -21,7 +21,7 @@ const SIDES = ['left', 'right'];
  *  retoucher seule. La pastille est posée AU-DESSUS du tracé, jamais dessus : sur un
  *  sourcil fin, une cible centrée serait plus grande que le dessin qu'elle recouvre.
  */
-function BrowCanvas({ look, selectedZone = null, onSelectZone, readOnly = false }) {
+function BrowCanvas({ look, selectedZone = null, onSelectZone, readOnly = false, transparent = false }) {
   const prefix = `bw${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   const tone = renderedTone(look);
 
@@ -53,7 +53,10 @@ function BrowCanvas({ look, selectedZone = null, onSelectZone, readOnly = false 
         </linearGradient>
       </defs>
 
-      <rect x="0" y="0" width={BROW_VIEWBOX.width} height={BROW_VIEWBOX.height} fill={PALETTE.paper} />
+      {/* Le fond papier disparaît sous la simulation : il masquerait le visage. Partout
+          ailleurs il est nécessaire — un SVG transparent donne un PNG à fond noir chez la
+          moitié des visionneuses. */}
+      {!transparent && <rect x="0" y="0" width={BROW_VIEWBOX.width} height={BROW_VIEWBOX.height} fill={PALETTE.paper} />}
 
       {brows.map(({ side, outline, hairs, gloss, handles }) => (
         <g key={side}>

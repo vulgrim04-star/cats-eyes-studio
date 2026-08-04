@@ -1,6 +1,9 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "oxc"],
+  "plugins": [
+    "react",
+    "oxc"
+  ],
   "env": {
     "browser": true,
     "node": true,
@@ -12,7 +15,16 @@
   },
   "rules": {
     "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }],
+    "react/only-export-components": [
+      "warn",
+      {
+        "allowConstantExport": true
+      }
+    ],
     "no-undef": "error"
-  }
+  },
+  "ignorePatterns": [
+    "public/mediapipe/**",
+    "dist/**"
+  ]
 }

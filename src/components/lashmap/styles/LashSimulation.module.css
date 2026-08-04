@@ -212,3 +212,51 @@
   gap: var(--space-3);
   flex-wrap: wrap;
 }
+
+/* --- Conseil de l'assistant ------------------------------------------------------
+   Affiché seulement après une analyse. Le « pourquoi » y compte autant que la
+   recommandation : c'est ce qui permet de l'expliquer à la cliente, ou de la
+   contredire en connaissance de cause. */
+
+.advice {
+  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  background: var(--color-cream);
+  border: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.adviceHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--color-accent-dark);
+}
+
+.adviceConfidence {
+  margin-left: auto;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: none;
+}
+
+.adviceSentence {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--color-text);
+}
+
+.adviceWhy {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--color-text-soft);
+}
