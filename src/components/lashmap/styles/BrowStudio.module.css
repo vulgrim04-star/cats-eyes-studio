@@ -1,5 +1,5 @@
-/* Brow Studio — même sobriété que le Lash Studio : crème, blanc, or, beaucoup d'air.
-   La couleur étant ici la matière du travail, c'est le nuancier qui domine la page. */
+/* Brow Lift — luxe discret : crème, blanc, or, beaucoup d'air.
+   L'aperçu domine ; les réglages s'effacent à côté de lui. */
 
 .wrap {
   display: grid;
@@ -7,9 +7,9 @@
   gap: var(--space-5);
 }
 
-@media (min-width: 1000px) {
+@media (min-width: 1040px) {
   .wrap {
-    grid-template-columns: minmax(0, 1.15fr) minmax(320px, 1fr);
+    grid-template-columns: minmax(0, 1.1fr) minmax(340px, 1fr);
     align-items: start;
   }
   .history {
@@ -17,7 +17,7 @@
   }
 }
 
-/* --- Aperçu --------------------------------------------------------------------- */
+/* --- Aperçu ---------------------------------------------------------------------- */
 
 .stage {
   background: var(--color-white);
@@ -27,10 +27,22 @@
   text-align: center;
 }
 
-.preview {
+.canvas {
+  display: block;
   width: 100%;
   height: auto;
-  display: block;
+  border-radius: var(--radius-md);
+}
+
+.handle {
+  cursor: pointer;
+}
+.handle:focus {
+  outline: none;
+}
+.handle:focus-visible circle {
+  stroke: var(--color-accent-dark);
+  stroke-width: 3;
 }
 
 .stageCaption {
@@ -39,7 +51,31 @@
   color: var(--color-text-muted);
 }
 
-/* --- Panneau de réglages -------------------------------------------------------- */
+.zoneRow {
+  display: flex;
+  justify-content: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-top: var(--space-4);
+}
+
+.zoneChip {
+  padding: 0 14px;
+  min-height: 38px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--color-cream);
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-soft);
+}
+
+.zoneChipActive {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+/* --- Panneau --------------------------------------------------------------------- */
 
 .panel {
   background: var(--color-white);
@@ -49,6 +85,31 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+}
+
+.panelTabs {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.panelTab {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--color-cream);
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-soft);
+}
+
+.panelTabActive {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
 }
 
 .row2 {
@@ -65,7 +126,7 @@
 
 .label {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
   font-size: 0.74rem;
@@ -82,7 +143,86 @@
   color: var(--color-text);
 }
 
-/* --- Nuancier ------------------------------------------------------------------- */
+.slider {
+  width: 100%;
+  accent-color: var(--color-accent);
+}
+
+/* --- Bibliothèque de formes ------------------------------------------------------ */
+
+.shapeGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: var(--space-2);
+}
+
+.shapeCard {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 4px;
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  background: var(--color-cream);
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.shapeCardActive {
+  border-color: var(--color-accent);
+  background: var(--color-accent-light);
+}
+
+.shapeName {
+  font-size: 0.64rem;
+  font-weight: 600;
+  color: var(--color-text-soft);
+  text-align: center;
+  line-height: 1.2;
+}
+
+/* --- Retouche de zone ------------------------------------------------------------ */
+
+.zonePanel {
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-cream);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.zoneHint {
+  margin: 0;
+  font-size: 0.74rem;
+  color: var(--color-text-muted);
+}
+
+/* --- Effets ---------------------------------------------------------------------- */
+
+.effectRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.effectChip {
+  padding: 0 13px;
+  min-height: 36px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--color-cream);
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--color-text-soft);
+}
+
+.effectChipActive {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+/* --- Nuancier -------------------------------------------------------------------- */
 
 .swatches {
   display: grid;
@@ -93,7 +233,6 @@
 .swatch {
   display: flex;
   flex-direction: column;
-  align-items: stretch;
   gap: 5px;
   padding: 5px;
   border: 2px solid transparent;
@@ -109,24 +248,19 @@
 
 .chip {
   display: block;
-  height: 42px;
+  height: 40px;
   border-radius: var(--radius-sm);
-  /* Un liseré sombre : sans lui, les teintes très claires du nuancier se confondent
-     avec le fond crème de la pastille. */
+  /* Un liseré sombre : sans lui, les teintes très claires se confondent avec le fond
+     crème de la pastille. */
   box-shadow: inset 0 0 0 1px rgba(43, 39, 36, 0.18);
 }
 
 .swatchLabel {
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   line-height: 1.25;
   font-weight: 600;
   color: var(--color-text-soft);
   text-align: center;
-}
-
-.slider {
-  width: 100%;
-  accent-color: var(--color-accent);
 }
 
 .actions {
@@ -136,7 +270,7 @@
   flex-wrap: wrap;
 }
 
-/* --- Historique ----------------------------------------------------------------- */
+/* --- Historique ------------------------------------------------------------------ */
 
 .history {
   background: var(--color-white);
@@ -189,6 +323,7 @@
 .historyMain span {
   font-size: 0.74rem;
   color: var(--color-text-muted);
+  overflow-wrap: anywhere;
 }
 
 .iconBtn {

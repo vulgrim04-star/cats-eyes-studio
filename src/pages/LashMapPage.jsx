@@ -32,7 +32,7 @@ import styles from './LashMapPage.module.css';
 
 const SIDES = ['right', 'left'];
 
-const STUDIO_TITLES = { lash: 'Lash Studio', brow: 'Brow Studio', simulation: 'Simulation' };
+const STUDIO_TITLES = { lash: 'Lash Studio', brow: 'Brow Lift', simulation: 'Simulation' };
 const STUDIO_SUBTITLES = { brow: 'Sourcils', simulation: 'Aperçu avant / après' };
 
 /** Page d'édition d'une Lash Map — la pièce maîtresse de la fiche cliente.

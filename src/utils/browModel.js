@@ -62,6 +62,10 @@ export const EMPTY_BROW_SESSION = {
   processingMinutes: 10,
   products: '',
   notes: '',
+  /** Le look complet du Brow Lift, enregistré AVEC la séance : c'est ce qui permet de
+   *  rouvrir une prestation d'il y a six mois et de la rejouer à l'identique. */
+  look: null,
+  summary: '',
 };
 
 /** Borne un pourcentage. Une valeur venue d'un curseur, d'une ancienne fiche ou d'une
@@ -95,6 +99,8 @@ export function normalizeBrowSession(session, palette = BROW_COLORS) {
     processingMinutes: Math.max(0, Math.round(Number(base.processingMinutes) || 0)),
     products: String(base.products ?? ''),
     notes: String(base.notes ?? ''),
+    look: base.look ?? null,
+    summary: String(base.summary ?? ''),
   };
 }
 
