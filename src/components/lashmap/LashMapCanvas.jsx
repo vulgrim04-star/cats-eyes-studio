@@ -13,7 +13,7 @@ import styles from './styles/LashMap.module.css';
  * visionneuses.
  */
 const LashMapCanvas = forwardRef(function LashMapCanvas(
-  { map, side, compact = false, readOnly = false, ...eyeProps },
+  { map, side, compact = false, readOnly = false, bare = false, ...eyeProps },
   ref
 ) {
   const eye = getEye(map, side);
@@ -26,7 +26,7 @@ const LashMapCanvas = forwardRef(function LashMapCanvas(
   const prefix = `lm${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
 
   return (
-    <div className={`${styles.plate} ${compact ? styles.plateCompact : ''}`}>
+    <div className={`${styles.plate} ${compact ? styles.plateCompact : ''} ${bare ? styles.plateBare : ''}`}>
       <svg
         ref={ref}
         className={styles.svg}
@@ -39,7 +39,10 @@ const LashMapCanvas = forwardRef(function LashMapCanvas(
         aria-label={`${SIDE_LABEL[side]} — ${eye.zones.length} secteurs, ${lengthRange(eye)}`}
       >
         <LashDefs prefix={prefix} />
-        <rect x="0" y="0" width={VIEWBOX.width} height={VIEWBOX.height} fill={PALETTE.paper} />
+        {/* Le fond papier est indispensable à l'export — un SVG transparent donne un PNG à
+            fond noir chez la moitié des visionneuses — mais il masquerait la photo sous la
+            simulation. C'est le seul cas où on le retire. */}
+        {!bare && <rect x="0" y="0" width={VIEWBOX.width} height={VIEWBOX.height} fill={PALETTE.paper} />}
         <LashMapEye eye={eye} mirrored={mirrored} readOnly={readOnly} prefix={prefix} {...eyeProps} />
       </svg>
     </div>

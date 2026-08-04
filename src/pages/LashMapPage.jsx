@@ -14,6 +14,7 @@ import LashHistory from '../components/lashmap/LashHistory';
 import LashTemplates from '../components/lashmap/LashTemplates';
 import LashExportMenu from '../components/lashmap/LashExportMenu';
 import BrowStudio from '../components/lashmap/BrowStudio';
+import LashSimulation from '../components/lashmap/LashSimulation';
 import { useClient } from '../hooks/useClients';
 import { useAppointments, getAppointmentsByClient } from '../hooks/useAppointments';
 import { useSettings } from '../hooks/useSettings';
@@ -29,6 +30,9 @@ import { fullName, initials } from '../utils/format';
 import styles from './LashMapPage.module.css';
 
 const SIDES = ['right', 'left'];
+
+const STUDIO_TITLES = { lash: 'Lash Studio', brow: 'Brow Studio', simulation: 'Simulation' };
+const STUDIO_SUBTITLES = { brow: 'Sourcils', simulation: 'Aperçu avant / après' };
 
 /** Page d'édition d'une Lash Map — la pièce maîtresse de la fiche cliente.
  *
@@ -124,8 +128,8 @@ export default function LashMapPage() {
         </button>
 
         <div className={styles.headerTitle}>
-          <h1 className={styles.title}>{studio === 'brow' ? 'Brow Studio' : 'Lash Studio'}</h1>
-          <span className={styles.subtitle}>{studio === 'brow' ? 'Sourcils' : SIDE_LABEL[side]}</span>
+          <h1 className={styles.title}>{STUDIO_TITLES[studio]}</h1>
+          <span className={styles.subtitle}>{STUDIO_SUBTITLES[studio] ?? SIDE_LABEL[side]}</span>
         </div>
 
         <div className={styles.headerActions}>
@@ -148,7 +152,7 @@ export default function LashMapPage() {
       </header>
 
       <div className={styles.studioTabs} role="tablist" aria-label="Studio affiché">
-        {[['lash', 'Lash Studio', 'eye'], ['brow', 'Brow Studio', 'sparkles']].map(([value, label, icon]) => (
+        {[['lash', 'Lash Studio', 'eye'], ['brow', 'Brow Studio', 'sparkles'], ['simulation', 'Simulation', 'camera']].map(([value, label, icon]) => (
           <button
             key={value}
             type="button"
@@ -191,6 +195,8 @@ export default function LashMapPage() {
       </section>
 
       {studio === 'brow' && <BrowStudio client={client} />}
+
+      {studio === 'simulation' && <LashSimulation client={client} map={map} side={side} />}
 
       {studio === 'lash' && (
       <>
