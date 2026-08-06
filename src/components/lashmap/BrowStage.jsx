@@ -1,12 +1,14 @@
 import { useCallback, useRef, useState } from 'react';
 import Icon from '../common/Icon';
 import BrowCanvas from './BrowCanvas';
+import BrowComposite from './BrowComposite';
 import { useToast } from '../../hooks/useToast';
 import { DETECTION_STATE, useFaceLandmarker } from '../../hooks/useFaceLandmarker';
 import { BROW_VIEWBOX } from '../../utils/browGeometry';
 import { adviseBrow, analyseSymmetry } from '../../utils/browAdvisor';
 import { browHeights, estimateFaceShape, overlayFromLandmarks } from '../../utils/faceLandmarks';
 import { BROW_EFFECTS, BROW_ZONES, lookSummary } from '../../utils/browShapes';
+import { canCompose } from '../../utils/browComposite';
 import {
   OVERLAY_DEFAULT,
   normalizeOverlay,
@@ -44,6 +46,13 @@ export default function BrowStage({ client, look, zone, onSelectZone, onChange, 
   const [photo, setPhoto] = useState(null);
   const [overlay, setOverlay] = useState(OVERLAY_DEFAULT);
   const [tuning, setTuning] = useState(false);
+  // Les repères sont GARDÉS après l'analyse, et non consommés puis jetés : ce sont eux qui
+  // permettent d'effacer le sourcil naturel et de reposer le nouveau à sa place.
+  const [points, setPoints] = useState(null);
+  // Le calage à la main reste toujours joignable. La composition peut décevoir sur une
+  // photo à contre-jour ou de trois quarts, et une simulation qu'on ne pourrait pas
+  // rattraper ne servirait à rien en cabine.
+  const [manual, setManual] = useState(false);
   const frameRef = useRef(null);
   const imgRef = useRef(null);
   const fileRef = useRef(null);
@@ -83,6 +92,8 @@ export default function BrowStage({ client, look, zone, onSelectZone, onChange, 
     reader.onload = () => {
       setPhoto({ src: String(reader.result), name: file.name });
       onAnalysis?.(null);
+      setPoints(null);
+      setManual(false);
       setOverlay(OVERLAY_DEFAULT);
     };
     reader.onerror = () => showToast('Lecture de la photo impossible', 'error');
@@ -98,22 +109,30 @@ export default function BrowStage({ client, look, zone, onSelectZone, onChange, 
       showToast('Photo pas encore chargée', 'warning');
       return;
     }
-    const points = await detect(image);
-    if (!points) {
+    const found = await detect(image);
+    if (!found) {
       showToast('Aucun visage détecté — cale le tracé à la main', 'warning');
+      setManual(true);
       setTuning(true);
       return;
     }
-    const placement = overlayFromLandmarks(points);
+    setPoints(found);
+    setManual(false);
+    // Le calage à plat est préparé quand même : c'est vers lui qu'on bascule si la
+    // composition ne convient pas, et il doit alors être déjà au bon endroit.
+    const placement = overlayFromLandmarks(found);
     if (placement) setOverlay((o) => normalizeOverlay({ ...o, ...placement }));
 
-    const face = estimateFaceShape(points);
-    const heights = browHeights(points);
+    const face = estimateFaceShape(found);
+    const heights = browHeights(found);
     const symmetry = heights ? analyseSymmetry(heights.leftY, heights.rightY, heights.span) : null;
     const advice = face ? adviseBrow({ faceShape: face.id, hairTone: client?.hairTone, symmetry }) : null;
     onAnalysis?.({ face, symmetry, advice });
-    showToast('Visage analysé', 'success');
+    showToast(canCompose(found) ? 'Visage analysé — sourcils recomposés' : 'Visage analysé', 'success');
   };
+
+  // Composition possible ET souhaitée : sinon on retombe sur le calque à plat d'origine.
+  const composed = !manual && points !== null && canCompose(points);
 
   const busy = state === DETECTION_STATE.loading || state === DETECTION_STATE.running;
 
@@ -159,9 +178,21 @@ export default function BrowStage({ client, look, zone, onSelectZone, onChange, 
             />
 
             <div className={styles.after} style={{ clipPath: wipeClip(overlay) }}>
-              <div style={overlayStyle(overlay, RATIO)} className={styles.tracing}>
-                <BrowCanvas look={look} readOnly transparent />
-              </div>
+              {composed ? (
+                // Le canvas EST la photo repeinte : il recouvre l'original en entier, et
+                // c'est le volet qui décide de la part qu'on en voit.
+                <BrowComposite
+                  photoSrc={photo.src}
+                  points={points}
+                  look={look}
+                  opacity={overlay.opacity / 100}
+                  onReady={(ok) => { if (!ok) setManual(true); }}
+                />
+              ) : (
+                <div style={overlayStyle(overlay, RATIO)} className={styles.tracing}>
+                  <BrowCanvas look={look} readOnly transparent />
+                </div>
+              )}
             </div>
 
             <div className={styles.divider} style={{ left: `${overlay.wipe}%` }} aria-hidden="true">
@@ -207,6 +238,22 @@ export default function BrowStage({ client, look, zone, onSelectZone, onChange, 
             >
               <Icon name={tuning ? 'chevron-up' : 'chevron-down'} size={13} /> Caler le tracé
             </button>
+            {points && canCompose(points) && (
+              <button
+                type="button"
+                className="btn btn-ghost btn-sm"
+                aria-pressed={!composed}
+                onClick={() => {
+                  const next = !manual;
+                  setManual(next);
+                  // Basculer en calque simple sans ouvrir les curseurs laisserait devant un
+                  // tracé mal placé sans dire comment le rattraper.
+                  if (next) setTuning(true);
+                }}
+              >
+                {composed ? 'Passer au calque simple' : 'Revenir au rendu composé'}
+              </button>
+            )}
           </div>
 
           {state === DETECTION_STATE.loading && (
@@ -225,7 +272,9 @@ export default function BrowStage({ client, look, zone, onSelectZone, onChange, 
 
           {tuning && (
             <div className={styles.tuningPanel}>
-              {OVERLAY_SLIDERS.map(([label, key, min, max]) => (
+              {/* En rendu composé, position et taille sont déduites du visage : les
+                  proposer laisserait croire qu'elles agissent. Seule l'opacité reste. */}
+              {(composed ? OVERLAY_SLIDERS.filter(([, key]) => key === 'opacity') : OVERLAY_SLIDERS).map(([label, key, min, max]) => (
                 <label key={key} className={styles.field}>
                   <span className={styles.label}>
                     {label} <strong>{overlay[key]} %</strong>
@@ -240,19 +289,22 @@ export default function BrowStage({ client, look, zone, onSelectZone, onChange, 
                   />
                 </label>
               ))}
-              <button
-                type="button"
-                className="btn btn-ghost btn-sm"
-                onClick={() => setOverlay((o) => normalizeOverlay({ ...OVERLAY_DEFAULT, wipe: o.wipe }))}
-              >
-                Recentrer
-              </button>
+              {!composed && (
+                <button
+                  type="button"
+                  className="btn btn-ghost btn-sm"
+                  onClick={() => setOverlay((o) => normalizeOverlay({ ...OVERLAY_DEFAULT, wipe: o.wipe }))}
+                >
+                  Recentrer
+                </button>
+              )}
             </div>
           )}
 
           <p className={styles.stageNote}>
-            La photo ne quitte jamais l’appareil : l’analyse se fait entièrement dans le
-            navigateur.
+            {composed
+              ? 'Les sourcils naturels sont effacés et remplacés, chacun à l’inclinaison de son arcade. Sur une photo à contre-jour ou de trois quarts, la zone retouchée peut se voir : passe au calque simple si le rendu ne te convainc pas.'
+              : 'La photo ne quitte jamais l’appareil : l’analyse se fait entièrement dans le navigateur.'}
           </p>
         </>
       ) : (

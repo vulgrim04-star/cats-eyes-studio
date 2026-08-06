@@ -24,9 +24,15 @@ export const LM = {
   jawRight: 397,
   foreheadLeft: 21,
   foreheadRight: 251,
-  /** Arête supérieure de chaque sourcil, de la tête vers la queue. */
+  /** Arête SUPÉRIEURE de chaque sourcil, de la queue (tempe) vers la tête (nez). */
   browLeft: [70, 63, 105, 66, 107],
   browRight: [300, 293, 334, 296, 336],
+  /** Arête INFÉRIEURE, de la tête vers la queue — donc dans le sens inverse de l'arête
+   *  supérieure. Mises bout à bout, les deux forment un contour fermé qui se parcourt sans
+   *  se croiser : c'est la SURFACE du sourcil, celle qu'il faut connaître pour l'effacer
+   *  d'une photo. L'arête supérieure seule ne donnait qu'une ligne. */
+  browLeftLower: [55, 65, 52, 53, 46],
+  browRightLower: [285, 295, 282, 283, 276],
   eyeLeftOuter: 33,
   eyeLeftInner: 133,
   eyeRightInner: 362,

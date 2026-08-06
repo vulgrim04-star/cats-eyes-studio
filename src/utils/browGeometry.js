@@ -101,6 +101,23 @@ export function browSpine(look, side) {
   };
 }
 
+/**
+ * Les deux extrémités d'un sourcil DANS LE REPÈRE DU DESSIN.
+ *
+ * C'est ce qui permet de poser le dessin sur une photo sans rien deviner : on connaît la
+ * tête et la queue ici, on les connaît sur le visage, il ne reste qu'à faire correspondre
+ * les deux paires. Sans ça, il faudrait supposer quelle part de la planche le sourcil
+ * occupe — et cette part change avec le réglage de longueur.
+ *
+ * @returns {{head:{x:number,y:number}, tail:{x:number,y:number}}}
+ */
+export function browEnds(look, side) {
+  const spine = browSpine(look, side);
+  const head = spine(0);
+  const tail = spine(1);
+  return { head: { x: head.x, y: head.y }, tail: { x: tail.x, y: tail.y } };
+}
+
 /** Silhouette pleine d'un sourcil, pour l'aplat de couleur sous les poils. */
 export function browOutline(look, side, steps = 40) {
   const spine = browSpine(look, side);
