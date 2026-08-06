@@ -343,6 +343,50 @@
    Cils et sourcils se pratiquent dans la même séance : deux onglets d'une même page,
    pas deux pages entre lesquelles il faudrait naviguer les mains gantées. */
 
+/* --- Prestation du jour -----------------------------------------------------------
+   Au-dessus des onglets, et volontairement plus discret qu'eux : on décide une fois de
+   ce qu'on fait, puis on passe la séance dans les onglets. */
+
+.prestationRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-3);
+}
+
+.prestationLabel {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-right: var(--space-1);
+}
+
+.prestationChip {
+  padding: 0 14px;
+  min-height: 34px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: transparent;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-soft);
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+}
+
+.prestationChip:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent-dark);
+}
+
+.prestationChipActive {
+  background: var(--color-accent-light);
+  border-color: var(--color-accent);
+  color: var(--color-accent-dark);
+}
+
 .studioTabs {
   display: flex;
   gap: var(--space-2);

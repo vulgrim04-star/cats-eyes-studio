@@ -37,7 +37,7 @@ const SECTIONS = [
  *  qu'on regardait la simulation obligeait à quitter la simulation. On réglait donc à
  *  l'aveugle, ce qui est exactement ce qu'un outil de projection ne doit pas demander.
  */
-export default function BrowStudio({ client }) {
+export default function BrowStudio({ client, prestation }) {
   const { addBrowSession, updateBrowSession, removeBrowSession } = useClients();
   const { showToast } = useToast();
   const isDesktop = useMediaQuery(DESKTOP_QUERY);
@@ -95,7 +95,10 @@ export default function BrowStudio({ client }) {
   const save = () => {
     // Le look complet est enregistré AVEC la séance : c'est ce qui permet de rouvrir une
     // prestation d'il y a six mois et de la rejouer à l'identique.
-    const payload = { ...session, look, summary: lookSummary(look) };
+    // `prestation` vient de la page : elle vaut pour la séance entière, pas pour le seul
+    // sourcil. C'est elle qui permettra plus tard de relire un historique et de savoir si
+    // ce jour-là on avait aussi posé les cils.
+    const payload = { ...session, prestation, look, summary: lookSummary(look) };
     if (editingId) {
       updateBrowSession(client.id, editingId, payload);
       showToast('Séance sourcils modifiée', 'success');

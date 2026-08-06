@@ -202,18 +202,26 @@ export function useLashMapEditor(client, mapId) {
 
   // --- Enregistrement ------------------------------------------------------------
 
-  const save = useCallback(() => {
-    if (!client) return null;
-    if (savedId) {
-      updateLashMap(client.id, savedId, map);
+  /** `extra` porte ce que la page sait et que l'éditeur ignore — aujourd'hui la prestation
+   *  du jour, qui vaut pour la séance entière et pas seulement pour le schéma. Fusionné à
+   *  l'enregistrement plutôt que tenu dans l'état de l'éditeur : ce n'est pas une propriété
+   *  de la pose, et le marquer « modifié » à chaque bascule d'onglet serait faux. */
+  const save = useCallback(
+    (extra) => {
+      if (!client) return null;
+      const payload = extra ? { ...map, ...extra } : map;
+      if (savedId) {
+        updateLashMap(client.id, savedId, payload);
+        setDirty(false);
+        return savedId;
+      }
+      const entry = addLashMap(client.id, payload);
+      setSavedId(entry.id);
       setDirty(false);
-      return savedId;
-    }
-    const entry = addLashMap(client.id, map);
-    setSavedId(entry.id);
-    setDirty(false);
-    return entry.id;
-  }, [client, map, savedId, addLashMap, updateLashMap]);
+      return entry.id;
+    },
+    [client, map, savedId, addLashMap, updateLashMap]
+  );
 
   return {
     map,

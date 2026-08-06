@@ -28,7 +28,7 @@ const MAX_MO = 8;
  *  demanderait un modèle génératif, que cette application — hors-ligne, sans serveur — n'a
  *  pas. Un aperçu honnête vaut mieux qu'une promesse qu'on ne tient pas devant la cliente.
  */
-export default function LashSimulation({ client, map, side }) {
+export default function LashSimulation({ client, map, side, layers }) {
   const { showToast } = useToast();
   const [photo, setPhoto] = useState(null);
   const [overlay, setOverlay] = useState(OVERLAY_DEFAULT);
@@ -100,6 +100,22 @@ export default function LashSimulation({ client, map, side }) {
     window.addEventListener('pointerup', stop);
     window.addEventListener('pointercancel', stop);
   };
+
+  // La séance ne porte pas sur les cils : ce calque-ci n'a rien à montrer, et le dire vaut
+  // mieux que poser un tracé de pose sur la photo d'une cliente venue pour ses sourcils.
+  if (layers && !layers.lash) {
+    return (
+      <div className={styles.empty}>
+        <Icon name="sparkles" size={26} />
+        <h3>Séance sourcils</h3>
+        <p>
+          Cette séance ne concerne que les sourcils : la simulation se trouve dans l’onglet
+          <strong> Brow Lift</strong>, où elle suit les réglages en cours. Choisis
+          « Les deux » plus haut si tu poses aussi des cils aujourd’hui.
+        </p>
+      </div>
+    );
+  }
 
   if (!photo) {
     return (

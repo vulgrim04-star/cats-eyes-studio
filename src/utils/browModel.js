@@ -66,6 +66,11 @@ export const EMPTY_BROW_SESSION = {
    *  rouvrir une prestation d'il y a six mois et de la rejouer à l'identique. */
   look: null,
   summary: '',
+  /** Prestation du jour — 'lash', 'brow' ou 'both'. Décidée par la page, pas ici : ce
+   *  modèle ne connaît pas les modules actifs du salon et n'a donc pas de quoi la valider.
+   *  Elle est déclarée pour que le champ existe et survive aux copies d'objet ; sa
+   *  validation revient à `normalizePrestation` au moment de la relecture. */
+  prestation: null,
 };
 
 /** Borne un pourcentage. Une valeur venue d'un curseur, d'une ancienne fiche ou d'une

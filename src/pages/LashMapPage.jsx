@@ -23,7 +23,14 @@ import { NEW_MAP_ID, useLashMapEditor } from '../hooks/useLashMapEditor';
 import { useSectorInteractions } from '../hooks/useSectorInteractions';
 import { SIDE_LABEL, changedSectorIndexes, diffLashMaps, eyeLengths, getEye, lengthRange } from '../utils/lashModel';
 import { safetyMessage, unsafeSectors } from '../utils/lashSafety';
-import { enabledModules, firstEnabled } from '../utils/modules';
+import { MODULES } from '../utils/modules';
+import {
+  availablePrestations,
+  lastPrestation,
+  shouldOfferChoice,
+  simulationLayers,
+  studiosFor,
+} from '../utils/prestation';
 import { buildSectors } from '../utils/lashGeometry';
 import { estimateNextRetouchDate } from '../utils/lashCycle';
 import { formatDateLong, todayISO } from '../utils/date';
@@ -53,13 +60,32 @@ export default function LashMapPage() {
   // l'impression les sérialisent tous les deux sans avoir à changer d'onglet.
   const svgs = useRef({ left: null, right: null });
 
+  // La prestation du jour. Elle n'est pas le réglage des Paramètres : celui-ci dit ce que
+  // le salon PRATIQUE, celle-ci ce qu'on fait AUJOURD'HUI chez cette cliente. Amorcée sur
+  // la dernière séance, parce qu'une cliente qui vient pour les deux depuis un an revient
+  // le plus souvent pour les deux.
+  const pastSessions = useMemo(
+    () => [...(client?.lashMaps ?? []), ...(client?.browSessions ?? [])],
+    [client]
+  );
+  const [prestation, setPrestation] = useState(() => lastPrestation(pastSessions, modules));
+  const prestationChoices = useMemo(() => availablePrestations(modules), [modules]);
+  const offerChoice = shouldOfferChoice(modules);
+
   // Le studio affiché. Les cils et les sourcils sont deux métiers qui se pratiquent dans
   // la même séance : deux onglets d'une même page, pas deux pages.
-  const availableStudios = useMemo(() => enabledModules(modules), [modules]);
-  const [studio, setStudio] = useState(() => firstEnabled(modules));
-  // Le module qu'on regardait vient d'être masqué depuis les Réglages : on retombe sur le
-  // premier actif plutôt que d'afficher une page vide.
-  const activeStudio = availableStudios.some((m) => m.id === studio) ? studio : firstEnabled(modules);
+  const studioIds = useMemo(() => studiosFor(prestation, modules), [prestation, modules]);
+  const availableStudios = useMemo(
+    () => studioIds.map((sid) => MODULES.find((m) => m.id === sid)).filter(Boolean),
+    [studioIds]
+  );
+  const [studio, setStudio] = useState(() => studiosFor(prestation, modules)[0]);
+  // Le module qu'on regardait vient d'être masqué — depuis les Réglages, ou parce qu'on a
+  // changé de prestation. On retombe sur le premier disponible plutôt que sur une page vide.
+  const activeStudio = studioIds.includes(studio) ? studio : studioIds[0];
+  // Ce que la simulation doit composer : c'est ici que le choix de prestation cesse d'être
+  // un simple filtre d'onglets.
+  const layers = useMemo(() => simulationLayers(prestation, modules), [prestation, modules]);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [comparedId, setComparedId] = useState(null);
@@ -95,11 +121,13 @@ export default function LashMapPage() {
   const safetyText = useMemo(() => safetyMessage(eyeLengths(eye), client), [eye, client]);
 
   const handleSave = useCallback(() => {
-    const savedId = editor.save();
+    // La prestation part avec la fiche : sans elle, l'historique dirait quels cils ont été
+    // posés mais plus si la séance comprenait aussi les sourcils.
+    const savedId = editor.save({ prestation });
     if (!savedId) return;
     showToast('Lash map enregistrée', 'success');
     if (mapId === NEW_MAP_ID) navigate(`/clientes/${id}/lash-map/${savedId}`, { replace: true });
-  }, [editor, showToast, mapId, navigate, id]);
+  }, [editor, prestation, showToast, mapId, navigate, id]);
 
   const confirmLeave = useCallback(
     () => !dirty || window.confirm('Des modifications ne sont pas enregistrées. Quitter quand même ?'),
@@ -156,6 +184,27 @@ export default function LashMapPage() {
         </div>
       </header>
 
+      {/* La prestation d'abord, les onglets ensuite : on décide de ce qu'on fait, puis on
+          travaille. Le sélecteur disparaît quand le salon ne pratique qu'un métier — un
+          choix qui n'en est pas un n'est pas un réglage. */}
+      {offerChoice && (
+        <div className={styles.prestationRow} role="group" aria-label="Prestation du jour">
+          <span className={styles.prestationLabel}>Séance</span>
+          {prestationChoices.map(({ id: value, label, hint }) => (
+            <button
+              key={value}
+              type="button"
+              aria-pressed={prestation === value}
+              className={`${styles.prestationChip} ${prestation === value ? styles.prestationChipActive : ''}`}
+              onClick={() => setPrestation(value)}
+              title={hint}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className={styles.studioTabs} role="tablist" aria-label="Studio affiché">
         {availableStudios.map(({ id: value, label, icon }) => (
           <button
@@ -199,9 +248,11 @@ export default function LashMapPage() {
         </dl>
       </section>
 
-      {activeStudio === 'brow' && <BrowStudio client={client} />}
+      {activeStudio === 'brow' && <BrowStudio client={client} prestation={prestation} />}
 
-      {activeStudio === 'simulation' && <LashSimulation client={client} map={map} side={side} />}
+      {activeStudio === 'simulation' && (
+        <LashSimulation client={client} map={map} side={side} layers={layers} />
+      )}
 
       {activeStudio === 'lash' && (
       <>
