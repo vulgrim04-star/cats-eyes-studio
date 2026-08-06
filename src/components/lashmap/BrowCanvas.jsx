@@ -21,7 +21,14 @@ const SIDES = ['left', 'right'];
  *  retoucher seule. La pastille est posée AU-DESSUS du tracé, jamais dessus : sur un
  *  sourcil fin, une cible centrée serait plus grande que le dessin qu'elle recouvre.
  */
-function BrowCanvas({ look, selectedZone = null, onSelectZone, readOnly = false, transparent = false }) {
+function BrowCanvas({
+  look,
+  selectedZone = null,
+  onSelectZone,
+  readOnly = false,
+  transparent = false,
+  hairCount,
+}) {
   const prefix = `bw${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   const tone = renderedTone(look);
 
@@ -30,11 +37,14 @@ function BrowCanvas({ look, selectedZone = null, onSelectZone, readOnly = false,
       SIDES.map((side) => ({
         side,
         outline: browOutline(look, side),
-        hairs: buildBrowHairs(look, side, { seed: side === 'left' ? 4409 : 7311 }),
+        hairs: buildBrowHairs(look, side, {
+          seed: side === 'left' ? 4409 : 7311,
+          ...(hairCount ? { count: hairCount } : {}),
+        }),
         gloss: browGloss(look, side),
         handles: zoneHandles(look, side),
       })),
-    [look]
+    [look, hairCount]
   );
 
   return (

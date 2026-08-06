@@ -25,11 +25,18 @@ function changesBetween(current, previous) {
   return changes.length > 0 ? changes : ['Reconduit à l’identique'];
 }
 
+/** Vignettes allégées : la frise en aligne autant qu'il y a de séances. Voir
+ *  `BrowShapeCard` — à cette taille, la silhouette est tout ce qui se lit. */
+const THUMB_HAIRS = 130;
+
 /** Frise d'évolution des sourcils.
  *
  *  Chaque séance est représentée par son PROPRE dessin, reconstruit depuis le look
  *  enregistré : on revoit ce qui a été posé, pas une vignette générique. C'est tout
  *  l'intérêt d'avoir gardé le look complet avec la séance.
+ *
+ *  Elle vit à l'intérieur de la carte Historique et n'a donc plus son propre cadre : deux
+ *  surfaces imbriquées feraient un cadre dans un cadre.
  */
 export default function BrowTimeline({ sessions, onOpen }) {
   const entries = useMemo(
@@ -41,9 +48,9 @@ export default function BrowTimeline({ sessions, onOpen }) {
 
   return (
     <div className={styles.timeline}>
-      <h3 className={styles.historyTitle}>
-        <Icon name="trending-up" size={15} /> Évolution
-      </h3>
+      <span className={styles.label}>
+        <Icon name="trending-up" size={14} /> Évolution
+      </span>
 
       <div className={`${styles.timelineTrack} scrollbar-hidden`}>
         {entries.map((entry, index) => {
@@ -57,7 +64,7 @@ export default function BrowTimeline({ sessions, onOpen }) {
               onClick={() => onOpen?.(entry)}
               title={lookSummary(look)}
             >
-              <BrowCanvas look={look} readOnly />
+              <BrowCanvas look={look} readOnly hairCount={THUMB_HAIRS} />
               <span className={styles.timelineDate}>{formatDateLong(entry.date)}</span>
               <span className={styles.timelineChange}>{changes.join(' · ')}</span>
             </button>

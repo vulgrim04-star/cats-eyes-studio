@@ -116,6 +116,10 @@
   --transition-fast: 150ms var(--ease);
   --transition-base: 220ms var(--ease);
   --transition-slow: 360ms var(--ease);
+  /* Apparition et bascule des cartes de réglages. Entre le « rapide » (qui passe
+     inaperçu sur un bloc de la taille d'une carte) et le « base » (qui traîne quand cinq
+     cartes se succèdent en cascade). */
+  --transition-panel: 200ms var(--ease);
 }
 
 /* ---------- Points de bascule ----------

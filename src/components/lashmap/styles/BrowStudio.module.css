@@ -1,30 +1,141 @@
-/* Brow Lift — luxe discret : crème, blanc, or, beaucoup d'air.
-   L'aperçu domine ; les réglages s'effacent à côté de lui. */
+/* Brow Lift — quatre zones visibles ensemble.
+ *
+ *   • barre de contexte   : la cliente, et les raccourcis vers les réglages
+ *   • scène (centre)      : le tracé, ou la photo avec son volet avant/après
+ *   • colonne (droite)    : les cartes de réglages, défilantes
+ *   • bandeau (bas)       : conseil, historique, prestation
+ *
+ * UN QUATRIÈME CRAN, À 1280 PX. L'échelle du projet en compte trois — 640 / 768 / 1024,
+ * voir `variables.css`, dont le commentaire demande d'y réfléchir avant d'en ajouter un.
+ * Voici pourquoi celui-ci se justifie. À 1024 px, la barre latérale de l'application prend
+ * 260 px et les marges 64 : il reste 700 px. Deux colonnes y donneraient une scène de
+ * 330 px — mesuré, pas estimé — soit un dessin de sourcils plus petit que ses propres
+ * vignettes de sélection. La scène est ce que la cliente regarde ; la rétrécir jusqu'à
+ * l'illisible pour tenir une convention serait tenir la convention contre son objet.
+ * En dessous de 1280, tout s'empile donc sur une seule colonne, scène en pleine largeur.
+ *
+ * Pas de rail vertical propre au module : la barre latérale de l'application en tient déjà
+ * lieu. Un second rail à côté du premier ne ferait que voler à la scène la largeur qui lui
+ * sert justement à montrer quelque chose. */
 
 .wrap {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'context'
+    'stage'
+    'column'
+    'band';
   gap: var(--space-5);
 }
 
-@media (min-width: 1040px) {
+@media (min-width: 1280px) {
   .wrap {
-    grid-template-columns: minmax(0, 1.1fr) minmax(340px, 1fr);
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
+    grid-template-areas:
+      'context context'
+      'stage   column'
+      'band    band';
     align-items: start;
-  }
-  .history {
-    grid-column: 1 / -1;
   }
 }
 
-/* --- Aperçu ---------------------------------------------------------------------- */
+/* --- Barre de contexte ------------------------------------------------------------ */
 
-.stage {
+.contextBar {
+  grid-area: context;
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  padding: var(--space-3) var(--space-4);
   background: var(--color-white);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
-  padding: var(--space-5) var(--space-4) var(--space-4);
-  text-align: center;
+}
+
+.contextState {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-soft);
+}
+
+.shortcuts {
+  display: flex;
+  gap: var(--space-2);
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.shortcut {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  padding: 0 13px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--color-cream);
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--color-text-soft);
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.shortcut:hover {
+  background: var(--color-accent-light);
+  color: var(--color-accent-dark);
+}
+
+/* --- Scène ------------------------------------------------------------------------ */
+
+.stage {
+  grid-area: stage;
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.stageHead {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.stageTitle {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.stageHeadActions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+/* Le tracé et la photo occupent le même emplacement et se remplacent par un fondu : la
+   bascule doit se lire comme un changement d'état, pas comme un saut de mise en page. */
+.canvasFrame,
+.frame {
+  animation: stageIn var(--transition-panel) both;
 }
 
 .canvas {
@@ -46,71 +157,265 @@
 }
 
 .stageCaption {
-  margin: var(--space-3) 0 0;
+  margin: 0;
   font-size: 0.78rem;
   color: var(--color-text-muted);
 }
 
-.zoneRow {
-  display: flex;
-  justify-content: center;
-  gap: var(--space-2);
-  flex-wrap: wrap;
-  margin-top: var(--space-4);
+.stageNote {
+  margin: 0;
+  font-size: 0.74rem;
+  line-height: 1.45;
+  color: var(--color-text-muted);
 }
 
-.zoneChip {
-  padding: 0 14px;
-  min-height: 38px;
+.stageTools {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.tuningPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-cream);
+  animation: cardIn var(--transition-panel) both;
+}
+
+/* --- Photo et volet avant / après ------------------------------------------------- */
+
+.frame {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  /* La poignée se saisit n'importe où sur la photo, pas seulement sur le trait : au doigt,
+     viser une ligne de deux pixels est impossible. */
+  cursor: ew-resize;
+  touch-action: none;
+  user-select: none;
+}
+
+.photo {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.after {
+  position: absolute;
+  inset: 0;
+}
+
+.tracing {
+  /* La planche est rendue sans son fond papier : le tracé se pose directement sur la
+     photo, sans mélange de calques à régler. */
+  pointer-events: none;
+}
+
+.divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--color-white);
+  box-shadow: 0 0 0 1px rgba(43, 39, 36, 0.25);
+  pointer-events: none;
+}
+
+.dividerHandle {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--color-white);
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 10px rgba(43, 39, 36, 0.28);
+}
+
+.tag {
+  position: absolute;
+  bottom: 10px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(43, 39, 36, 0.62);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  pointer-events: none;
+}
+
+.tagLeft {
+  left: 10px;
+}
+
+.tagRight {
+  right: 10px;
+}
+
+.warn {
+  margin: 0;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-warning-bg);
+  color: var(--color-warning);
+  font-size: 0.76rem;
+  line-height: 1.45;
+}
+
+/* --- Puces d'effet et de zone ------------------------------------------------------ */
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.chip2 {
+  padding: 0 13px;
+  min-height: 36px;
   border: none;
   border-radius: var(--radius-pill);
   background: var(--color-cream);
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 600;
   color: var(--color-text-soft);
+  transition: background var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
 }
 
-.zoneChipActive {
+.chip2:hover {
+  transform: translateY(-1px);
+}
+
+.chip2Active {
   background: var(--color-accent);
   color: var(--color-on-accent);
 }
 
-/* --- Panneau --------------------------------------------------------------------- */
+/* --- Colonne de réglages ----------------------------------------------------------- */
 
-.panel {
-  background: var(--color-white);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  padding: var(--space-5);
+.column {
+  grid-area: column;
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
 }
 
-.panelTabs {
+/* Sur grand écran, c'est la SCÈNE qui reste à l'écran pendant qu'on descend dans les
+   réglages, et non l'inverse. C'est tout l'intérêt d'avoir sorti les réglages des onglets :
+   on doit voir ce qu'on règle au moment où on le règle. Contraindre la colonne à la hauteur
+   de l'écran aurait fait le contraire — un panneau qui défile sur lui-même, sous un dessin
+   qui s'en va. */
+@media (min-width: 1280px) {
+  .stage {
+    position: sticky;
+    top: var(--space-4);
+  }
+}
+
+.columnSlot {
   display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+/* --- Bandeau bas -------------------------------------------------------------------- */
+
+.band {
+  grid-area: band;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+  align-items: start;
+}
+
+/* Trois de front seulement quand chacune dispose d'environ 350 px : en dessous, la carte
+   Détails prestation coupe son menu de prestation en plein mot. */
+@media (min-width: 1280px) {
+  .band {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* --- Carte -------------------------------------------------------------------------- */
+
+.card {
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  animation: cardIn var(--transition-panel) both;
+}
+
+/* Dans une feuille glissante, la carte EST déjà la feuille : pas de seconde surface. */
+.cardBare {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+/* Cascade : chaque carte entre 40 ms après la précédente, dans les deux zones qui en
+   empilent plusieurs. Au-delà de la quatrième, le décalage cesse — l'effet deviendrait
+   une attente. */
+.columnSlot:nth-child(2) .card,
+.band > .card:nth-child(2) {
+  animation-delay: 40ms;
+}
+.columnSlot:nth-child(3) .card,
+.band > .card:nth-child(3) {
+  animation-delay: 80ms;
+}
+.columnSlot:nth-child(4) .card {
+  animation-delay: 120ms;
+}
+
+.cardHead {
+  display: flex;
+  align-items: center;
   gap: var(--space-2);
 }
 
-.panelTab {
-  flex: 1;
-  display: inline-flex;
+.cardTitle {
+  display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-height: 40px;
-  border: none;
-  border-radius: var(--radius-pill);
-  background: var(--color-cream);
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--color-text-soft);
+  gap: 7px;
+  margin: 0;
+  margin-right: auto;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
 }
 
-.panelTabActive {
-  background: var(--color-accent);
-  color: var(--color-on-accent);
+.cardHint {
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-accent-dark);
 }
+
+.cardEmpty {
+  margin: 0;
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--color-text-muted);
+}
+
+/* --- Champs ------------------------------------------------------------------------- */
 
 .row2 {
   display: grid;
@@ -148,7 +453,26 @@
   accent-color: var(--color-accent);
 }
 
-/* --- Bibliothèque de formes ------------------------------------------------------ */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* --- Bibliothèque de formes --------------------------------------------------------- */
 
 .shapeGrid {
   display: grid;
@@ -166,6 +490,11 @@
   background: var(--color-cream);
   cursor: pointer;
   overflow: hidden;
+  transition: border-color var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
+}
+
+.shapeCard:hover {
+  transform: translateY(-2px);
 }
 
 .shapeCardActive {
@@ -181,7 +510,7 @@
   line-height: 1.2;
 }
 
-/* --- Retouche de zone ------------------------------------------------------------ */
+/* --- Retouche de zone --------------------------------------------------------------- */
 
 .zonePanel {
   padding: var(--space-3);
@@ -190,6 +519,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+  animation: cardIn var(--transition-panel) both;
 }
 
 .zoneHint {
@@ -198,35 +528,14 @@
   color: var(--color-text-muted);
 }
 
-/* --- Effets ---------------------------------------------------------------------- */
+/* --- Nuancier ------------------------------------------------------------------------ */
 
-.effectRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-
-.effectChip {
-  padding: 0 13px;
-  min-height: 36px;
-  border: none;
-  border-radius: var(--radius-pill);
-  background: var(--color-cream);
-  font-size: 0.76rem;
-  font-weight: 600;
-  color: var(--color-text-soft);
-}
-
-.effectChipActive {
-  background: var(--color-accent);
-  color: var(--color-on-accent);
-}
-
-/* --- Nuancier -------------------------------------------------------------------- */
-
+/* `auto-fill` et non quatre colonnes fixes : la carte tient tantôt dans une colonne de
+   380 px, tantôt en pleine largeur sous 1280 px, où quatre pastilles s'étireraient en
+   bandeaux. */
 .swatches {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
   gap: var(--space-2);
 }
 
@@ -239,6 +548,11 @@
   border-radius: var(--radius-md);
   background: var(--color-cream);
   cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast), transform var(--transition-fast);
+}
+
+.swatch:hover {
+  transform: translateY(-2px);
 }
 
 .swatchActive {
@@ -263,31 +577,70 @@
   text-align: center;
 }
 
-.actions {
+/* --- Conseil ------------------------------------------------------------------------- */
+
+.adviceHead {
   display: flex;
-  align-items: center;
-  gap: var(--space-3);
+  align-items: baseline;
+  gap: var(--space-2);
   flex-wrap: wrap;
 }
 
-/* --- Historique ------------------------------------------------------------------ */
-
-.history {
-  background: var(--color-white);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  padding: var(--space-5);
+.adviceFace {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--color-accent-dark);
 }
 
-.historyTitle {
-  margin: 0 0 var(--space-3);
-  font-size: 0.95rem;
-}
-
-.empty {
-  margin: 0;
-  font-size: 0.82rem;
+.adviceConfidence {
+  margin-left: auto;
+  font-size: 0.72rem;
+  font-weight: 600;
   color: var(--color-text-muted);
+}
+
+.confidenceTrack {
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: var(--color-cream);
+  overflow: hidden;
+}
+
+.confidenceFill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  transition: width var(--transition-base);
+}
+
+.adviceSentence {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.45;
+  color: var(--color-text);
+}
+
+.adviceWhy {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--color-text-soft);
+}
+
+.adviceFoot {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.45;
+  color: var(--color-text-muted);
+}
+
+/* --- Historique ----------------------------------------------------------------------- */
+
+.historyList {
+  display: flex;
+  flex-direction: column;
 }
 
 .historyRow {
@@ -337,9 +690,11 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  transition: color var(--transition-fast), background var(--transition-fast);
 }
 .iconBtn:hover {
   color: var(--color-text);
+  background: var(--color-accent-light);
 }
 
 /* --- Frise d'évolution -----------------------------------------------------------
@@ -347,11 +702,9 @@
    posé, pas une vignette générique. */
 
 .timeline {
-  grid-column: 1 / -1;
-  background: var(--color-white);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
 }
 
 .timelineTrack {
@@ -362,7 +715,7 @@
 }
 
 .timelineCard {
-  flex: 0 0 190px;
+  flex: 0 0 160px;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -372,10 +725,12 @@
   background: var(--color-cream);
   cursor: pointer;
   text-align: left;
+  transition: border-color var(--transition-fast), transform var(--transition-fast);
 }
 
 .timelineCard:hover {
   border-color: var(--color-accent);
+  transform: translateY(-2px);
 }
 
 .timelineDate {
@@ -389,4 +744,100 @@
   line-height: 1.35;
   color: var(--color-text-muted);
   overflow-wrap: anywhere;
+}
+
+/* --- Barre d'actions du téléphone ------------------------------------------------------
+   Posée juste au-dessus de la navigation du bas, elle remplace la colonne de réglages :
+   chaque bouton ouvre la feuille glissante correspondante. */
+
+.mobileBar {
+  position: sticky;
+  bottom: calc(var(--bottom-nav-height) + var(--space-2));
+  z-index: 5;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface-translucent);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 6px 20px rgba(43, 39, 36, 0.14);
+}
+
+.mobileBtn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-height: 48px;
+  padding: 6px 2px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  font-size: 0.66rem;
+  font-weight: 600;
+  color: var(--color-text-soft);
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.mobileBtn:hover {
+  background: var(--color-accent-light);
+  color: var(--color-accent-dark);
+}
+
+/* Les raccourcis de la barre de contexte font double emploi avec la barre d'actions. */
+@media (max-width: 767px) {
+  .shortcuts {
+    display: none;
+  }
+}
+
+/* --- Mouvement ------------------------------------------------------------------------ */
+
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes stageIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card,
+  .zonePanel,
+  .tuningPanel,
+  .canvasFrame,
+  .frame {
+    animation: none;
+  }
+
+  .chip2,
+  .shapeCard,
+  .swatch,
+  .timelineCard,
+  .confidenceFill,
+  .shortcut,
+  .iconBtn,
+  .mobileBtn {
+    transition: none;
+  }
+
+  .chip2:hover,
+  .shapeCard:hover,
+  .swatch:hover,
+  .timelineCard:hover {
+    transform: none;
+  }
 }
