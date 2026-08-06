@@ -2,13 +2,14 @@ import { useCallback, useRef, useState } from 'react';
 import Icon from '../common/Icon';
 import BrowCanvas from './BrowCanvas';
 import BrowComposite from './BrowComposite';
+import BrowZoom from './BrowZoom';
 import { useToast } from '../../hooks/useToast';
 import { DETECTION_STATE, useFaceLandmarker } from '../../hooks/useFaceLandmarker';
 import { BROW_VIEWBOX } from '../../utils/browGeometry';
 import { adviseBrow, analyseSymmetry } from '../../utils/browAdvisor';
 import { browHeights, estimateFaceShape, overlayFromLandmarks } from '../../utils/faceLandmarks';
 import { BROW_EFFECTS, BROW_ZONES, lookSummary } from '../../utils/browShapes';
-import { canCompose } from '../../utils/browComposite';
+import { canCompose, eyeRegion } from '../../utils/browComposite';
 import {
   OVERLAY_DEFAULT,
   normalizeOverlay,
@@ -39,7 +40,7 @@ const OVERLAY_SLIDERS = [
  *  son réglage et voir son effet ; ici les puces d'effet et de zone restent sous la scène
  *  dans les deux cas, et un réglage se voit immédiatement là où il compte.
  */
-export default function BrowStage({ client, look, zone, onSelectZone, onChange, onAnalysis }) {
+export default function BrowStage({ client, look, zone, onSelectZone, onChange, onAnalysis, onSnapshot }) {
   const { showToast } = useToast();
   const { state, error, detect } = useFaceLandmarker();
 
@@ -53,6 +54,11 @@ export default function BrowStage({ client, look, zone, onSelectZone, onChange, 
   // photo à contre-jour ou de trois quarts, et une simulation qu'on ne pourrait pas
   // rattraper ne servirait à rien en cabine.
   const [manual, setManual] = useState(false);
+  // L'agrandissement recopie le canvas du composé : on garde une référence vers lui et un
+  // compteur de repeinte, seul signal fiable qu'il a changé — un canvas garde la même
+  // identité d'objet même quand son contenu vient d'être entièrement redessiné.
+  const [zoomMode, setZoomMode] = useState('zoom');
+  const [painted, setPainted] = useState(null);
   const frameRef = useRef(null);
   const imgRef = useRef(null);
   const fileRef = useRef(null);
@@ -94,6 +100,8 @@ export default function BrowStage({ client, look, zone, onSelectZone, onChange, 
       onAnalysis?.(null);
       setPoints(null);
       setManual(false);
+      setPainted(null);
+      onSnapshot?.(null);
       setOverlay(OVERLAY_DEFAULT);
     };
     reader.onerror = () => showToast('Lecture de la photo impossible', 'error');
@@ -150,6 +158,8 @@ export default function BrowStage({ client, look, zone, onSelectZone, onChange, 
               onClick={() => {
                 setPhoto(null);
                 onAnalysis?.(null);
+                setPainted(null);
+                onSnapshot?.(null);
                 setOverlay(OVERLAY_DEFAULT);
               }}
             >
@@ -187,6 +197,13 @@ export default function BrowStage({ client, look, zone, onSelectZone, onChange, 
                   look={look}
                   opacity={overlay.opacity / 100}
                   onReady={(ok) => { if (!ok) setManual(true); }}
+                  onPaint={(canvas, image) => {
+                    setPainted({ canvas, image, tick: Date.now() });
+                    // La scène est le seul endroit qui connaisse à la fois la photo et son
+                    // rendu : c'est donc elle qui les remonte, pour que l'enregistrement
+                    // de la séance puisse les joindre.
+                    onSnapshot?.({ beforeSrc: photo.src, canvas });
+                  }}
                 />
               ) : (
                 <div style={overlayStyle(overlay, RATIO)} className={styles.tracing}>
@@ -299,6 +316,17 @@ export default function BrowStage({ client, look, zone, onSelectZone, onChange, 
                 </button>
               )}
             </div>
+          )}
+
+          {composed && painted && (
+            <BrowZoom
+              mode={zoomMode}
+              onMode={setZoomMode}
+              region={eyeRegion(points)}
+              photo={painted.image}
+              composite={painted.canvas}
+              tick={painted.tick}
+            />
           )}
 
           <p className={styles.stageNote}>

@@ -302,6 +302,45 @@
   color: var(--color-on-accent);
 }
 
+/* --- Aperçu rapproché -------------------------------------------------------------
+   Le sourcil fait quatre-vingts pixels sur un visage entier : c'est ici qu'on juge. */
+
+.zoomBlock {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-cream);
+  animation: cardIn var(--transition-panel) both;
+}
+
+.zoomHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.zoomSingle,
+.zoomPair {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.zoomPair {
+  grid-template-columns: 1fr 1fr;
+}
+
+.zoomCanvas {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+}
+
 /* --- Colonne de réglages ----------------------------------------------------------- */
 
 .column {
@@ -614,6 +653,72 @@
   transition: width var(--transition-base);
 }
 
+/* Les trois tuiles : forme, couleur, intensité. Côte à côte dès qu'il y a la place, parce
+   que c'est ainsi qu'on en parle à une cliente — d'un seul tenant. */
+.adviceTiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: var(--space-2);
+}
+
+.adviceTile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 5px;
+  padding: var(--space-3);
+  border-radius: var(--radius-md);
+  background: var(--color-cream);
+}
+
+.adviceTileLabel {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.adviceThumb {
+  width: 100%;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.adviceTileValue {
+  font-size: 0.84rem;
+  color: var(--color-text);
+}
+
+.adviceTileHint {
+  font-size: 0.7rem;
+  line-height: 1.35;
+  color: var(--color-text-muted);
+}
+
+.adviceDot {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(43, 39, 36, 0.18);
+}
+
+.intensityTrack {
+  width: 100%;
+  height: 8px;
+  border-radius: var(--radius-pill);
+  background: var(--color-white);
+  overflow: hidden;
+}
+
+.intensityFill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+  transition: width var(--transition-base);
+}
+
 .adviceSentence {
   margin: 0;
   font-size: 0.88rem;
@@ -840,4 +945,14 @@
   .timelineCard:hover {
     transform: none;
   }
+}
+
+/* La vignette photo de la frise. Cadrée en hauteur pour que dessins et photos alignent
+   leur bord inférieur, sans quoi la frise ondulerait selon ce que chaque séance a gardé. */
+.timelinePhoto {
+  display: block;
+  width: 100%;
+  height: 74px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
 }

@@ -162,9 +162,11 @@ function eraseBrow(ctx, photo, framePx, probes, width, height) {
 
   const skin = skinColour(ctx, probes, width, height);
   if (skin) {
-    // Un voile de la teinte moyenne : le clonage garde le grain, ce voile rattrape ce
-    // qu'il aurait pu ramener d'une mèche ou d'une ombre.
-    pctx.globalAlpha = 0.42;
+    // Un voile de la teinte de peau : le clonage garde le grain, ce voile rattrape ce
+    // qu'il aurait pu ramener d'une mèche ou d'une ombre. Léger, et pas davantage —
+    // l'aperçu côte à côte montrait, à 0,42, que le côté « après » s'éclaircissait
+    // visiblement par rapport à l'original.
+    pctx.globalAlpha = 0.3;
     pctx.fillStyle = skin;
     pctx.fillRect(0, 0, width, height);
     pctx.globalAlpha = 1;
@@ -259,7 +261,12 @@ function paintBrow(ctx, drawing, look, side, frame, width, height, opacity) {
  *  Assez court pour que le résultat semble immédiat après le doigt levé. */
 const REPAINT_DELAY = 90;
 
-export default function BrowComposite({ photoSrc, points, look, opacity = 0.92, onReady }) {
+/**
+ * @param {(canvas:HTMLCanvasElement, photo:HTMLImageElement)=>void} onPaint rend le canvas
+ *   composé ET la photo chargée après chaque repeinte, pour que l'agrandissement les
+ *   recopie au lieu de refaire toute la composition une seconde fois.
+ */
+export default function BrowComposite({ photoSrc, points, look, opacity = 0.92, onReady, onPaint }) {
   const canvasRef = useRef(null);
   const svgHostRef = useRef(null);
   const [failed, setFailed] = useState(false);
@@ -269,6 +276,8 @@ export default function BrowComposite({ photoSrc, points, look, opacity = 0.92, 
   // frappe, y compris quand rien de visible n'a bougé. On la garde dans une référence.
   const onReadyRef = useRef(onReady);
   onReadyRef.current = onReady;
+  const onPaintRef = useRef(onPaint);
+  onPaintRef.current = onPaint;
 
   useEffect(() => {
     let cancelled = false;
@@ -318,6 +327,7 @@ export default function BrowComposite({ photoSrc, points, look, opacity = 0.92, 
 
         setFailed(false);
         onReadyRef.current?.(true);
+        onPaintRef.current?.(canvas, photo);
       } catch {
         if (cancelled) return;
         setFailed(true);

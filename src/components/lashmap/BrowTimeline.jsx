@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import Icon from '../common/Icon';
+import StoredImage from '../common/StoredImage';
 import BrowCanvas from './BrowCanvas';
 import { lookSummary, normalizeLook, shapeById, toneById } from '../../utils/browShapes';
 import { formatDateLong } from '../../utils/date';
@@ -64,7 +65,19 @@ export default function BrowTimeline({ sessions, onOpen }) {
               onClick={() => onOpen?.(entry)}
               title={lookSummary(look)}
             >
-              <BrowCanvas look={look} readOnly hairCount={THUMB_HAIRS} />
+              {/* La vraie photo quand la séance en a une, le dessin reconstruit sinon.
+                  Le repli n'est pas une politesse : les séances enregistrées avant que
+                  les photos existent deviendraient des cases vides. */}
+              {entry.photoAfterPath ? (
+                <StoredImage
+                  path={entry.photoAfterPath}
+                  alt={`Rendu du ${formatDateLong(entry.date)}`}
+                  className={styles.timelinePhoto}
+                  placeholder={<BrowCanvas look={look} readOnly hairCount={THUMB_HAIRS} />}
+                />
+              ) : (
+                <BrowCanvas look={look} readOnly hairCount={THUMB_HAIRS} />
+              )}
               <span className={styles.timelineDate}>{formatDateLong(entry.date)}</span>
               <span className={styles.timelineChange}>{changes.join(' · ')}</span>
             </button>

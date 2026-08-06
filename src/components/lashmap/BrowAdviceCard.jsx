@@ -1,20 +1,29 @@
 import Icon from '../common/Icon';
 import BrowCard from './BrowCard';
+import BrowCanvas from './BrowCanvas';
 import { adviceToLook } from '../../utils/browAdvisor';
 import { useToast } from '../../hooks/useToast';
 import styles from './styles/BrowStudio.module.css';
 
+/** Vignette allégée — voir `BrowShapeCard`, même raison. */
+const THUMB_HAIRS = 110;
+
 /** Recommandations de l'assistant, après analyse du visage.
  *
- *  Le POURCENTAGE DE CONFIANCE est affiché tel qu'il est calculé, sans arrondi flatteur :
+ *  TROIS TUILES PLUTÔT QU'UN PARAGRAPHE : forme, couleur, intensité. C'est ainsi qu'on en
+ *  parle à une cliente — « on vous fait cette forme-là, dans cette teinte-là, à cette
+ *  intensité » — et chacune montre ce qu'elle annonce : la forme est dessinée, la teinte est
+ *  à sa vraie valeur, l'intensité a sa jauge. Un texte seul obligerait à imaginer.
+ *
+ *  LE POURCENTAGE DE CONFIANCE est affiché tel qu'il est calculé, sans arrondi flatteur :
  *  une morphologie déduite de trois rapports de distances reste une estimation, et une
  *  praticienne qui voit « 58 % » saura qu'elle doit trancher elle-même. Un conseil qui
- *  s'annoncerait toujours certain finirait par ne plus être lu du tout.
+ *  s'annoncerait toujours certain finirait par ne plus être lu.
  *
  *  Rien n'est jamais appliqué d'office : c'est un bouton, et il ne touche ni aux effets ni
  *  aux retouches de zone déjà faites (voir `adviceToLook`).
  */
-export default function BrowAdviceCard({ analysis, onApply, embedded = false }) {
+export default function BrowAdviceCard({ analysis, look, onApply, embedded = false }) {
   const { showToast } = useToast();
 
   if (!analysis?.face) {
@@ -47,14 +56,61 @@ export default function BrowAdviceCard({ analysis, onApply, embedded = false }) 
 
       {advice ? (
         <>
-          <p className={styles.adviceSentence}>{advice.sentence}</p>
+          <div className={styles.adviceTiles}>
+            <div className={styles.adviceTile}>
+              <span className={styles.adviceTileLabel}>Forme idéale</span>
+              <div className={styles.adviceThumb}>
+                <BrowCanvas
+                  look={{ ...(look ?? {}), shapeId: advice.shape.id }}
+                  readOnly
+                  hairCount={THUMB_HAIRS}
+                />
+              </div>
+              <strong className={styles.adviceTileValue}>{advice.shape.label}</strong>
+              <span className={styles.adviceTileHint}>{advice.shape.hint}</span>
+            </div>
+
+            <div className={styles.adviceTile}>
+              <span className={styles.adviceTileLabel}>Couleur recommandée</span>
+              {advice.tone ? (
+                <>
+                  <span
+                    className={styles.adviceDot}
+                    style={{ background: advice.tone.hex }}
+                    aria-hidden="true"
+                  />
+                  <strong className={styles.adviceTileValue}>
+                    n°{advice.tone.number} {advice.tone.label}
+                  </strong>
+                  <span className={styles.adviceTileHint}>{advice.toneWhy}</span>
+                </>
+              ) : (
+                <span className={styles.adviceTileHint}>
+                  Renseigne la couleur de cheveux sur la fiche pour obtenir une teinte.
+                </span>
+              )}
+            </div>
+
+            <div className={styles.adviceTile}>
+              <span className={styles.adviceTileLabel}>Intensité recommandée</span>
+              <div className={styles.intensityTrack} aria-hidden="true">
+                <span className={styles.intensityFill} style={{ width: `${advice.intensity}%` }} />
+              </div>
+              <strong className={styles.adviceTileValue}>{advice.intensity} %</strong>
+              <span className={styles.adviceTileHint}>
+                {advice.intensity >= 75
+                  ? 'Une teinte claire demande de la matière pour se voir.'
+                  : 'Assez pour dessiner, pas au point de durcir le regard.'}
+              </span>
+            </div>
+          </div>
+
           <p className={styles.adviceWhy}>{advice.why}</p>
           {advice.avoid && (
             <p className={styles.adviceWhy}>
               <strong>À éviter</strong> : {advice.avoid}
             </p>
           )}
-          {advice.toneWhy && <p className={styles.adviceWhy}>{advice.toneWhy}</p>}
           {advice.symmetryNote && <p className={styles.adviceWhy}>{advice.symmetryNote}</p>}
 
           <button

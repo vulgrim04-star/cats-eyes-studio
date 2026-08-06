@@ -10,6 +10,8 @@ import BrowHistoryCard from './BrowHistoryCard';
 import { BrowDetailsCard, BrowNotesCard, BrowProductsCard } from './BrowSessionCards';
 import { useClients } from '../../hooks/useClients';
 import { useToast } from '../../hooks/useToast';
+import { UPLOAD_DEMO, uploadClientPhoto } from '../../utils/photoStorage';
+import { createId } from '../../utils/id';
 import { DESKTOP_QUERY, useMediaQuery } from '../../hooks/useMediaQuery';
 import { lookSummary, normalizeLook } from '../../utils/browShapes';
 import { normalizeBrowSession, minutesForService } from '../../utils/browModel';
@@ -50,6 +52,10 @@ export default function BrowStudio({ client, prestation }) {
   const [sheet, setSheet] = useState(null);
 
   const cardRefs = useRef({});
+  // La photo et son rendu, remontés par la scène. Dans une référence et non dans l'état :
+  // ils ne changent rien à l'affichage du studio, et les y mettre relancerait tout l'arbre
+  // à chaque repeinte de la simulation.
+  const snapshotRef = useRef(null);
 
   const sessions = useMemo(
     () => [...(client?.browSessions ?? [])].sort((a, b) => String(b.date).localeCompare(String(a.date))),
@@ -92,13 +98,57 @@ export default function BrowStudio({ client, prestation }) {
     else setSheet(id);
   };
 
-  const save = () => {
+  /** Les deux images de la séance, envoyées au stockage.
+   *
+   *  L'« avant » est la photo importée, l'« après » le canvas composé — pas une capture
+   *  d'écran ni une reconstitution : l'image exacte qu'on a montrée à la cliente ce
+   *  jour-là. C'est ce qui rend l'historique utile plutôt que décoratif.
+   *
+   *  Un échec n'empêche JAMAIS l'enregistrement de la séance : les réglages valent bien
+   *  plus que les vignettes, et perdre une prestation parce qu'un téléversement a échoué
+   *  serait un très mauvais marché.
+   */
+  const capturePhotos = async () => {
+    const snap = snapshotRef.current;
+    if (!snap?.beforeSrc || !snap.canvas || !client?.id) return {};
+    try {
+      const [before, after] = await Promise.all([
+        fetch(snap.beforeSrc).then((r) => r.blob()),
+        new Promise((resolve) => snap.canvas.toBlob(resolve, 'image/jpeg', 0.85)),
+      ]);
+      if (!before || !after) return {};
+      const photoId = createId('bsim');
+      const target = { clientId: client.id, photoId };
+      const [beforePath, afterPath] = await Promise.all([
+        uploadClientPhoto(before, { ...target, side: 'before' }),
+        uploadClientPhoto(after, { ...target, side: 'after' }),
+      ]);
+      // En démonstration il n'y a pas de session : le module le signale par un code dédié
+      // plutôt que par un échec, et il faut le dire clairement au lieu de laisser croire à
+      // une panne réseau.
+      if (beforePath === UPLOAD_DEMO || afterPath === UPLOAD_DEMO) {
+        showToast('Mode démonstration : la photo n’est pas conservée', 'warning');
+        return {};
+      }
+      if (!beforePath || !afterPath) {
+        showToast('Séance enregistrée, mais les photos n’ont pas pu être envoyées', 'warning');
+        return {};
+      }
+      return { photoBeforePath: beforePath, photoAfterPath: afterPath };
+    } catch {
+      showToast('Séance enregistrée, mais les photos n’ont pas pu être envoyées', 'warning');
+      return {};
+    }
+  };
+
+  const save = async () => {
+    const photos = await capturePhotos();
     // Le look complet est enregistré AVEC la séance : c'est ce qui permet de rouvrir une
     // prestation d'il y a six mois et de la rejouer à l'identique.
     // `prestation` vient de la page : elle vaut pour la séance entière, pas pour le seul
     // sourcil. C'est elle qui permettra plus tard de relire un historique et de savoir si
     // ce jour-là on avait aussi posé les cils.
-    const payload = { ...session, prestation, look, summary: lookSummary(look) };
+    const payload = { ...session, prestation, look, summary: lookSummary(look), ...photos };
     if (editingId) {
       updateBrowSession(client.id, editingId, payload);
       showToast('Séance sourcils modifiée', 'success');
@@ -191,6 +241,7 @@ export default function BrowStudio({ client, prestation }) {
         onSelectZone={selectZone}
         onChange={setLookField}
         onAnalysis={setAnalysis}
+        onSnapshot={(snap) => { snapshotRef.current = snap; }}
       />
 
       {/* Colonne de réglages : montée seulement sur ordinateur. Sur téléphone, les mêmes
@@ -207,7 +258,7 @@ export default function BrowStudio({ client, prestation }) {
       )}
 
       <div className={styles.band}>
-        <BrowAdviceCard analysis={analysis} onApply={setLookField} />
+        <BrowAdviceCard analysis={analysis} look={look} onApply={setLookField} />
         <BrowHistoryCard sessions={sessions} onOpen={edit} onRemove={remove} />
         <BrowDetailsCard
           session={session}

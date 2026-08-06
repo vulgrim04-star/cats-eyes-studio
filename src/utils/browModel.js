@@ -71,6 +71,11 @@ export const EMPTY_BROW_SESSION = {
    *  Elle est déclarée pour que le champ existe et survive aux copies d'objet ; sa
    *  validation revient à `normalizePrestation` au moment de la relecture. */
   prestation: null,
+  /** Chemins de stockage de la photo importée et du rendu composé montré à la cliente.
+   *  Déclarés ici pour que `normalizeBrowSession` les conserve d'une copie à l'autre :
+   *  sans ça, rouvrir puis réenregistrer une séance perdrait ses vignettes. */
+  photoBeforePath: null,
+  photoAfterPath: null,
 };
 
 /** Borne un pourcentage. Une valeur venue d'un curseur, d'une ancienne fiche ou d'une
