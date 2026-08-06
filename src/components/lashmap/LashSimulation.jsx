@@ -1,7 +1,10 @@
 import { useCallback, useRef, useState } from 'react';
 import Icon from '../common/Icon';
 import LashMapCanvas from './LashMapCanvas';
+import LashComposite from './LashComposite';
 import { useToast } from '../../hooks/useToast';
+import { DETECTION_STATE, useFaceLandmarker } from '../../hooks/useFaceLandmarker';
+import { hasEyeCorners } from '../../utils/faceLandmarks';
 import { resolvePhotoSrc } from '../../utils/photoStorage';
 import { VIEWBOX } from '../../utils/lashGeometry';
 import {
@@ -30,9 +33,15 @@ const MAX_MO = 8;
  */
 export default function LashSimulation({ client, map, side, layers }) {
   const { showToast } = useToast();
+  const { state, error, detect } = useFaceLandmarker();
   const [photo, setPhoto] = useState(null);
   const [overlay, setOverlay] = useState(OVERLAY_DEFAULT);
+  // Repères gardés après l'analyse : ce sont eux qui posent la frange sur CHAQUE œil, à sa
+  // largeur et à son inclinaison, au lieu d'un seul calque à plat au milieu de la photo.
+  const [points, setPoints] = useState(null);
+  const [manual, setManual] = useState(false);
   const frameRef = useRef(null);
+  const imgRef = useRef(null);
   const fileRef = useRef(null);
 
   const update = (patch) => setOverlay((o) => normalizeOverlay({ ...o, ...patch }));
@@ -64,7 +73,11 @@ export default function LashSimulation({ client, map, side, layers }) {
     const reader = new FileReader();
     // Lue en data URL et JAMAIS en URL d'objet : c'est la seule forme qui survive à une
     // sérialisation du schéma, et la seule qui ne se périme pas au rechargement.
-    reader.onload = () => setPhoto({ src: String(reader.result), name: file.name });
+    reader.onload = () => {
+      setPhoto({ src: String(reader.result), name: file.name });
+      setPoints(null);
+      setManual(false);
+    };
     reader.onerror = () => showToast('Lecture de la photo impossible', 'error');
     reader.readAsDataURL(file);
   };
@@ -73,6 +86,24 @@ export default function LashSimulation({ client, map, side, layers }) {
     const rect = frameRef.current?.getBoundingClientRect();
     setOverlay((o) => normalizeOverlay({ ...o, wipe: wipeFromPointer(clientX, rect) }));
   }, []);
+
+  /** Repère les deux yeux pour poser la frange sur chacun d'eux. */
+  const analyse = async () => {
+    const image = imgRef.current;
+    if (!image?.complete) {
+      showToast('Photo pas encore chargée', 'warning');
+      return;
+    }
+    const found = await detect(image);
+    if (!found || !hasEyeCorners(found)) {
+      showToast('Aucun visage détecté — cale le tracé à la main', 'warning');
+      setManual(true);
+      return;
+    }
+    setPoints(found);
+    setManual(false);
+    showToast('Yeux repérés — frange posée sur chacun', 'success');
+  };
 
   /** Glissé du volet.
    *
@@ -147,6 +178,10 @@ export default function LashSimulation({ client, map, side, layers }) {
   }
 
   const embeddable = isEmbeddable(photo.src);
+  // Composition possible ET souhaitée : sinon on retombe sur le calque à plat, celui-là
+  // même qu'on avait avant, avec ses curseurs.
+  const composed = !manual && points !== null && hasEyeCorners(points);
+  const busy = state === DETECTION_STATE.loading || state === DETECTION_STATE.running;
 
   return (
     <div className={styles.wrap}>
@@ -161,6 +196,7 @@ export default function LashSimulation({ client, map, side, layers }) {
               alors d'émettre `pointermove`. Mesuré : deux événements sur huit, puis plus
               rien — la poignée se figeait après le premier millimètre. */}
           <img
+            ref={imgRef}
             className={styles.photo}
             src={photo.src}
             alt={`Photo de ${client?.firstName ?? 'la cliente'}`}
@@ -168,9 +204,18 @@ export default function LashSimulation({ client, map, side, layers }) {
           />
 
           <div className={styles.after} style={{ clipPath: wipeClip(overlay) }}>
-            <div style={overlayStyle(overlay, RATIO)} className={styles.tracing}>
-              <LashMapCanvas map={map} side={side} readOnly bare />
-            </div>
+            {composed ? (
+              <LashComposite
+                photoSrc={photo.src}
+                points={points}
+                map={map}
+                opacity={overlay.opacity / 100}
+              />
+            ) : (
+              <div style={overlayStyle(overlay, RATIO)} className={styles.tracing}>
+                <LashMapCanvas map={map} side={side} readOnly bare />
+              </div>
+            )}
           </div>
 
           <div className={styles.divider} style={{ left: `${overlay.wipe}%` }} aria-hidden="true">
@@ -199,6 +244,36 @@ export default function LashSimulation({ client, map, side, layers }) {
         <p className={styles.photoName}>
           <Icon name="camera" size={13} /> {photo.name}
         </p>
+
+        <button type="button" className="btn btn-primary btn-sm" onClick={analyse} disabled={busy}>
+          <Icon name="sparkles" size={14} />
+          {state === DETECTION_STATE.loading ? 'Chargement du modèle…' : busy ? 'Analyse…' : 'Repérer les yeux'}
+        </button>
+
+        {points && hasEyeCorners(points) && (
+          <button
+            type="button"
+            className="btn btn-ghost btn-sm"
+            aria-pressed={!composed}
+            onClick={() => setManual((m) => !m)}
+          >
+            {composed ? 'Passer au calque simple' : 'Revenir au rendu posé'}
+          </button>
+        )}
+
+        {state === DETECTION_STATE.loading && (
+          <p className={styles.storedTitle}>
+            Premier chargement : environ 6 Mo, une seule fois. Ensuite c’est immédiat, même
+            hors ligne.
+          </p>
+        )}
+
+        {state === DETECTION_STATE.failed && (
+          <p className={styles.warn}>
+            L’analyse automatique n’a pas pu démarrer sur cet appareil{error ? ` (${error})` : ''}.
+            Cale le tracé à la main — le résultat est le même.
+          </p>
+        )}
 
         {!embeddable && (
           <p className={styles.warn}>

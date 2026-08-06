@@ -86,6 +86,38 @@ export function browBoxes(points) {
 }
 
 /**
+ * Les deux coins d'un œil, nommés par leur rôle et non par leur position.
+ *
+ * `inner` est le coin du côté du nez, `outer` celui de la tempe — la convention du schéma
+ * de pose, où le secteur d'indice 0 est toujours l'interne. C'est ce qui permet de poser
+ * la frange sans se demander de quel côté de l'image on se trouve : on fait correspondre
+ * interne à interne, externe à externe, et le sens s'en déduit.
+ *
+ * @param {Array} points repères normalisés
+ * @param {'left'|'right'} side côté DE L'IMAGE
+ * @returns {{inner:{x:number,y:number}, outer:{x:number,y:number}, width:number}|null}
+ */
+export function eyeCorners(points, side) {
+  if (!isUsable(points)) return null;
+  const [innerIndex, outerIndex] = side === 'left'
+    ? [LM.eyeLeftInner, LM.eyeLeftOuter]
+    : [LM.eyeRightInner, LM.eyeRightOuter];
+  const inner = at(points, innerIndex);
+  const outer = at(points, outerIndex);
+  if (!inner || !outer || !Number.isFinite(inner.x) || !Number.isFinite(outer.x)) return null;
+  const width = distance(inner, outer);
+  // Deux coins confondus, c'est un œil de largeur nulle : sur un profil, un visage coupé
+  // par le bord de la photo, ou un jeu de points incomplet. Poser une frange dessus
+  // demanderait une échelle infinie — mieux vaut le dire et retomber sur le calque manuel.
+  if (!width) return null;
+  return {
+    inner: { x: inner.x, y: inner.y },
+    outer: { x: outer.x, y: outer.y },
+    width,
+  };
+}
+
+/**
  * Morphologie estimée.
  *
  * Trois rapports suffisent à séparer les six familles : la hauteur sur la largeur, la
@@ -167,4 +199,10 @@ export function overlayFromLandmarks(points, coverage = 2.35) {
     y: Math.round(centerY * 1000) / 10,
     scale: Math.min(200, Math.max(10, Math.round(width * coverage * 1000) / 10)),
   };
+}
+
+/** Les deux yeux sont-ils exploitables pour poser une frange ? À interroger avant de
+ *  monter le composé, pour choisir entre lui et le calque à plat sans peindre pour rien. */
+export function hasEyeCorners(points) {
+  return Boolean(eyeCorners(points, 'left') && eyeCorners(points, 'right'));
 }

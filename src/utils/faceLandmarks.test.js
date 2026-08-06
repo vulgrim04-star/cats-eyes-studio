@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   LM,
   browBoxes,
+  eyeCorners,
+  hasEyeCorners,
   browHeights,
   estimateFaceShape,
   isUsable,
@@ -140,5 +142,45 @@ describe('overlayFromLandmarks', () => {
 
   it('se tait sur des repères inexploitables', () => {
     expect(overlayFromLandmarks(null)).toBeNull();
+  });
+});
+
+describe('eyeCorners', () => {
+  /** Le visage de référence n'a pas d'yeux : on les pose ici, à leur place réelle —
+   *  l'externe vers la tempe, l'interne vers le nez. */
+  function withEyes(base = face()) {
+    const points = [...base];
+    points[LM.eyeLeftOuter] = { x: 0.32, y: 0.42 };
+    points[LM.eyeLeftInner] = { x: 0.44, y: 0.42 };
+    points[LM.eyeRightInner] = { x: 0.56, y: 0.42 };
+    points[LM.eyeRightOuter] = { x: 0.68, y: 0.42 };
+    return points;
+  }
+
+  // Nommés par leur RÔLE et non par leur position : c'est ce qui permet de faire
+  // correspondre interne à interne sans se demander de quel côté de l'image on est.
+  it('place l’interne vers le nez sur les deux côtés', () => {
+    const points = withEyes();
+    expect(eyeCorners(points, 'left').inner.x).toBeGreaterThan(eyeCorners(points, 'left').outer.x);
+    expect(eyeCorners(points, 'right').inner.x).toBeLessThan(eyeCorners(points, 'right').outer.x);
+  });
+
+  it('mesure la largeur de l’œil', () => {
+    expect(eyeCorners(withEyes(), 'left').width).toBeCloseTo(0.12, 3);
+  });
+
+  // Un profil, un visage coupé par le bord du cadre : poser une frange sur un œil de
+  // largeur nulle demanderait une échelle infinie.
+  it('refuse deux coins confondus', () => {
+    const points = withEyes();
+    points[LM.eyeLeftInner] = { ...points[LM.eyeLeftOuter] };
+    expect(eyeCorners(points, 'left')).toBeNull();
+    expect(hasEyeCorners(points)).toBe(false);
+  });
+
+  it('accepte un visage complet, refuse des repères inexploitables', () => {
+    expect(hasEyeCorners(withEyes())).toBe(true);
+    expect(hasEyeCorners(null)).toBe(false);
+    expect(eyeCorners(null, 'left')).toBeNull();
   });
 });
