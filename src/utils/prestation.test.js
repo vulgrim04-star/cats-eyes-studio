@@ -7,14 +7,12 @@ import {
   normalizePrestation,
   prestationById,
   shouldOfferChoice,
-  simulationLayers,
   studiosFor,
 } from './prestation';
 
-const TOUT = { lash: true, brow: true, simulation: true };
-const CILS_SEULS = { lash: true, brow: false, simulation: true };
-const SOURCILS_SEULS = { lash: false, brow: true, simulation: true };
-const SANS_SIMULATION = { lash: true, brow: true, simulation: false };
+const TOUT = { lash: true, brow: true };
+const CILS_SEULS = { lash: true, brow: false };
+const SOURCILS_SEULS = { lash: false, brow: true };
 
 const ids = (list) => list.map((p) => p.id);
 
@@ -29,9 +27,6 @@ describe('availablePrestations', () => {
     expect(ids(availablePrestations(SOURCILS_SEULS))).toEqual(['brow']);
   });
 
-  it('ignore le module simulation, qui n’est pas une prestation', () => {
-    expect(ids(availablePrestations(SANS_SIMULATION))).toEqual(['lash', 'brow', 'both']);
-  });
 });
 
 describe('shouldOfferChoice', () => {
@@ -69,37 +64,20 @@ describe('normalizePrestation', () => {
   // `normalizeModules` rallume tout devant un réglage qui éteindrait tout : la liste des
   // prestations disponibles n'est donc jamais vide, et ce cas ne doit pas jeter.
   it('survit à un réglage qui éteint tout', () => {
-    expect(PRESTATION_IDS).toContain(normalizePrestation('both', { lash: false, brow: false, simulation: false }));
+    expect(PRESTATION_IDS).toContain(normalizePrestation('both', { lash: false, brow: false }));
   });
 });
 
 describe('studiosFor', () => {
-  it('déduit les onglets de la prestation, simulation en dernier', () => {
-    expect(studiosFor('lash', TOUT)).toEqual(['lash', 'simulation']);
-    expect(studiosFor('brow', TOUT)).toEqual(['brow', 'simulation']);
-    expect(studiosFor('both', TOUT)).toEqual(['lash', 'brow', 'simulation']);
-  });
-
-  it('omet la simulation quand le module est éteint', () => {
-    expect(studiosFor('both', SANS_SIMULATION)).toEqual(['lash', 'brow']);
+  it('déduit les onglets de la prestation', () => {
+    expect(studiosFor('lash', TOUT)).toEqual(['lash']);
+    expect(studiosFor('brow', TOUT)).toEqual(['brow']);
+    expect(studiosFor('both', TOUT)).toEqual(['lash', 'brow']);
   });
 
   it('ne rend jamais un studio que les Réglages ont éteint', () => {
-    expect(studiosFor('both', CILS_SEULS)).toEqual(['lash', 'simulation']);
-  });
-});
-
-describe('simulationLayers', () => {
-  // C'est l'usage qui justifie tout le fichier : la simulation doit calquer autre chose
-  // selon qu'on est venu pour les cils ou pour les sourcils.
-  it('dit ce que la simulation doit composer', () => {
-    expect(simulationLayers('lash', TOUT)).toEqual({ lash: true, brow: false });
-    expect(simulationLayers('brow', TOUT)).toEqual({ lash: false, brow: true });
-    expect(simulationLayers('both', TOUT)).toEqual({ lash: true, brow: true });
-  });
-
-  it('suit le plafond des Réglages', () => {
-    expect(simulationLayers('both', CILS_SEULS)).toEqual({ lash: true, brow: false });
+    expect(studiosFor('both', CILS_SEULS)).toEqual(['lash']);
+    expect(studiosFor('both', SOURCILS_SEULS)).toEqual(['brow']);
   });
 });
 

@@ -5,7 +5,7 @@ import BrowStage from './BrowStage';
 import BrowShapeCard from './BrowShapeCard';
 import BrowShapeSliders from './BrowShapeSliders';
 import BrowColorCard from './BrowColorCard';
-import BrowAdviceCard from './BrowAdviceCard';
+import BrowPhotosCard from './BrowPhotosCard';
 import BrowHistoryCard from './BrowHistoryCard';
 import { BrowDetailsCard, BrowNotesCard, BrowProductsCard } from './BrowSessionCards';
 import { useClients } from '../../hooks/useClients';
@@ -48,14 +48,13 @@ export default function BrowStudio({ client, prestation }) {
   const [session, setSession] = useState(() => normalizeBrowSession(null));
   const [zone, setZone] = useState(null);
   const [editingId, setEditingId] = useState(null);
-  const [analysis, setAnalysis] = useState(null);
   const [sheet, setSheet] = useState(null);
+  // Les deux photos choisies mais pas encore envoyées. Elles ne partent qu'à
+  // l'enregistrement : téléverser au choix du fichier laisserait des images orphelines dans
+  // le stockage chaque fois qu'on change d'avis.
+  const [pendingPhotos, setPendingPhotos] = useState({ before: null, after: null });
 
   const cardRefs = useRef({});
-  // La photo et son rendu, remontés par la scène. Dans une référence et non dans l'état :
-  // ils ne changent rien à l'affichage du studio, et les y mettre relancerait tout l'arbre
-  // à chaque repeinte de la simulation.
-  const snapshotRef = useRef(null);
 
   const sessions = useMemo(
     () => [...(client?.browSessions ?? [])].sort((a, b) => String(b.date).localeCompare(String(a.date))),
@@ -98,43 +97,37 @@ export default function BrowStudio({ client, prestation }) {
     else setSheet(id);
   };
 
-  /** Les deux images de la séance, envoyées au stockage.
+  /** Envoie au stockage les photos jointes à la main, et rend leurs chemins.
    *
-   *  L'« avant » est la photo importée, l'« après » le canvas composé — pas une capture
-   *  d'écran ni une reconstitution : l'image exacte qu'on a montrée à la cliente ce
-   *  jour-là. C'est ce qui rend l'historique utile plutôt que décoratif.
-   *
-   *  Un échec n'empêche JAMAIS l'enregistrement de la séance : les réglages valent bien
-   *  plus que les vignettes, et perdre une prestation parce qu'un téléversement a échoué
-   *  serait un très mauvais marché.
+   *  UN ÉCHEC N'EMPÊCHE JAMAIS L'ENREGISTREMENT de la séance : les réglages valent bien plus
+   *  que les vignettes, et perdre une prestation parce qu'un téléversement n'est pas passé
+   *  serait un très mauvais marché. On le signale, et on enregistre quand même.
    */
   const capturePhotos = async () => {
-    const snap = snapshotRef.current;
-    if (!snap?.beforeSrc || !snap.canvas || !client?.id) return {};
+    const slots = Object.entries(pendingPhotos).filter(([, file]) => file);
+    if (slots.length === 0 || !client?.id) return {};
+    const photoId = createId('bsea');
     try {
-      const [before, after] = await Promise.all([
-        fetch(snap.beforeSrc).then((r) => r.blob()),
-        new Promise((resolve) => snap.canvas.toBlob(resolve, 'image/jpeg', 0.85)),
-      ]);
-      if (!before || !after) return {};
-      const photoId = createId('bsim');
-      const target = { clientId: client.id, photoId };
-      const [beforePath, afterPath] = await Promise.all([
-        uploadClientPhoto(before, { ...target, side: 'before' }),
-        uploadClientPhoto(after, { ...target, side: 'after' }),
-      ]);
+      const results = await Promise.all(
+        slots.map(async ([side, file]) => [
+          side,
+          await uploadClientPhoto(file, { clientId: client.id, photoId, side }),
+        ])
+      );
       // En démonstration il n'y a pas de session : le module le signale par un code dédié
       // plutôt que par un échec, et il faut le dire clairement au lieu de laisser croire à
       // une panne réseau.
-      if (beforePath === UPLOAD_DEMO || afterPath === UPLOAD_DEMO) {
-        showToast('Mode démonstration : la photo n’est pas conservée', 'warning');
+      if (results.some(([, path]) => path === UPLOAD_DEMO)) {
+        showToast('Mode démonstration : les photos ne sont pas conservées', 'warning');
         return {};
       }
-      if (!beforePath || !afterPath) {
+      if (results.some(([, path]) => !path)) {
         showToast('Séance enregistrée, mais les photos n’ont pas pu être envoyées', 'warning');
         return {};
       }
-      return { photoBeforePath: beforePath, photoAfterPath: afterPath };
+      return Object.fromEntries(
+        results.map(([side, path]) => [side === 'before' ? 'photoBeforePath' : 'photoAfterPath', path])
+      );
     } catch {
       showToast('Séance enregistrée, mais les photos n’ont pas pu être envoyées', 'warning');
       return {};
@@ -158,6 +151,7 @@ export default function BrowStudio({ client, prestation }) {
     }
     setEditingId(null);
     setSheet(null);
+    setPendingPhotos({ before: null, after: null });
   };
 
   const edit = (entry) => {
@@ -165,6 +159,7 @@ export default function BrowStudio({ client, prestation }) {
     setSession(normalizeBrowSession(entry));
     setLook(normalizeLook(entry.look));
     setZone(null);
+    setPendingPhotos({ before: null, after: null });
   };
 
   const remove = (entry) => {
@@ -234,15 +229,7 @@ export default function BrowStudio({ client, prestation }) {
         </nav>
       </header>
 
-      <BrowStage
-        client={client}
-        look={look}
-        zone={zone}
-        onSelectZone={selectZone}
-        onChange={setLookField}
-        onAnalysis={setAnalysis}
-        onSnapshot={(snap) => { snapshotRef.current = snap; }}
-      />
+      <BrowStage look={look} zone={zone} onSelectZone={selectZone} onChange={setLookField} />
 
       {/* Colonne de réglages : montée seulement sur ordinateur. Sur téléphone, les mêmes
           cartes vivent dans la feuille glissante — les monter deux fois redessinerait dix
@@ -258,7 +245,11 @@ export default function BrowStudio({ client, prestation }) {
       )}
 
       <div className={styles.band}>
-        <BrowAdviceCard analysis={analysis} look={look} onApply={setLookField} />
+        <BrowPhotosCard
+          pending={pendingPhotos}
+          stored={{ before: session.photoBeforePath, after: session.photoAfterPath }}
+          onPick={(slot, file) => setPendingPhotos((p) => ({ ...p, [slot]: file }))}
+        />
         <BrowHistoryCard sessions={sessions} onOpen={edit} onRemove={remove} />
         <BrowDetailsCard
           session={session}

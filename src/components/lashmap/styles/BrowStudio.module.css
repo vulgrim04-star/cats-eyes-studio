@@ -1,9 +1,9 @@
 /* Brow Lift — quatre zones visibles ensemble.
  *
  *   • barre de contexte   : la cliente, et les raccourcis vers les réglages
- *   • scène (centre)      : le tracé, ou la photo avec son volet avant/après
+ *   • scène (centre)      : le tracé des deux sourcils, et ses puces de réglage
  *   • colonne (droite)    : les cartes de réglages, défilantes
- *   • bandeau (bas)       : conseil, historique, prestation
+ *   • bandeau (bas)       : photos, historique, prestation
  *
  * UN QUATRIÈME CRAN, À 1280 PX. L'échelle du projet en compte trois — 640 / 768 / 1024,
  * voir `variables.css`, dont le commentaire demande d'y réfléchir avant d'en ajouter un.
@@ -123,18 +123,9 @@
   color: var(--color-text-muted);
 }
 
-.stageHeadActions {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  margin-left: auto;
-  flex-wrap: wrap;
-}
-
-/* Le tracé et la photo occupent le même emplacement et se remplacent par un fondu : la
-   bascule doit se lire comme un changement d'état, pas comme un saut de mise en page. */
-.canvasFrame,
-.frame {
+/* Le cadre du dessin apparaît en fondu : la bascule d'un œil à l'autre, ou d'une forme à
+   l'autre, doit se lire comme un changement d'état et non comme un saut de mise en page. */
+.canvasFrame {
   animation: stageIn var(--transition-panel) both;
 }
 
@@ -160,117 +151,6 @@
   margin: 0;
   font-size: 0.78rem;
   color: var(--color-text-muted);
-}
-
-.stageNote {
-  margin: 0;
-  font-size: 0.74rem;
-  line-height: 1.45;
-  color: var(--color-text-muted);
-}
-
-.stageTools {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  flex-wrap: wrap;
-}
-
-.tuningPanel {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  padding: var(--space-3);
-  border-radius: var(--radius-md);
-  background: var(--color-cream);
-  animation: cardIn var(--transition-panel) both;
-}
-
-/* --- Photo et volet avant / après ------------------------------------------------- */
-
-.frame {
-  position: relative;
-  overflow: hidden;
-  border-radius: var(--radius-md);
-  /* La poignée se saisit n'importe où sur la photo, pas seulement sur le trait : au doigt,
-     viser une ligne de deux pixels est impossible. */
-  cursor: ew-resize;
-  touch-action: none;
-  user-select: none;
-}
-
-.photo {
-  display: block;
-  width: 100%;
-  height: auto;
-}
-
-.after {
-  position: absolute;
-  inset: 0;
-}
-
-.tracing {
-  /* La planche est rendue sans son fond papier : le tracé se pose directement sur la
-     photo, sans mélange de calques à régler. */
-  pointer-events: none;
-}
-
-.divider {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: var(--color-white);
-  box-shadow: 0 0 0 1px rgba(43, 39, 36, 0.25);
-  pointer-events: none;
-}
-
-.dividerHandle {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  background: var(--color-white);
-  color: var(--color-text);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 10px rgba(43, 39, 36, 0.28);
-}
-
-.tag {
-  position: absolute;
-  bottom: 10px;
-  padding: 4px 10px;
-  border-radius: var(--radius-pill);
-  background: rgba(43, 39, 36, 0.62);
-  color: #fff;
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  pointer-events: none;
-}
-
-.tagLeft {
-  left: 10px;
-}
-
-.tagRight {
-  right: 10px;
-}
-
-.warn {
-  margin: 0;
-  padding: var(--space-3);
-  border-radius: var(--radius-md);
-  background: var(--color-warning-bg);
-  color: var(--color-warning);
-  font-size: 0.76rem;
-  line-height: 1.45;
 }
 
 /* --- Puces d'effet et de zone ------------------------------------------------------ */
@@ -300,45 +180,6 @@
 .chip2Active {
   background: var(--color-accent);
   color: var(--color-on-accent);
-}
-
-/* --- Aperçu rapproché -------------------------------------------------------------
-   Le sourcil fait quatre-vingts pixels sur un visage entier : c'est ici qu'on juge. */
-
-.zoomBlock {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-  padding: var(--space-3);
-  border-radius: var(--radius-md);
-  background: var(--color-cream);
-  animation: cardIn var(--transition-panel) both;
-}
-
-.zoomHead {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-}
-
-.zoomSingle,
-.zoomPair {
-  display: grid;
-  gap: var(--space-2);
-}
-
-.zoomPair {
-  grid-template-columns: 1fr 1fr;
-}
-
-.zoomCanvas {
-  display: block;
-  width: 100%;
-  height: auto;
-  border-radius: var(--radius-sm);
-  background: var(--color-white);
 }
 
 /* --- Colonne de réglages ----------------------------------------------------------- */
@@ -618,60 +459,17 @@
 
 /* --- Conseil ------------------------------------------------------------------------- */
 
-.adviceHead {
+.slotHead {
   display: flex;
   align-items: baseline;
   gap: var(--space-2);
   flex-wrap: wrap;
 }
 
-.adviceFace {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--color-accent-dark);
-}
-
-.adviceConfidence {
-  margin-left: auto;
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--color-text-muted);
-}
-
-.confidenceTrack {
-  height: 6px;
-  border-radius: var(--radius-pill);
-  background: var(--color-cream);
-  overflow: hidden;
-}
-
-.confidenceFill {
-  display: block;
-  height: 100%;
-  border-radius: var(--radius-pill);
-  background: var(--color-accent);
-  transition: width var(--transition-base);
-}
-
 /* Les trois tuiles : forme, couleur, intensité. Côte à côte dès qu'il y a la place, parce
    que c'est ainsi qu'on en parle à une cliente — d'un seul tenant. */
-.adviceTiles {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: var(--space-2);
-}
 
-.adviceTile {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 5px;
-  padding: var(--space-3);
-  border-radius: var(--radius-md);
-  background: var(--color-cream);
-}
-
-.adviceTileLabel {
+.slotLabel {
   font-size: 0.66rem;
   font-weight: 700;
   letter-spacing: 0.05em;
@@ -679,62 +477,7 @@
   color: var(--color-text-muted);
 }
 
-.adviceThumb {
-  width: 100%;
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-}
-
-.adviceTileValue {
-  font-size: 0.84rem;
-  color: var(--color-text);
-}
-
-.adviceTileHint {
-  font-size: 0.7rem;
-  line-height: 1.35;
-  color: var(--color-text-muted);
-}
-
-.adviceDot {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  box-shadow: inset 0 0 0 1px rgba(43, 39, 36, 0.18);
-}
-
-.intensityTrack {
-  width: 100%;
-  height: 8px;
-  border-radius: var(--radius-pill);
-  background: var(--color-white);
-  overflow: hidden;
-}
-
-.intensityFill {
-  display: block;
-  height: 100%;
-  border-radius: var(--radius-pill);
-  background: var(--color-accent);
-  transition: width var(--transition-base);
-}
-
-.adviceSentence {
-  margin: 0;
-  font-size: 0.88rem;
-  font-weight: 600;
-  line-height: 1.45;
-  color: var(--color-text);
-}
-
-.adviceWhy {
-  margin: 0;
-  font-size: 0.78rem;
-  line-height: 1.5;
-  color: var(--color-text-soft);
-}
-
-.adviceFoot {
+.cardFoot {
   margin: 0;
   font-size: 0.72rem;
   line-height: 1.45;
@@ -922,9 +665,7 @@
 @media (prefers-reduced-motion: reduce) {
   .card,
   .zonePanel,
-  .tuningPanel,
-  .canvasFrame,
-  .frame {
+  .canvasFrame {
     animation: none;
   }
 
@@ -932,7 +673,6 @@
   .shapeCard,
   .swatch,
   .timelineCard,
-  .confidenceFill,
   .shortcut,
   .iconBtn,
   .mobileBtn {
@@ -955,4 +695,51 @@
   height: 74px;
   object-fit: cover;
   border-radius: var(--radius-sm);
+}
+
+/* --- Photos de la séance ------------------------------------------------------------
+   Deux emplacements, avant et après. Ils gardent la même hauteur qu'ils soient vides ou
+   remplis : sans quoi la carte sauterait à chaque photo ajoutée. */
+
+.photoSlots {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-3);
+}
+
+.photoSlot {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  min-width: 0;
+}
+
+.photoDrop {
+  width: 100%;
+  height: 104px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  overflow: hidden;
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-cream);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.photoDrop:hover {
+  border-color: var(--color-accent);
+  color: var(--color-accent-dark);
+}
+
+.photoThumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }

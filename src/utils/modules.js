@@ -25,12 +25,6 @@ export const MODULES = [
     hint: 'Formes de sourcils, nuancier, effets et suivi des séances.',
     icon: 'sparkles',
   },
-  {
-    id: 'simulation',
-    label: 'Simulation',
-    hint: 'Aperçu avant / après sur la photo de la cliente.',
-    icon: 'camera',
-  },
 ];
 
 export const MODULE_IDS = MODULES.map((m) => m.id);

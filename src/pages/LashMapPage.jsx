@@ -14,7 +14,6 @@ import LashHistory from '../components/lashmap/LashHistory';
 import LashTemplates from '../components/lashmap/LashTemplates';
 import LashExportMenu from '../components/lashmap/LashExportMenu';
 import BrowStudio from '../components/lashmap/BrowStudio';
-import LashSimulation from '../components/lashmap/LashSimulation';
 import { useClient } from '../hooks/useClients';
 import { useAppointments, getAppointmentsByClient } from '../hooks/useAppointments';
 import { useSettings } from '../hooks/useSettings';
@@ -28,7 +27,6 @@ import {
   availablePrestations,
   lastPrestation,
   shouldOfferChoice,
-  simulationLayers,
   studiosFor,
 } from '../utils/prestation';
 import { buildSectors } from '../utils/lashGeometry';
@@ -39,8 +37,8 @@ import styles from './LashMapPage.module.css';
 
 const SIDES = ['right', 'left'];
 
-const STUDIO_TITLES = { lash: 'Lash Studio', brow: 'Brow Lift', simulation: 'Simulation' };
-const STUDIO_SUBTITLES = { brow: 'Sourcils', simulation: 'Aperçu avant / après' };
+const STUDIO_TITLES = { lash: 'Lash Studio', brow: 'Brow Lift' };
+const STUDIO_SUBTITLES = { brow: 'Sourcils' };
 
 /** Page d'édition d'une Lash Map — la pièce maîtresse de la fiche cliente.
  *
@@ -83,9 +81,6 @@ export default function LashMapPage() {
   // Le module qu'on regardait vient d'être masqué — depuis les Réglages, ou parce qu'on a
   // changé de prestation. On retombe sur le premier disponible plutôt que sur une page vide.
   const activeStudio = studioIds.includes(studio) ? studio : studioIds[0];
-  // Ce que la simulation doit composer : c'est ici que le choix de prestation cesse d'être
-  // un simple filtre d'onglets.
-  const layers = useMemo(() => simulationLayers(prestation, modules), [prestation, modules]);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [comparedId, setComparedId] = useState(null);
@@ -249,10 +244,6 @@ export default function LashMapPage() {
       </section>
 
       {activeStudio === 'brow' && <BrowStudio client={client} prestation={prestation} />}
-
-      {activeStudio === 'simulation' && (
-        <LashSimulation client={client} map={map} side={side} layers={layers} />
-      )}
 
       {activeStudio === 'lash' && (
       <>

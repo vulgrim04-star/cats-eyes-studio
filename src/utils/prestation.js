@@ -74,30 +74,12 @@ export function normalizePrestation(value, modules) {
 /**
  * Les studios à afficher pour cette prestation.
  *
- * La simulation s'ajoute toujours en dernier si le module est actif : elle n'appartient à
- * aucune prestation en particulier, c'est là qu'on montre le résultat de celle qu'on a
- * choisie.
- *
  * @returns {string[]} identifiants de studio, dans l'ordre des onglets
  */
 export function studiosFor(value, modules) {
   const clean = normalizeModules(modules);
   const prestation = prestationById(normalizePrestation(value, modules));
-  const studios = prestation.studios.filter((s) => clean[s]);
-  return clean.simulation ? [...studios, 'simulation'] : studios;
-}
-
-/**
- * Ce que la simulation doit composer sur la photo, pour cette prestation.
- *
- * C'est l'usage qui justifie tout le reste : sans lui, la simulation calquerait la même
- * chose qu'on soit venu pour les cils ou pour les sourcils.
- *
- * @returns {{lash:boolean, brow:boolean}}
- */
-export function simulationLayers(value, modules) {
-  const studios = studiosFor(value, modules);
-  return { lash: studios.includes('lash'), brow: studios.includes('brow') };
+  return prestation.studios.filter((s) => clean[s]);
 }
 
 /**

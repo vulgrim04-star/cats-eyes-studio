@@ -23,12 +23,19 @@ describe('normalizeModules', () => {
   // Une mise à jour qui ajoute un module ne doit pas le livrer invisible : personne ne
   // saurait qu'il existe, et il passerait pour absent.
   it('considère actif un module absent du réglage enregistré', () => {
-    expect(normalizeModules({ lash: true }).simulation).toBe(true);
+    expect(normalizeModules({ lash: true }).brow).toBe(true);
+  });
+
+  // Un réglage enregistré du temps où la simulation existait porte encore sa clé : elle
+  // doit être simplement ignorée, sans rien casser ni faire réapparaître d'onglet.
+  it('ignore une clé de module qui n’existe plus', () => {
+    const clean = normalizeModules({ lash: true, brow: true, simulation: true });
+    expect(Object.keys(clean).sort()).toEqual([...MODULE_IDS].sort());
   });
 
   // Une page sans le moindre onglet est un cul-de-sac dont on ne sait pas sortir.
   it('rallume tout plutôt que de laisser un réglage qui éteint tout', () => {
-    expect(normalizeModules({ lash: false, brow: false, simulation: false })).toEqual(DEFAULT_MODULES);
+    expect(normalizeModules({ lash: false, brow: false })).toEqual(DEFAULT_MODULES);
   });
 
   it('ignore les clés inconnues', () => {
@@ -38,15 +45,15 @@ describe('normalizeModules', () => {
 
 describe('canDisable', () => {
   it('refuse d’éteindre le dernier module actif', () => {
-    expect(canDisable({ lash: true, brow: false, simulation: false }, 'lash')).toBe(false);
+    expect(canDisable({ lash: true, brow: false }, 'lash')).toBe(false);
   });
 
   it('accepte tant qu’il en reste un autre', () => {
-    expect(canDisable({ lash: true, brow: true, simulation: false }, 'lash')).toBe(true);
+    expect(canDisable({ lash: true, brow: true }, 'lash')).toBe(true);
   });
 
   it('accepte toujours de réactiver', () => {
-    expect(canDisable({ lash: true, brow: false, simulation: false }, 'brow')).toBe(true);
+    expect(canDisable({ lash: true, brow: false }, 'brow')).toBe(true);
   });
 });
 
@@ -60,11 +67,11 @@ describe('toggleModule', () => {
   it('ne touche pas aux autres modules', () => {
     const r = toggleModule(DEFAULT_MODULES, 'brow');
     expect(r.lash).toBe(true);
-    expect(r.simulation).toBe(true);
+    expect(r.brow).toBe(false);
   });
 
   it('refuse d’éteindre le dernier, sans rien casser', () => {
-    const seul = { lash: true, brow: false, simulation: false };
+    const seul = { lash: true, brow: false };
     expect(toggleModule(seul, 'lash')).toEqual(seul);
   });
 
@@ -81,15 +88,16 @@ describe('toggleModule', () => {
 
 describe('enabledModules et firstEnabled', () => {
   it('ne liste que les modules actifs, dans l’ordre d’affichage', () => {
-    expect(enabledModules({ lash: false }).map((m) => m.id)).toEqual(['brow', 'simulation']);
+    expect(enabledModules({ lash: false }).map((m) => m.id)).toEqual(['brow']);
+    expect(enabledModules({ brow: false }).map((m) => m.id)).toEqual(['lash']);
   });
 
   it('donne le premier actif comme onglet par défaut', () => {
     expect(firstEnabled(DEFAULT_MODULES)).toBe('lash');
-    expect(firstEnabled({ lash: false, brow: false })).toBe('simulation');
+    expect(firstEnabled({ lash: false })).toBe('brow');
   });
 
   it('donne toujours un module, même sur un réglage absurde', () => {
-    expect(MODULE_IDS).toContain(firstEnabled({ lash: false, brow: false, simulation: false }));
+    expect(MODULE_IDS).toContain(firstEnabled({ lash: false, brow: false }));
   });
 });
