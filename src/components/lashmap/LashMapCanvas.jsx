@@ -48,8 +48,10 @@ const LashMapCanvas = forwardRef(function LashMapCanvas(
         }
       >
         <LashDefs prefix={prefix} open={open} />
-        {/* Le fond papier est indispensable à l'export — un SVG transparent donne un PNG à
-            fond noir chez la moitié des visionneuses. */}
+        {/* Fond OPAQUE et couvrant, dans les deux vues : un SVG transparent donne un PNG à
+            fond noir chez la moitié des visionneuses. C'est le champ de peau qui le porte
+            désormais — il se dissout dans le papier sur ses bords, donc le cadre reste une
+            planche et ne devient pas un cadrage photographique. */}
         <rect x="0" y="0" width={VIEWBOX.width} height={VIEWBOX.height} fill={PALETTE.paper} />
         {open ? (
           <LashEyeOpen eye={eye} mirrored={mirrored} prefix={prefix} />

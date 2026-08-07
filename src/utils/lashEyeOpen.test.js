@@ -2,10 +2,9 @@ import { describe, expect, it } from 'vitest';
 import {
   OPEN_GRADIENT_BOUNDS,
   buildLowerLashes,
-  globeVeins,
   irisFibres,
+  lashShadowBands,
   openGlobeSheen,
-  skinPaths,
   lowerLashDirection,
   lowerLidPoint,
   openEyeIris,
@@ -17,6 +16,28 @@ import {
 import { VIEWBOX, buildExtensionLashes, buildSectors } from './lashGeometry';
 
 const samples = (n = 11) => Array.from({ length: n }, (_, i) => i / (n - 1));
+
+/** Sommet de la paupière supérieure : le point le plus haut, et où il tombe. */
+function apex() {
+  return samples(401).reduce(
+    (best, t) => {
+      const p = upperLidPoint(t);
+      return p.y < best.y ? { t, ...p } : best;
+    },
+    { t: 0, ...upperLidPoint(0) }
+  );
+}
+
+/** Étendue de l'ouverture : sa largeur, sa hauteur maximale, et la position du sommet
+ *  exprimée en FRACTION DE LA LARGEUR — et non du paramètre `t`, qui n'y est pas
+ *  proportionnel sur une cubique et donnerait une mesure fausse. */
+function aperture() {
+  const inner = upperLidPoint(0);
+  const outer = upperLidPoint(1);
+  const width = outer.x - inner.x;
+  const height = Math.max(...samples(401).map((t) => lowerLidPoint(t).y - upperLidPoint(t).y));
+  return { width, height, apexShare: (apex().x - inner.x) / width };
+}
 
 describe('contour de l’œil ouvert', () => {
   it('ouvre bien un œil : la paupière haute est au-dessus de la basse partout entre les coins', () => {
@@ -58,7 +79,7 @@ describe('contour de l’œil ouvert', () => {
   // droite, et l'ombre de paupière déborderait sur le sourcil.
   it('ferme les tracés qui sont des surfaces', () => {
     const paths = openEyePaths();
-    ['aperture', 'lashShadow', 'ridge', 'socket', 'caruncle'].forEach((key) =>
+    ['aperture', 'ridge', 'socket', 'caruncle'].forEach((key) =>
       expect(paths[key].endsWith('Z')).toBe(true)
     );
     ['upperLid', 'lowerLid', 'crease', 'waterline'].forEach((key) =>
@@ -79,7 +100,38 @@ describe('cils de l’œil ouvert', () => {
   it('les évase vers l’extérieur à mesure qu’on s’éloigne du centre', () => {
     expect(upperLashDirection(0.05).x).toBeLessThan(upperLashDirection(0.3).x);
     expect(upperLashDirection(0.95).x).toBeGreaterThan(upperLashDirection(0.7).x);
-    expect(Math.abs(upperLashDirection(0.5).x)).toBeLessThan(0.05);
+  });
+
+  // La verticale ne tombe plus au milieu du paramètre : sur une amande, elle tombe au
+  // SOMMET de la paupière, qui est dans le tiers interne. C'est exactement la différence
+  // entre la lentille d'avant et l'œil d'aujourd'hui.
+  it('ne dresse les cils à la verticale qu’au sommet de la paupière', () => {
+    expect(Math.abs(upperLashDirection(apex().t).x)).toBeLessThan(0.14);
+  });
+
+  // CE QUE LA NORMALE APPORTE, exactement : les cils suivent la PENTE de la paupière. Là où
+  // elle est raide, ils se couchent ; là où elle s'aplatit, ils se dressent. Le seul foyer
+  // l'ignorait — il donnait le même éventail quelle que soit la courbe en dessous, ce qui
+  // passait inaperçu sur une lentille symétrique et ne passe plus sur une amande.
+  //
+  // Attention à ce que ce test NE dit PAS : que le coin externe s'évase plus que l'interne.
+  // C'est faux au sens de l'angle — la paupière est plus raide côté interne, donc les cils y
+  // sont plus couchés. Ce qui donne son coup de fouet externe à la maquette, c'est la
+  // LONGUEUR des cils à cet endroit, qui vient de la fiche, pas de la géométrie de l'œil.
+  it('couche les cils là où la paupière est raide, les dresse là où elle s’aplatit', () => {
+    const pente = (t) => {
+      const avant = upperLidPoint(Math.max(0, t - 0.01));
+      const apres = upperLidPoint(Math.min(1, t + 0.01));
+      return Math.abs((apres.y - avant.y) / (apres.x - avant.x));
+    };
+    const couche = (t) => Math.abs(upperLashDirection(t).x);
+    const sommet = apex().t;
+
+    expect(pente(0.06)).toBeGreaterThan(pente(sommet));
+    expect(couche(0.06)).toBeGreaterThan(couche(sommet));
+
+    expect(pente(0.94)).toBeGreaterThan(pente(sommet));
+    expect(couche(0.94)).toBeGreaterThan(couche(sommet));
   });
 
   // Les secteurs sont découpés une seule fois, en `t` croissant. Si `x` ne croissait pas
@@ -237,29 +289,6 @@ describe('cils du bas', () => {
   });
 });
 
-describe('peau', () => {
-  // Un œil détouré sur du papier se lit toujours comme un pictogramme, si soigné soit-il :
-  // c'est l'arcade, le creux de l'orbite et la pommette qui en font un regard.
-  it('rend quatre surfaces de modelé, fermées et exploitables', () => {
-    [false, true].forEach((mirrored) => {
-      const skin = skinPaths(mirrored);
-      expect(Object.keys(skin).sort()).toEqual(['browBone', 'cheek', 'noseBridge', 'tearTrough']);
-      Object.values(skin).forEach((d) => {
-        expect(d.startsWith('M')).toBe(true);
-        expect(d.endsWith('Z')).toBe(true);
-        expect(d).not.toMatch(/NaN|undefined/);
-      });
-    });
-  });
-
-  // La racine du nez est du côté du coin INTERNE, qui change de bord avec l'œil. Placée à
-  // l'envers, elle ombrerait la tempe — et le visage se lirait de travers.
-  it('place la racine du nez du côté du coin interne, des deux côtés', () => {
-    const x = (d) => Number(d.match(/-?\d+(?:\.\d+)?/g)[0]);
-    expect(x(skinPaths(false).noseBridge)).toBeLessThan(VIEWBOX.width / 2);
-    expect(x(skinPaths(true).noseBridge)).toBeGreaterThan(VIEWBOX.width / 2);
-  });
-});
 
 describe('caroncule', () => {
   const start = (d) => {
@@ -302,28 +331,6 @@ describe('fibres de l’iris', () => {
   });
 });
 
-describe('veinules', () => {
-  // Le détail le plus facile à rater : trop appuyées, elles donnent un œil irrité — le
-  // contraire exact de ce qu'une planche de pose doit montrer.
-  it('reste presque invisible', () => {
-    globeVeins().forEach((vein) => {
-      expect(vein.opacity).toBeLessThan(0.25);
-      expect(vein.width).toBeLessThan(2);
-    });
-  });
-
-  it('se tient aux coins, où le globe est découvert', () => {
-    const centre = VIEWBOX.width / 2;
-    globeVeins({ count: 12 }).forEach((vein) => {
-      const x = Number(vein.d.match(/-?\d+(?:\.\d+)?/g)[0]);
-      expect(Math.abs(x - centre)).toBeGreaterThan(70);
-    });
-  });
-
-  it('rend le même dessin à graine égale', () => {
-    expect(globeVeins()).toEqual(globeVeins());
-  });
-});
 
 describe('éclat du globe', () => {
   it('se pose sur le blanc de l’œil et se retourne avec lui', () => {
@@ -335,12 +342,82 @@ describe('éclat du globe', () => {
   });
 });
 
-describe('bornes de l’ombre portée', () => {
-  it('part de la ligne ciliaire et descend sur le globe', () => {
-    expect(OPEN_GRADIENT_BOUNDS.shadow.y0).toBeCloseTo(upperLidPoint(0.5).y, 1);
-    expect(OPEN_GRADIENT_BOUNDS.shadow.y1).toBeGreaterThan(OPEN_GRADIENT_BOUNDS.shadow.y0);
-    // Éteinte avant le bas de l'ouverture : une ombre qui traverserait tout le globe ne
-    // serait plus une ombre de frange, mais un assombrissement général.
-    expect(OPEN_GRADIENT_BOUNDS.shadow.y1).toBeLessThan(lowerLidPoint(0.5).y);
+
+describe('l’amande', () => {
+  // CE QUI A CHANGÉ, ET POURQUOI. L'ouverture était une lentille : un seul point de contrôle
+  // par paupière, donc une courbe forcément symétrique dont le sommet tombait pile au milieu.
+  // Aucun œil n'est fait ainsi, et c'était le premier écart avec la maquette.
+  it('place son sommet dans le tiers interne, pas au milieu', () => {
+    const share = aperture().apexShare;
+    expect(share).toBeGreaterThan(0.25);
+    expect(share).toBeLessThan(0.45);
+  });
+
+  // Le relèvement du coin externe : sans lui, un Cat Eye ne se lit pas.
+  it('relève le coin externe au-dessus de l’interne', () => {
+    expect(upperLidPoint(1).y).toBeLessThan(upperLidPoint(0).y);
+  });
+
+  // En dessous l'œil s'arrondit et fait dessin animé, au-dessus il se ferme et fait masque.
+  it('garde la proportion d’une amande', () => {
+    const { width, height } = aperture();
+    expect(width / height).toBeGreaterThan(2.6);
+    expect(width / height).toBeLessThan(3.2);
+  });
+
+  // Un vrai œil a la paupière basse bien plus plate que la haute. Si les deux se creusaient
+  // pareil, on retrouverait la lentille par un autre chemin.
+  it('creuse moins la paupière basse que la haute', () => {
+    const inner = upperLidPoint(0);
+    const outer = upperLidPoint(1);
+    const corde = (t) => inner.y + (outer.y - inner.y) * t;
+    const fleche = (point) => Math.max(...samples(201).map((t) => Math.abs(point(t).y - corde(t))));
+    expect(fleche(lowerLidPoint)).toBeLessThan(fleche(upperLidPoint) * 0.8);
+  });
+});
+
+describe('ombre portée de la frange', () => {
+  // LE DÉFAUT QUE CES BANDES REMPLACENT. L'ombre était un dégradé vertical : il s'éteignait à
+  // la bonne hauteur au centre et restait opaque sur les côtés, où la paupière est plus
+  // basse. On obtenait un coin gris à bord net en travers du blanc de l'œil — invisible en
+  // relisant le code, évident à l'écran.
+  // Chaque bande fait une MARCHE d'opacité. Trois bandes donnaient des marches de 4 %, et
+  // 4 % d'encre sur un fond clair se voit comme un contour : on avait remplacé un coin gris
+  // par trois. Sous 2 %, l'œil ne distingue plus la marche d'un dégradé.
+  it('garde ses marches sous le seuil où elles se verraient', () => {
+    lashShadowBands().forEach((bande) => expect(bande.opacity).toBeLessThan(0.02));
+  });
+
+  it('reste une ombre, jamais un bandeau', () => {
+    const total = lashShadowBands().reduce((somme, b) => somme + b.opacity, 0);
+    expect(total).toBeLessThan(0.3);
+    expect(total).toBeGreaterThan(0.1);
+  });
+
+  // Resserrées près de la paupière, espacées en s'éloignant : une ombre ne s'éteint pas
+  // linéairement.
+  it('resserre les bandes près de la paupière', () => {
+    const profondeur = (bande) => {
+      const n = bande.d.match(/-?\d+(?:\.\d+)?/g).map(Number);
+      return n[n.length - 3];
+    };
+    const bandes = lashShadowBands();
+    const premier = profondeur(bandes[1]) - profondeur(bandes[0]);
+    const dernier = profondeur(bandes[bandes.length - 1]) - profondeur(bandes[bandes.length - 2]);
+    expect(dernier).toBeGreaterThan(premier);
+  });
+
+  it('part bien de la ligne ciliaire, dans les deux orientations', () => {
+    [false, true].forEach((mirrored) => {
+      lashShadowBands(mirrored).forEach((bande) => {
+        const debut = bande.d.match(/-?\d+(?:\.\d+)?/g).slice(0, 2).map(Number);
+        // La bande part TOUJOURS du coin interne — c'est le premier point du tracé — et
+        // c'est lui qu'on réfléchit, pas le coin externe.
+        const coin = upperLidPoint(0);
+        const attendu = mirrored ? { x: VIEWBOX.width - coin.x, y: coin.y } : coin;
+        expect(debut[0]).toBeCloseTo(attendu.x, 1);
+        expect(debut[1]).toBeCloseTo(attendu.y, 1);
+      });
+    });
   });
 });

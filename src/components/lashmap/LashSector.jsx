@@ -28,9 +28,13 @@ function baseAppearanceOf({ selected, changed, dropActive }) {
   // qu'on vient de lui donner.
   if (dropActive) return { fill: PALETTE.sectorActiveFill, fillOpacity: 0.92, stroke: PALETTE.accentDark, strokeWidth: 2.4 };
   if (selected) return { fill: PALETTE.sectorActiveFill, fillOpacity: 0.82, stroke: PALETTE.accent, strokeWidth: 2.2 };
-  if (changed) return { fill: PALETTE.sectorActiveFill, fillOpacity: 0.4, stroke: PALETTE.accent, strokeWidth: 1.8 };
-  // Au repos : un liseré fin et rien d'autre. Le dessin doit primer sur le découpage.
-  return { fill: PALETTE.sectorFill, fillOpacity: 0.001, stroke: PALETTE.sectorStroke, strokeWidth: 0.9 };
+  if (changed) return { fill: PALETTE.sectorActiveFill, fillOpacity: 0.48, stroke: PALETTE.accent, strokeWidth: 1.8 };
+  // Au repos : un VOILE clair et un liseré fin, comme les panneaux translucides de la
+  // maquette. Le secteur était auparavant à peu près transparent (`fillOpacity: 0.001`), ce
+  // qui suffisait sur le papier crème — mais la planche est désormais posée sur une peau,
+  // où un liseré pâle sur fond chair devient illisible. Le dessin prime toujours sur le
+  // découpage : le voile reste assez léger pour qu'on lise la frange au travers.
+  return { fill: PALETTE.sectorFill, fillOpacity: 0.16, stroke: PALETTE.sectorStroke, strokeWidth: 1.1 };
 }
 
 /** Un secteur du schéma : un `<path>` indépendant, sa longueur, et ses marques d'état

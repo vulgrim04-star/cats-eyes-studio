@@ -1,4 +1,5 @@
 import { memo, useMemo } from 'react';
+import SkinField from './SkinField';
 import {
   PALETTE,
   buildBrow,
@@ -8,6 +9,7 @@ import {
   lidRidgePath,
   lidSurfacePath,
 } from '../../utils/lashGeometry';
+import { SKIN_ZONES_CLOSED } from '../../utils/lashSkin';
 
 /** Partie purement graphique du schéma : paupière, sourcil, cils naturels.
  *
@@ -31,6 +33,11 @@ function LashArtwork({ mirrored = false, prefix }) {
 
   return (
     <g aria-hidden="true">
+      {/* La planche est posée sur un visage elle aussi, comme la vue ouverte : c'est ce qui
+          fait qu'en basculant de l'une à l'autre on reconnaît le même œil, et non deux
+          dessins d'écoles différentes. */}
+      <SkinField prefix={prefix} zones={SKIN_ZONES_CLOSED} mirrored={mirrored} />
+
       <path d={lidSurfacePath()} fill={`url(#${prefix}-lid)`} />
       <path d={lidRidgePath()} fill={PALETTE.lidLow} opacity="0.34" />
       <path

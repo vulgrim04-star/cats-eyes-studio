@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { GRADIENT_BOUNDS, PALETTE } from '../../utils/lashGeometry';
 import { OPEN_GRADIENT_BOUNDS } from '../../utils/lashEyeOpen';
+import { SKIN_VIGNETTE } from '../../utils/lashSkin';
 
 /** Définitions du relief : dégradés et flou de profondeur.
  *
@@ -49,8 +50,43 @@ function LashDefs({ prefix, open = false }) {
         <stop offset="100%" stopColor={PALETTE.lidLow} stopOpacity="0.95" />
       </linearGradient>
 
-      {/* Flou de profondeur. UN SEUL filtre dans tout le schéma : à 3840 px de large, un
-          `feGaussianBlur` par plan se paierait cher à l'export PNG. */}
+      {/* PEAU — les trois définitions du modelé, portées par les DEUX vues depuis qu'elles
+          sont toutes deux posées sur un visage.
+
+          Le champ se dissout dans le papier sur ses bords : sans ce fondu on aurait un
+          rectangle de peau en travers de la planche, et un cadrage photographique là où l'on
+          veut un dessin. */}
+      <radialGradient
+        id={`${prefix}-skin-field`}
+        gradientUnits="userSpaceOnUse"
+        cx={SKIN_VIGNETTE.cx}
+        cy={SKIN_VIGNETTE.cy}
+        r={SKIN_VIGNETTE.r}
+      >
+        <stop offset="0%" stopColor={PALETTE.skinMid} />
+        <stop offset={`${SKIN_VIGNETTE.solid * 100}%`} stopColor={PALETTE.skinMid} />
+        <stop offset="100%" stopColor={PALETTE.paper} />
+      </radialGradient>
+
+      {/* Les deux SEULS remplissages du modelé. Ils sont en `objectBoundingBox` — l'unité
+          par défaut — donc ils s'adaptent à n'importe quelle ellipse : une clarté et une
+          ombre suffisent à tout le visage, et remplacent à elles deux le `feGaussianBlur`
+          qui floutait auparavant des formes pleines. Un dégradé ne coûte rien à rastériser
+          à 3840 px ; un flou, si. */}
+      <radialGradient id={`${prefix}-skin-light`}>
+        <stop offset="0%" stopColor={PALETTE.skinHigh} stopOpacity="1" />
+        <stop offset="55%" stopColor={PALETTE.skinHigh} stopOpacity="0.62" />
+        <stop offset="100%" stopColor={PALETTE.skinHigh} stopOpacity="0" />
+      </radialGradient>
+
+      <radialGradient id={`${prefix}-skin-shade`}>
+        <stop offset="0%" stopColor={PALETTE.skinLow} stopOpacity="1" />
+        <stop offset="55%" stopColor={PALETTE.skinLow} stopOpacity="0.6" />
+        <stop offset="100%" stopColor={PALETTE.skinLow} stopOpacity="0" />
+      </radialGradient>
+
+      {/* Flou de profondeur. LE SEUL filtre du schéma, et il le reste : il ne porte que la
+          centaine de cils du plan arrière, jamais une surface pleine. */}
       <filter id={`${prefix}-depth`} x="-8%" y="-8%" width="116%" height="116%">
         <feGaussianBlur stdDeviation="1.35" />
       </filter>
@@ -68,20 +104,11 @@ function LashDefs({ prefix, open = false }) {
 function OpenEyeDefs({ prefix }) {
   return (
     <>
-      {/* PEAU. Un dégradé radial qui se dissout dans le papier sur ses bords : l'œil est
-          installé dans un visage, pas découpé dans une photo. Sans ce fondu, on aurait un
-          rectangle de peau en travers de la planche. */}
-      <radialGradient id={`${prefix}-open-skin`} gradientUnits="userSpaceOnUse" cx="300" cy="250" r="330">
-        <stop offset="0%" stopColor={PALETTE.skinMid} />
-        <stop offset="52%" stopColor={PALETTE.skinMid} />
-        <stop offset="100%" stopColor={PALETTE.paper} />
-      </radialGradient>
-
       {/* GLOBE. Clair au centre, assombri vers les coins : c'est ce qui lui donne sa
           rondeur. Un blanc d'œil uni fait découpe de papier. */}
-      <radialGradient id={`${prefix}-open-sclera`} gradientUnits="userSpaceOnUse" cx="300" cy="252" r="240">
+      <radialGradient id={`${prefix}-open-sclera`} gradientUnits="userSpaceOnUse" cx="290" cy="240" r="268">
         <stop offset="0%" stopColor={PALETTE.sclera} />
-        <stop offset="58%" stopColor={PALETTE.sclera} />
+        <stop offset="72%" stopColor={PALETTE.sclera} />
         <stop offset="100%" stopColor={PALETTE.scleraShade} />
       </radialGradient>
 
@@ -93,27 +120,6 @@ function OpenEyeDefs({ prefix }) {
         <stop offset="82%" stopColor={PALETTE.irisDeep} />
         <stop offset="100%" stopColor={PALETTE.irisRim} />
       </radialGradient>
-
-      {/* OMBRE DE LA FRANGE sur le globe : dense contre la paupière, éteinte quelques
-          dizaines d'unités plus bas. Une ombre franche ferait un bandeau. */}
-      <linearGradient
-        id={`${prefix}-open-shadow`}
-        gradientUnits="userSpaceOnUse"
-        x1="0"
-        y1={OPEN_GRADIENT_BOUNDS.shadow.y0}
-        x2="0"
-        y2={OPEN_GRADIENT_BOUNDS.shadow.y1}
-      >
-        <stop offset="0%" stopColor={PALETTE.ink} stopOpacity="0.55" />
-        <stop offset="60%" stopColor={PALETTE.ink} stopOpacity="0.16" />
-        <stop offset="100%" stopColor={PALETTE.ink} stopOpacity="0" />
-      </linearGradient>
-
-      {/* Fondu large, pour la peau et l'ombre portée. Distinct du flou de profondeur, dix
-          fois plus étroit : les deux ne rendent pas le même service. */}
-      <filter id={`${prefix}-open-soft`} x="-25%" y="-25%" width="150%" height="150%">
-        <feGaussianBlur stdDeviation="9" />
-      </filter>
 
       <linearGradient
         id={`${prefix}-open-lash`}

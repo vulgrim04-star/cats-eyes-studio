@@ -39,7 +39,9 @@ export const PALETTE = {
   /** Remplissage du secteur retenu : crème chaud plutôt que blanc pur, qui ferait un
    *  trou dans la paupière modelée. */
   sectorActiveFill: '#FBF4E7',
-  sectorStroke: '#E0D5C6',
+  /** Liseré des secteurs au repos. Assombri depuis que la planche est posée sur une peau :
+   *  l'ancien beige très clair s'y noyait, alors qu'il ressortait sur le papier crème. */
+  sectorStroke: '#BFA98C',
   accent: '#C9A961',
   accentDark: '#7A612A',
   muted: '#9C8A73',
@@ -70,8 +72,13 @@ export const PALETTE = {
    *  yeux bruns décrédibiliserait tout l'aperçu. Ce noisette est assez neutre pour ne
    *  démentir personne, et assez vivant pour que le regard existe. Ce qu'on vient lire ici
    *  reste la frange. */
-  sclera: '#FCF8F2',
-  scleraShade: '#D9C7AB',
+  /** Le blanc de l'œil n'est pas blanc. Réchauffé et abaissé : à côté d'une peau, un blanc
+   *  franc fait découpe de papier collée dans le visage. */
+  sclera: '#F7EFE4',
+  /** L'ombre du globe reste TRÈS proche du blanc : c'est un galbe, pas un coin sombre. Un
+   *  pas plus marqué faisait apparaître une tache grise en haut de l'œil, qu'on prenait pour
+   *  l'ombre de la frange alors qu'elle venait du dégradé du globe. */
+  scleraShade: '#E3D6C0',
   irisLight: '#B4884C',
   iris: '#7A5630',
   irisDeep: '#4C331B',
@@ -81,12 +88,15 @@ export const PALETTE = {
   pupil: '#0D0805',
   highlight: '#FFFFFF',
   /** Peau. Trois valeurs seulement — clair, moyen, creux — parce que le modelé se fait par
-   *  fondus et non par aplats : au-delà, on dessine un maquillage, pas un visage. */
-  skinHigh: '#F6E7D5',
-  skinMid: '#EEDBC4',
-  skinLow: '#D9BC9A',
-  caruncle: '#E7BCA9',
-  vein: '#B87F79',
+   *  fondus et non par aplats : au-delà, on dessine un maquillage, pas un visage.
+   *
+   *  Elles sont volontairement PROCHES les unes des autres. Un écart plus large donnait un
+   *  visage trop sculpté, là où la maquette est presque plate : le relief doit se deviner,
+   *  et c'est la frange qui doit ressortir. */
+  skinHigh: '#F8EBDC',
+  skinMid: '#F0DFCA',
+  skinLow: '#DDC5A8',
+  caruncle: '#E3B6A4',
   /** Modelé de la paupière : du creux de l'orbite (haut) au bord ciliaire (bas). */
   lidHigh: '#FBF5EC',
   lidLow: '#EADCC7',
