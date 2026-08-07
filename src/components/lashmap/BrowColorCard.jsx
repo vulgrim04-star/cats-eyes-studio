@@ -31,7 +31,7 @@ export default function BrowColorCard({ look, onChange, embedded = false }) {
             onClick={() => onChange({ toneId: t.id })}
             title={`n°${t.number} ${t.label}`}
           >
-            <span className={styles.chip} style={{ background: t.hex }} aria-hidden="true" />
+            <span className={styles.swatchChip} style={{ background: t.hex }} aria-hidden="true" />
             <span className={styles.swatchLabel}>
               n°{t.number}
               <br />

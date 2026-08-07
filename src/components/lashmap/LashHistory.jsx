@@ -16,13 +16,10 @@ export default function LashHistory({ previousMaps, comparedId, onCompare, diff 
   if (previousMaps.length === 0) return null;
 
   return (
-    <section className={styles.section}>
-      <header className={styles.sectionHeader}>
-        <h2 className={styles.sectionTitle}>Comparer</h2>
-        <span className={styles.sectionMeta}>
-          {comparedId ? 'Les secteurs modifiés sont surlignés sur le schéma' : 'Choisissez une séance de référence'}
-        </span>
-      </header>
+    <>
+      <p className={styles.sectionMeta}>
+        {comparedId ? 'Les secteurs modifiés sont surlignés sur le schéma' : 'Choisissez une séance de référence'}
+      </p>
 
       <div className={styles.compareRow}>
         <button
@@ -81,6 +78,6 @@ export default function LashHistory({ previousMaps, comparedId, onCompare, diff 
           )}
         </ul>
       )}
-    </section>
+    </>
   );
 }

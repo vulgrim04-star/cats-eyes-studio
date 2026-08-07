@@ -47,9 +47,10 @@ export default function LashProperties({ editor, eye, lengthLabel, embedded = fa
   const zone = selected === null ? null : effectiveZone(eye, selected);
   const suggestion = suggestSetShape(eye.global.curl, eye.global.style);
 
+  // Sans son propre cadre ni son propre titre : elle vit dans une `StudioCard`, qui les
+  // porte déjà. Les garder afficherait « Réglages de l'œil » deux fois de suite.
   const eyeCard = (
-    <section className={styles.panelCard}>
-      <h3 className={styles.panelTitle}>Réglages de l’œil</h3>
+    <section className={styles.panelGroup}>
       {FIELDS.map(({ field, label, options, unit }) => (
         <Select
           key={field}

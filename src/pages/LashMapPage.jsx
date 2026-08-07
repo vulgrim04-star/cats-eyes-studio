@@ -8,11 +8,12 @@ import LashSectorMenu from '../components/lashmap/LashSectorMenu';
 import LashToolbar from '../components/lashmap/LashToolbar';
 import LashQuickPicker from '../components/lashmap/LashQuickPicker';
 import LashProperties from '../components/lashmap/LashProperties';
-import LashNotes from '../components/lashmap/LashNotes';
+import { LashObservations, LashSessionFields } from '../components/lashmap/LashNotes';
 import LashTimeline from '../components/lashmap/LashTimeline';
 import LashHistory from '../components/lashmap/LashHistory';
 import LashTemplates from '../components/lashmap/LashTemplates';
 import LashExportMenu from '../components/lashmap/LashExportMenu';
+import StudioCard from '../components/lashmap/StudioCard';
 import BrowStudio from '../components/lashmap/BrowStudio';
 import { useClient } from '../hooks/useClients';
 import { useAppointments, getAppointmentsByClient } from '../hooks/useAppointments';
@@ -33,9 +34,23 @@ import { buildSectors } from '../utils/lashGeometry';
 import { estimateNextRetouchDate } from '../utils/lashCycle';
 import { formatDateLong, todayISO } from '../utils/date';
 import { fullName, initials } from '../utils/format';
+import { DESKTOP_QUERY, useMediaQuery } from '../hooks/useMediaQuery';
+// Nommé `layout` et non `studio` : la page a déjà un état du même nom — le studio
+// affiché — qui masquait cet import silencieusement. Toutes les classes sortaient alors
+// `undefined`, donc une page entièrement sans styles, sans la moindre erreur au build.
+import layout from '../components/lashmap/styles/studio.module.css';
 import styles from './LashMapPage.module.css';
 
 const SIDES = ['right', 'left'];
+
+/** Les cartes vers lesquelles les raccourcis de la barre de contexte font défiler. Un seul
+ *  tableau, pour que la barre et les cartes ne puissent pas diverger. */
+const LASH_SECTIONS = [
+  { id: 'properties', label: 'Réglages', icon: 'settings' },
+  { id: 'session', label: 'Séance', icon: 'clipboard' },
+  { id: 'notes', label: 'Notes', icon: 'edit' },
+  { id: 'history', label: 'Historique', icon: 'clock' },
+];
 
 const STUDIO_TITLES = { lash: 'Lash Studio', brow: 'Brow Lift' };
 const STUDIO_SUBTITLES = { brow: 'Sourcils' };
@@ -53,6 +68,8 @@ export default function LashMapPage() {
   const { appointments } = useAppointments();
   const { salon, modules } = useSettings();
   const { showToast } = useToast();
+  const isDesktop = useMediaQuery(DESKTOP_QUERY);
+  const cardRefs = useRef({});
 
   // Les deux yeux sont montés en permanence (le second hors écran) : l'export PDF et
   // l'impression les sérialisent tous les deux sans avoir à changer d'onglet.
@@ -123,6 +140,19 @@ export default function LashMapPage() {
     showToast('Lash map enregistrée', 'success');
     if (mapId === NEW_MAP_ID) navigate(`/clientes/${id}/lash-map/${savedId}`, { replace: true });
   }, [editor, prestation, showToast, mapId, navigate, id]);
+
+  /** Sur ordinateur, un raccourci fait défiler jusqu'à la carte ; sur téléphone il ouvre la
+   *  feuille glissante, la colonne n'y étant pas montée. */
+  const openSection = useCallback(
+    (sectionId) => {
+      if (sectionId === 'properties' && !isDesktop) {
+        setSheetOpen(true);
+        return;
+      }
+      cardRefs.current[sectionId]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    },
+    [isDesktop]
+  );
 
   const confirmLeave = useCallback(
     () => !dirty || window.confirm('Des modifications ne sont pas enregistrées. Quitter quand même ?'),
@@ -246,128 +276,203 @@ export default function LashMapPage() {
       {activeStudio === 'brow' && <BrowStudio client={client} prestation={prestation} />}
 
       {activeStudio === 'lash' && (
-      <>
-      {editor.carriedFrom && (
-        <div className={styles.carryBanner}>
-          <Icon name="check-circle" size={16} />
-          <div className={styles.carryText}>
-            <strong>Repris de la séance du {formatDateLong(editor.carriedFrom.date)}</strong>
-            <span>{carriedSummary} — modifie ce qui change, le reste est déjà là.</span>
-          </div>
-          <button type="button" className="btn btn-ghost btn-sm" onClick={editor.startBlank}>
-            Repartir d’une fiche vierge
-          </button>
-        </div>
-      )}
+        <div className={layout.wrap}>
+          {/* Barre de contexte : l'état de la séance, et où sont les réglages. La cliente
+              est déjà nommée juste au-dessus par la page — la répéter serait du bruit. */}
+          <header className={layout.contextBar}>
+            <span className={layout.contextState}>
+              <Icon name={editor.carriedFrom ? 'check-circle' : 'clock'} size={15} />
+              {editor.carriedFrom
+                ? `Repris de la séance du ${formatDateLong(editor.carriedFrom.date)} — ${carriedSummary}`
+                : `${formatDateLong(map.date)} · ${map.poseType}`}
+            </span>
 
-      <div className={styles.layout}>
-        <main className={styles.canvasColumn}>
-          <div className={styles.eyeTabs} role="tablist" aria-label="Œil affiché">
-            {SIDES.map((value) => (
-              <button
-                key={value}
-                type="button"
-                role="tab"
-                aria-selected={side === value}
-                className={`${styles.eyeTab} ${side === value ? styles.eyeTabActive : ''}`}
-                onClick={() => { editor.setSide(value); editor.setSelected(null); interactions.closeMenu(); }}
-              >
-                {SIDE_LABEL[value]}
+            {editor.carriedFrom && (
+              <button type="button" className="btn btn-ghost btn-sm" onClick={editor.startBlank}>
+                Repartir d’une fiche vierge
               </button>
-            ))}
+            )}
+
+            <nav className={layout.shortcuts} aria-label="Aller au réglage">
+              {LASH_SECTIONS.map(({ id: sectionId, label, icon }) => (
+                <button
+                  key={sectionId}
+                  type="button"
+                  className={layout.shortcut}
+                  onClick={() => openSection(sectionId)}
+                >
+                  <Icon name={icon} size={14} />
+                  <span>{label}</span>
+                </button>
+              ))}
+            </nav>
+          </header>
+
+          <section className={layout.stage}>
+            <header className={layout.stageHead}>
+              <h2 className={layout.stageTitle}>
+                <Icon name="eye" size={15} /> Schéma
+              </h2>
+              <div className={layout.stageActions} role="tablist" aria-label="Œil affiché">
+                {SIDES.map((value) => (
+                  <button
+                    key={value}
+                    type="button"
+                    role="tab"
+                    aria-selected={side === value}
+                    className={`${layout.chip} ${side === value ? layout.chipActive : ''}`}
+                    onClick={() => { editor.setSide(value); editor.setSelected(null); interactions.closeMenu(); }}
+                  >
+                    {SIDE_LABEL[value]}
+                  </button>
+                ))}
+              </div>
+            </header>
+
+            {safetyText && (
+              <div className={styles.safetyBanner} role="status">
+                <Icon name="alert-triangle" size={17} />
+                <p className={styles.safetyText}>{safetyText}</p>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => {
+                    // On ramène à la limite, on ne réécrit pas la pose : les secteurs qui
+                    // la respectent gardent exactement la valeur choisie.
+                    unsafe.forEach((sector) => editor.setLength(sector.index, sector.maxMm));
+                    showToast(`${unsafe.length} secteur(s) ramené(s) à ${unsafe[0].maxMm} mm`, 'success');
+                  }}
+                >
+                  Ramener à {unsafe[0].maxMm} mm
+                </button>
+              </div>
+            )}
+
+            <div className={layout.canvasFrame}>
+              <LashMapCanvas
+                ref={(node) => { svgs.current[side] = node; }}
+                map={map}
+                side={side}
+                selectedIndex={selected}
+                changedIndexes={changed}
+                unsafeIndexes={unsafeIndexes}
+                dropIndex={interactions.dropIndex}
+                onSelect={interactions.select}
+                onActivate={interactions.activate}
+                onSectorPointerDown={interactions.pointerDown}
+                onSectorKeyDown={interactions.keyDown}
+                onSectorDragOver={interactions.dragOver}
+                onSectorDragLeave={interactions.dragLeave}
+                onSectorDrop={interactions.drop}
+              />
+
+              {openMenuSector && (
+                <LashSectorMenu
+                  sector={openMenuSector}
+                  currentLength={eye.zones[interactions.menuIndex].length}
+                  onPick={(value) => editor.setLength(interactions.menuIndex, value)}
+                  onClose={interactions.closeMenu}
+                />
+              )}
+            </div>
+
+            <LashToolbar editor={editor} onOpenTemplates={() => setTemplatesOpen(true)} onUndo={interactions.undo} />
+
+            <LashQuickPicker editor={editor} selectedIndex={selected} />
+          </section>
+
+          {/* Colonne montée seulement sur ordinateur : sur téléphone les mêmes réglages
+              vivent dans la feuille glissante, et les monter deux fois redessinerait le
+              schéma pour rien. */}
+          {isDesktop && (
+            <div className={`${layout.column} scrollbar-hidden`}>
+              <div ref={(node) => { cardRefs.current.properties = node; }} className={layout.columnSlot}>
+                <StudioCard title="Réglages de l’œil" icon="settings" hint={lengthRange(eye)}>
+                  <LashProperties editor={editor} eye={eye} lengthLabel={lengthRange(eye)} embedded />
+                </StudioCard>
+              </div>
+
+              <div ref={(node) => { cardRefs.current.session = node; }} className={layout.columnSlot}>
+                <StudioCard title="Séance" icon="clipboard">
+                  <LashSessionFields editor={editor} />
+                </StudioCard>
+              </div>
+            </div>
+          )}
+
+          <div className={layout.band}>
+            {/* Sur téléphone la colonne n'est pas montée : la Séance revient ici, sinon
+                elle deviendrait injoignable. */}
+            {!isDesktop && (
+              <StudioCard title="Séance" icon="clipboard">
+                <LashSessionFields editor={editor} />
+              </StudioCard>
+            )}
+
+            <div ref={(node) => { cardRefs.current.notes = node; }}>
+              <StudioCard title="Notes & observations" icon="edit">
+                <LashObservations editor={editor} />
+              </StudioCard>
+            </div>
+
+            <div ref={(node) => { cardRefs.current.history = node; }}>
+              <StudioCard title="Historique" icon="clock">
+                {previousMaps.length === 0 ? (
+                  <p className={layout.cardEmpty}>Première lash map de cette cliente.</p>
+                ) : (
+                  <>
+                    <LashHistory
+                      previousMaps={previousMaps}
+                      comparedId={comparedId}
+                      onCompare={setComparedId}
+                      diff={diff}
+                    />
+                    <LashTimeline
+                      maps={previousMaps}
+                      currentId={editor.savedId}
+                      onOpen={(target) => confirmLeave() && navigate(`/clientes/${id}/lash-map/${target.id}`)}
+                    />
+                  </>
+                )}
+              </StudioCard>
+            </div>
           </div>
 
-          {safetyText && (
-            <div className={styles.safetyBanner} role="status">
-              <Icon name="alert-triangle" size={17} />
-              <p className={styles.safetyText}>{safetyText}</p>
-              <button
-                type="button"
-                className="btn btn-secondary btn-sm"
-                onClick={() => {
-                  // On ramène à la limite, on ne réécrit pas la pose : les secteurs qui
-                  // la respectent gardent exactement la valeur choisie.
-                  unsafe.forEach((sector) => editor.setLength(sector.index, sector.maxMm));
-                  showToast(`${unsafe.length} secteur(s) ramené(s) à ${unsafe[0].maxMm} mm`, 'success');
-                }}
-              >
-                Ramener à {unsafe[0].maxMm} mm
+          {!isDesktop && (
+            <div className={layout.mobileBar} role="group" aria-label="Réglages">
+              <button type="button" className={layout.mobileBtn} onClick={() => setSheetOpen(true)}>
+                <Icon name="settings" size={17} />
+                <span>Réglages</span>
+              </button>
+              <button type="button" className={layout.mobileBtn} onClick={() => setTemplatesOpen(true)}>
+                <Icon name="sparkles" size={17} />
+                <span>Modèles</span>
               </button>
             </div>
           )}
 
-          <div className={styles.canvasWrap}>
+          {/* Second œil, monté hors écran : sert uniquement aux exports (PDF, impression).
+              Il ne doit JAMAIS disparaître d'une refonte de mise en page — sans lui, la
+              fiche PDF sortirait avec un seul œil, sans que rien ne le signale. */}
+          <div className={styles.exportStage} aria-hidden="true">
             <LashMapCanvas
-              ref={(node) => { svgs.current[side] = node; }}
+              ref={(node) => { svgs.current[otherSide] = node; }}
               map={map}
-              side={side}
-              selectedIndex={selected}
-              changedIndexes={changed}
-              unsafeIndexes={unsafeIndexes}
-              dropIndex={interactions.dropIndex}
-              onSelect={interactions.select}
-              onActivate={interactions.activate}
-              onSectorPointerDown={interactions.pointerDown}
-              onSectorKeyDown={interactions.keyDown}
-              onSectorDragOver={interactions.dragOver}
-              onSectorDragLeave={interactions.dragLeave}
-              onSectorDrop={interactions.drop}
+              side={otherSide}
+              readOnly
             />
-
-            {openMenuSector && (
-              <LashSectorMenu
-                sector={openMenuSector}
-                currentLength={eye.zones[interactions.menuIndex].length}
-                onPick={(value) => editor.setLength(interactions.menuIndex, value)}
-                onClose={interactions.closeMenu}
-              />
-            )}
           </div>
 
-          <LashToolbar editor={editor} onOpenTemplates={() => setTemplatesOpen(true)} onUndo={interactions.undo} />
+          <BottomSheet
+            open={sheetOpen}
+            onClose={() => setSheetOpen(false)}
+            title={selected === null ? 'Réglages de l’œil' : `Secteur ${selected + 1}`}
+          >
+            <LashProperties editor={editor} eye={eye} lengthLabel={lengthRange(eye)} embedded />
+          </BottomSheet>
 
-          <LashQuickPicker editor={editor} selectedIndex={selected} />
-
-          <button type="button" className={`btn btn-secondary ${styles.sheetTrigger}`} onClick={() => setSheetOpen(true)}>
-            <Icon name="settings" size={15} /> Réglages détaillés
-          </button>
-        </main>
-
-        <aside className={styles.panelColumn}>
-          <LashProperties editor={editor} eye={eye} lengthLabel={lengthRange(eye)} />
-        </aside>
-      </div>
-
-      <LashNotes editor={editor} suggestedRetouch={suggestedRetouch} />
-
-      <LashHistory previousMaps={previousMaps} comparedId={comparedId} onCompare={setComparedId} diff={diff} />
-
-      <LashTimeline
-        maps={previousMaps}
-        currentId={editor.savedId}
-        onOpen={(target) => confirmLeave() && navigate(`/clientes/${id}/lash-map/${target.id}`)}
-      />
-
-      {/* Second œil, monté hors écran : sert uniquement aux exports (PDF, impression). */}
-      <div className={styles.exportStage} aria-hidden="true">
-        <LashMapCanvas
-          ref={(node) => { svgs.current[otherSide] = node; }}
-          map={map}
-          side={otherSide}
-          readOnly
-        />
-      </div>
-
-      <BottomSheet
-        open={sheetOpen}
-        onClose={() => setSheetOpen(false)}
-        title={selected === null ? 'Réglages de l’œil' : `Secteur ${selected + 1}`}
-      >
-        <LashProperties editor={editor} eye={eye} lengthLabel={lengthRange(eye)} embedded />
-      </BottomSheet>
-
-      <LashTemplates open={templatesOpen} onClose={() => setTemplatesOpen(false)} editor={editor} />
-      </>
+          <LashTemplates open={templatesOpen} onClose={() => setTemplatesOpen(false)} editor={editor} />
+        </div>
       )}
     </div>
   );

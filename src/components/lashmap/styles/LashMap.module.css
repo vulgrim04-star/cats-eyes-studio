@@ -818,3 +818,11 @@
   font-size: 0.75rem;
   color: var(--color-text-muted);
 }
+
+/* Groupe de champs sans cadre : la carte qui l'accueille porte déjà son fond et son titre.
+   Deux surfaces imbriquées feraient un cadre dans un cadre, et deux fois le même titre. */
+.panelGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}

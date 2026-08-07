@@ -1,133 +1,46 @@
-/* Brow Lift — quatre zones visibles ensemble.
+/* Brow Lift — ce qui lui est PROPRE.
  *
- *   • barre de contexte   : la cliente, et les raccourcis vers les réglages
- *   • scène (centre)      : le tracé des deux sourcils, et ses puces de réglage
- *   • colonne (droite)    : les cartes de réglages, défilantes
- *   • bandeau (bas)       : photos, historique, prestation
+ * L'ossature — grille en quatre zones, cartes, champs, pastilles, barre du téléphone — vit
+ * dans `studio.module.css`, partagée avec la Lash Map. Les classes reprises ci-dessous par
+ * `composes` sont là pour que les composants n'aient qu'un seul module à importer ; elles
+ * ne redéfinissent rien.
  *
- * UN QUATRIÈME CRAN, À 1280 PX. L'échelle du projet en compte trois — 640 / 768 / 1024,
- * voir `variables.css`, dont le commentaire demande d'y réfléchir avant d'en ajouter un.
- * Voici pourquoi celui-ci se justifie. À 1024 px, la barre latérale de l'application prend
- * 260 px et les marges 64 : il reste 700 px. Deux colonnes y donneraient une scène de
- * 330 px — mesuré, pas estimé — soit un dessin de sourcils plus petit que ses propres
- * vignettes de sélection. La scène est ce que la cliente regarde ; la rétrécir jusqu'à
- * l'illisible pour tenir une convention serait tenir la convention contre son objet.
- * En dessous de 1280, tout s'empile donc sur une seule colonne, scène en pleine largeur.
- *
- * Pas de rail vertical propre au module : la barre latérale de l'application en tient déjà
- * lieu. Un second rail à côté du premier ne ferait que voler à la scène la largeur qui lui
- * sert justement à montrer quelque chose. */
+ * Ne reste ici que le métier du sourcil : la bibliothèque de formes, le nuancier, la
+ * retouche de zone, l'historique et la frise. */
 
-.wrap {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-areas:
-    'context'
-    'stage'
-    'column'
-    'band';
-  gap: var(--space-5);
-}
+.wrap { composes: wrap from './studio.module.css'; }
+.contextBar { composes: contextBar from './studio.module.css'; }
+.contextState { composes: contextState from './studio.module.css'; }
+.shortcuts { composes: shortcuts from './studio.module.css'; }
+.shortcut { composes: shortcut from './studio.module.css'; }
+.stage { composes: stage from './studio.module.css'; }
+.stageHead { composes: stageHead from './studio.module.css'; }
+.stageTitle { composes: stageTitle from './studio.module.css'; }
+.stageCaption { composes: stageCaption from './studio.module.css'; }
+.canvasFrame { composes: canvasFrame from './studio.module.css'; }
+.column { composes: column from './studio.module.css'; }
+.columnSlot { composes: columnSlot from './studio.module.css'; }
+.band { composes: band from './studio.module.css'; }
+.card { composes: card from './studio.module.css'; }
+.cardBare { composes: cardBare from './studio.module.css'; }
+.cardHead { composes: cardHead from './studio.module.css'; }
+.cardTitle { composes: cardTitle from './studio.module.css'; }
+.cardHint { composes: cardHint from './studio.module.css'; }
+.cardEmpty { composes: cardEmpty from './studio.module.css'; }
+.cardFoot { composes: cardFoot from './studio.module.css'; }
+.row2 { composes: row2 from './studio.module.css'; }
+.field { composes: field from './studio.module.css'; }
+.label { composes: label from './studio.module.css'; }
+.slider { composes: slider from './studio.module.css'; }
+.actions { composes: actions from './studio.module.css'; }
+.srOnly { composes: srOnly from './studio.module.css'; }
+.chipRow { composes: chipRow from './studio.module.css'; }
+.chip2 { composes: chip from './studio.module.css'; }
+.chip2Active { composes: chipActive from './studio.module.css'; }
+.mobileBar { composes: mobileBar from './studio.module.css'; }
+.mobileBtn { composes: mobileBtn from './studio.module.css'; }
 
-@media (min-width: 1280px) {
-  .wrap {
-    grid-template-columns: minmax(0, 1fr) minmax(300px, 380px);
-    grid-template-areas:
-      'context context'
-      'stage   column'
-      'band    band';
-    align-items: start;
-  }
-}
-
-/* --- Barre de contexte ------------------------------------------------------------ */
-
-.contextBar {
-  grid-area: context;
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-  padding: var(--space-3) var(--space-4);
-  background: var(--color-white);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-}
-
-.contextState {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  min-width: 0;
-  font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--color-text-soft);
-}
-
-.shortcuts {
-  display: flex;
-  gap: var(--space-2);
-  margin-left: auto;
-  flex-wrap: wrap;
-}
-
-.shortcut {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 36px;
-  padding: 0 13px;
-  border: none;
-  border-radius: var(--radius-pill);
-  background: var(--color-cream);
-  font-size: 0.76rem;
-  font-weight: 600;
-  color: var(--color-text-soft);
-  transition: background var(--transition-fast), color var(--transition-fast);
-}
-
-.shortcut:hover {
-  background: var(--color-accent-light);
-  color: var(--color-accent-dark);
-}
-
-/* --- Scène ------------------------------------------------------------------------ */
-
-.stage {
-  grid-area: stage;
-  background: var(--color-white);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  padding: var(--space-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-.stageHead {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-}
-
-.stageTitle {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  margin: 0;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-}
-
-/* Le cadre du dessin apparaît en fondu : la bascule d'un œil à l'autre, ou d'une forme à
-   l'autre, doit se lire comme un changement d'état et non comme un saut de mise en page. */
-.canvasFrame {
-  animation: stageIn var(--transition-panel) both;
-}
+/* --- Le dessin ------------------------------------------------------------------------ */
 
 .canvas {
   display: block;
@@ -145,211 +58,6 @@
 .handle:focus-visible circle {
   stroke: var(--color-accent-dark);
   stroke-width: 3;
-}
-
-.stageCaption {
-  margin: 0;
-  font-size: 0.78rem;
-  color: var(--color-text-muted);
-}
-
-/* --- Puces d'effet et de zone ------------------------------------------------------ */
-
-.chipRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-}
-
-.chip2 {
-  padding: 0 13px;
-  min-height: 36px;
-  border: none;
-  border-radius: var(--radius-pill);
-  background: var(--color-cream);
-  font-size: 0.76rem;
-  font-weight: 600;
-  color: var(--color-text-soft);
-  transition: background var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
-}
-
-.chip2:hover {
-  transform: translateY(-1px);
-}
-
-.chip2Active {
-  background: var(--color-accent);
-  color: var(--color-on-accent);
-}
-
-/* --- Colonne de réglages ----------------------------------------------------------- */
-
-.column {
-  grid-area: column;
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
-/* Sur grand écran, c'est la SCÈNE qui reste à l'écran pendant qu'on descend dans les
-   réglages, et non l'inverse. C'est tout l'intérêt d'avoir sorti les réglages des onglets :
-   on doit voir ce qu'on règle au moment où on le règle. Contraindre la colonne à la hauteur
-   de l'écran aurait fait le contraire — un panneau qui défile sur lui-même, sous un dessin
-   qui s'en va. */
-@media (min-width: 1280px) {
-  .stage {
-    position: sticky;
-    top: var(--space-4);
-  }
-}
-
-.columnSlot {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
-/* --- Bandeau bas -------------------------------------------------------------------- */
-
-.band {
-  grid-area: band;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: var(--space-4);
-  align-items: start;
-}
-
-/* Trois de front seulement quand chacune dispose d'environ 350 px : en dessous, la carte
-   Détails prestation coupe son menu de prestation en plein mot. */
-@media (min-width: 1280px) {
-  .band {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-/* --- Carte -------------------------------------------------------------------------- */
-
-.card {
-  background: var(--color-white);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-sm);
-  padding: var(--space-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-  animation: cardIn var(--transition-panel) both;
-}
-
-/* Dans une feuille glissante, la carte EST déjà la feuille : pas de seconde surface. */
-.cardBare {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-3);
-}
-
-/* Cascade : chaque carte entre 40 ms après la précédente, dans les deux zones qui en
-   empilent plusieurs. Au-delà de la quatrième, le décalage cesse — l'effet deviendrait
-   une attente. */
-.columnSlot:nth-child(2) .card,
-.band > .card:nth-child(2) {
-  animation-delay: 40ms;
-}
-.columnSlot:nth-child(3) .card,
-.band > .card:nth-child(3) {
-  animation-delay: 80ms;
-}
-.columnSlot:nth-child(4) .card {
-  animation-delay: 120ms;
-}
-
-.cardHead {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.cardTitle {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  margin: 0;
-  margin-right: auto;
-  font-size: 0.74rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-}
-
-.cardHint {
-  margin: 0;
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--color-accent-dark);
-}
-
-.cardEmpty {
-  margin: 0;
-  font-size: 0.8rem;
-  line-height: 1.5;
-  color: var(--color-text-muted);
-}
-
-/* --- Champs ------------------------------------------------------------------------- */
-
-.row2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: var(--space-3);
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.label {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
-  font-size: 0.74rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--color-text-muted);
-}
-
-.label strong {
-  font-size: 0.86rem;
-  text-transform: none;
-  letter-spacing: 0;
-  color: var(--color-text);
-}
-
-.slider {
-  width: 100%;
-  accent-color: var(--color-accent);
-}
-
-.actions {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-}
-
-.srOnly {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
 }
 
 /* --- Bibliothèque de formes --------------------------------------------------------- */
@@ -440,7 +148,7 @@
   background: var(--color-accent-light);
 }
 
-.chip {
+.swatchChip {
   display: block;
   height: 40px;
   border-radius: var(--radius-sm);
@@ -457,30 +165,13 @@
   text-align: center;
 }
 
-/* --- Conseil ------------------------------------------------------------------------- */
-
-.slotHead {
-  display: flex;
-  align-items: baseline;
-  gap: var(--space-2);
-  flex-wrap: wrap;
-}
-
-/* Les trois tuiles : forme, couleur, intensité. Côte à côte dès qu'il y a la place, parce
-   que c'est ainsi qu'on en parle à une cliente — d'un seul tenant. */
+/* --- Photos de la séance -------------------------------------------------------------- */
 
 .slotLabel {
   font-size: 0.66rem;
   font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--color-text-muted);
-}
-
-.cardFoot {
-  margin: 0;
-  font-size: 0.72rem;
-  line-height: 1.45;
   color: var(--color-text-muted);
 }
 

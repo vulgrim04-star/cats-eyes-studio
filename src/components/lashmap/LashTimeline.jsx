@@ -11,11 +11,10 @@ export default function LashTimeline({ maps, currentId, onOpen }) {
   if (entries.length === 0) return null;
 
   return (
-    <section className={styles.section}>
-      <header className={styles.sectionHeader}>
-        <h2 className={styles.sectionTitle}>Historique</h2>
-        <span className={styles.sectionMeta}>{entries.length} séance{entries.length > 1 ? 's' : ''} enregistrée{entries.length > 1 ? 's' : ''}</span>
-      </header>
+    <>
+      <p className={styles.sectionMeta}>
+        {entries.length} séance{entries.length > 1 ? 's' : ''} enregistrée{entries.length > 1 ? 's' : ''}
+      </p>
 
       <div className={styles.timeline}>
         {entries.map((map, index) => (
@@ -36,6 +35,6 @@ export default function LashTimeline({ maps, currentId, onOpen }) {
           </button>
         ))}
       </div>
-    </section>
+    </>
   );
 }
