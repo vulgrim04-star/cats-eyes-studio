@@ -461,3 +461,15 @@
     transform: none;
   }
 }
+
+/* --- Focus ----------------------------------------------------------------------------
+   Le contour de focus est le même partout, et il ne dépend pas de la couleur de fond de
+   l'élément : une praticienne qui navigue au clavier doit savoir où elle est, y compris
+   sur une pastille dorée où un contour doré serait invisible. */
+
+.chip:focus-visible,
+.shortcut:focus-visible,
+.mobileBtn:focus-visible {
+  outline: 2px solid var(--color-accent-dark);
+  outline-offset: 2px;
+}

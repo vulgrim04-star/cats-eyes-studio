@@ -230,31 +230,39 @@
   display: none;
 }
 
+/* Cousine de la pastille commune (`studio.module.css`), avec deux écarts assumés :
+   44 px de haut plutôt que 38 — c'est la cible qu'on vise le plus souvent en cabine, et
+   souvent à l'aveugle — et un coin moins arrondi, qui se saisit mieux du regard qu'une
+   pilule quand on doit la FAIRE GLISSER sur un secteur. Tout le reste — l'état actif en
+   aplat doré, la typographie, la transition — est celui de partout ailleurs. */
 .chip {
   flex: 0 0 auto;
   min-width: 46px;
   min-height: 44px;
-  padding: 0 12px;
+  padding: 0 14px;
   border-radius: var(--radius-md);
-  border: 1.5px solid var(--color-border);
-  background: var(--color-white);
+  border: none;
+  background: var(--color-cream);
   color: var(--color-text-soft);
-  font-size: 0.86rem;
+  font-size: 0.82rem;
   font-weight: 600;
   cursor: grab;
-  transition: border-color 180ms ease-in-out, background 180ms ease-in-out, color 180ms ease-in-out;
+  transition: background var(--transition-fast), color var(--transition-fast), transform var(--transition-fast);
 }
 .chip:hover {
-  border-color: var(--color-accent);
+  transform: translateY(-1px);
+  color: var(--color-accent-dark);
 }
 .chip:active {
   cursor: grabbing;
 }
 
 .chipActive {
-  border-color: var(--color-accent);
-  background: var(--color-accent-light);
-  color: var(--color-accent-dark);
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+.chipActive:hover {
+  color: var(--color-on-accent);
 }
 
 .chipDragging {
@@ -275,19 +283,21 @@
   gap: var(--space-4);
 }
 
+/* Panneau INTERNE, sur fond crème et sans ombre : depuis que les réglages vivent dans une
+   `StudioCard`, une seconde carte blanche à l'intérieur faisait un cadre dans un cadre — le
+   même défaut que la frise du Brow Lift avait avant qu'on l'en débarrasse. */
 .panelCard {
-  background: var(--color-white);
-  border-radius: var(--radius-lg);
-  padding: var(--space-4);
-  box-shadow: var(--shadow-sm);
+  background: var(--color-cream);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
 }
 
 .panelTitle {
   margin: 0 0 var(--space-3);
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.07em;
   color: var(--color-text-muted);
 }
 

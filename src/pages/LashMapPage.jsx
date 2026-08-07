@@ -230,6 +230,10 @@ export default function LashMapPage() {
         </div>
       )}
 
+      {/* Un rang d'onglets à un seul onglet n'est pas une navigation, c'est une étiquette :
+          le titre de la page dit déjà où l'on est. Même règle que le sélecteur de
+          prestation, qui disparaît lui aussi quand il n'y a rien à choisir. */}
+      {availableStudios.length > 1 && (
       <div className={styles.studioTabs} role="tablist" aria-label="Studio affiché">
         {availableStudios.map(({ id: value, label, icon }) => (
           <button
@@ -244,6 +248,7 @@ export default function LashMapPage() {
           </button>
         ))}
       </div>
+      )}
 
       <section className={styles.clientBar}>
         <span className={styles.avatar}>{initials(client.firstName, client.lastName)}</span>
