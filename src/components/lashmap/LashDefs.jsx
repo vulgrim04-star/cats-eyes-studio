@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { GRADIENT_BOUNDS, PALETTE } from '../../utils/lashGeometry';
+import { OPEN_GRADIENT_BOUNDS } from '../../utils/lashEyeOpen';
 
 /** Définitions du relief : dégradés et flou de profondeur.
  *
@@ -45,6 +46,57 @@ function LashDefs({ prefix }) {
         <stop offset="70%" stopColor={PALETTE.lidLow} stopOpacity="0.72" />
         <stop offset="100%" stopColor={PALETTE.lidLow} stopOpacity="0.95" />
       </linearGradient>
+
+      {/* Vue œil ouvert. Ses cils REMONTENT : réutiliser les bornes ci-dessus, calées sur
+          une frange qui descend, teindrait toute la frange ouverte du seul noir de racine —
+          un aplat sans relief, et rien ne le signalerait puisque le dessin s'afficherait
+          normalement. D'où ces trois définitions de plus, toujours émises : un SVG exporté
+          depuis la vue ouverte doit emporter les siennes. */}
+      <linearGradient
+        id={`${prefix}-open-lash`}
+        gradientUnits="userSpaceOnUse"
+        x1="0"
+        y1={OPEN_GRADIENT_BOUNDS.lash.y0}
+        x2="0"
+        y2={OPEN_GRADIENT_BOUNDS.lash.y1}
+      >
+        <stop offset="0%" stopColor={PALETTE.lashRoot} />
+        <stop offset="55%" stopColor={PALETTE.lashRoot} />
+        <stop offset="100%" stopColor={PALETTE.lashTip} />
+      </linearGradient>
+
+      <linearGradient
+        id={`${prefix}-open-lash-back`}
+        gradientUnits="userSpaceOnUse"
+        x1="0"
+        y1={OPEN_GRADIENT_BOUNDS.lash.y0}
+        x2="0"
+        y2={OPEN_GRADIENT_BOUNDS.lash.y1}
+      >
+        <stop offset="0%" stopColor={PALETTE.lashBackRoot} />
+        <stop offset="100%" stopColor={PALETTE.lashBackTip} />
+      </linearGradient>
+
+      <linearGradient
+        id={`${prefix}-open-lid`}
+        gradientUnits="userSpaceOnUse"
+        x1="0"
+        y1={OPEN_GRADIENT_BOUNDS.lid.y0}
+        x2="0"
+        y2={OPEN_GRADIENT_BOUNDS.lid.y1}
+      >
+        <stop offset="0%" stopColor={PALETTE.lidHigh} stopOpacity="0.3" />
+        <stop offset="70%" stopColor={PALETTE.lidLow} stopOpacity="0.7" />
+        <stop offset="100%" stopColor={PALETTE.lidLow} stopOpacity="0.95" />
+      </linearGradient>
+
+      {/* Iris : clair au centre, assombri vers le limbe. Un disque d'une seule teinte fait
+          pastille collée ; ce dégradé radial suffit à lui donner sa rondeur. */}
+      <radialGradient id={`${prefix}-open-iris`} cx="42%" cy="38%" r="70%">
+        <stop offset="0%" stopColor={PALETTE.iris} />
+        <stop offset="62%" stopColor={PALETTE.iris} />
+        <stop offset="100%" stopColor={PALETTE.irisRim} />
+      </radialGradient>
 
       {/* Flou de profondeur. UN SEUL filtre dans tout le schéma : à 3840 px de large, un
           `feGaussianBlur` par plan se paierait cher à l'export PNG. */}

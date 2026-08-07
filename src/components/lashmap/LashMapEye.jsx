@@ -8,7 +8,7 @@ import {
   buildSectors,
   centerGuidePath,
 } from '../../utils/lashGeometry';
-import { effectiveZone, eyeLengths, sectorLabel } from '../../utils/lashModel';
+import { drawableKey, effectiveZone, eyeLengths, sectorLabel, zonesFromKey } from '../../utils/lashModel';
 import styles from './styles/LashMap.module.css';
 
 /** Un œil complet : le dessin, la frange qui suit les longueurs saisies, et les
@@ -38,12 +38,13 @@ function LashMapEye({
   const sectors = useMemo(() => buildSectors(count, { mirrored }), [count, mirrored]);
   const lengths = eyeLengths(eye);
 
-  // Signature textuelle des longueurs : évite de régénérer la frange quand c'est une
-  // autre propriété du secteur (courbure, densité…) qui a changé.
-  const lengthKey = lengths.join('|');
+  // Les secteurs RÉSOLUS — réglage global appliqué — et non les seules longueurs comme
+  // auparavant : c'est ce qui fait qu'un passage de C en DD, de 0.03 à 0.15 ou de Classic
+  // en Mega Volume se voit enfin sur le dessin.
+  const zoneKey = drawableKey(eye);
   const extensions = useMemo(
-    () => buildExtensionLashes(lengthKey.split('|').map(Number), sectors, { mirrored }),
-    [lengthKey, sectors, mirrored]
+    () => buildExtensionLashes(zonesFromKey(zoneKey), sectors, { mirrored }),
+    [zoneKey, sectors, mirrored]
   );
 
   // Le sommet du mapping n'est mis en valeur que s'il y en a un : sur une fiche neuve,

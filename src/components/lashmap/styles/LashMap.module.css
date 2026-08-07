@@ -23,15 +23,6 @@
   border-radius: var(--radius-md);
 }
 
-/* Planche sans support : employée par la simulation, où le tracé se pose sur la photo de
-   la cliente. Le papier et son ombre y feraient un rectangle opaque en travers du visage. */
-.plateBare {
-  background: transparent;
-  box-shadow: none;
-  border-radius: 0;
-  overflow: visible;
-}
-
 .svg {
   display: block;
   width: 100%;

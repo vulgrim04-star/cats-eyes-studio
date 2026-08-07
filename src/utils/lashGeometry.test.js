@@ -217,13 +217,23 @@ describe('frange de cils', () => {
     });
   });
 
+  /** Abscisse de la racine d'un cil, lue sur son tracé.
+   *
+   *  Les assertions de dégradé s'expriment sur la POSITION et non sur l'index du tableau :
+   *  les cils naissent désormais secteur par secteur — c'est ce qui permet à la densité de
+   *  se voir — et l'ordre du tableau n'est donc plus l'ordre le long de la paupière. */
+  const rootX = (lash) => Number(lash.d.slice(1).split(',')[0]);
+  const leftmost = (lashes) => lashes.reduce((a, b) => (rootX(b) < rootX(a) ? b : a));
+  const rightmost = (lashes) => lashes.reduce((a, b) => (rootX(b) > rootX(a) ? b : a));
+
   it('allonge les extensions là où les millimètres sont plus grands', () => {
     const sectors = buildSectors(6);
     const courtes = buildExtensionLashes([8, 8, 8, 8, 8, 8], sectors, { count: 24 });
     const longues = buildExtensionLashes([16, 16, 16, 16, 16, 16], sectors, { count: 24 });
-    courtes.forEach((lash, i) => expect(lash.mm).toBeLessThan(longues[i].mm));
+    expect(Math.max(...courtes.map((l) => l.mm))).toBeLessThan(Math.min(...longues.map((l) => l.mm)));
+
     const degrade = buildExtensionLashes([8, 9, 10, 11, 12, 13], sectors, { count: 24 });
-    expect(degrade[0].mm).toBeLessThan(degrade[23].mm);
+    expect(leftmost(degrade).mm).toBeLessThan(rightmost(degrade).mm);
   });
 
   it('suit le dégradé dans le bon sens sur un œil en miroir', () => {
@@ -231,6 +241,74 @@ describe('frange de cils', () => {
     const lashes = buildExtensionLashes([8, 9, 10, 11, 12, 13], sectors, { count: 24, mirrored: true });
     // Secteur 0 (interne, 8 mm) est à DROITE du dessin : les cils de gauche sont donc
     // les plus longs.
-    expect(lashes[0].mm).toBeGreaterThan(lashes[23].mm);
+    expect(leftmost(lashes).mm).toBeGreaterThan(rightmost(lashes).mm);
+  });
+
+  // LE MANQUE QUE TOUT CECI COMBLE : seule la longueur se voyait. Un secteur passé en DD,
+  // en 0.15 ou en Mega Volume s'enregistrait sans que le dessin bouge d'un pixel.
+  it('rend visibles la courbure, le diamètre et la densité, secteur par secteur', () => {
+    const sectors = buildSectors(4);
+    const base = { length: 11, curl: 'J', diameter: '0.03', density: 'Classic', style: 'Classique' };
+    const plat = buildExtensionLashes(Array.from({ length: 4 }, () => ({ ...base })), sectors, { count: 40 });
+    const marque = buildExtensionLashes(
+      Array.from({ length: 4 }, () => ({ ...base, curl: 'DD', diameter: '0.15', density: 'Mega Volume' })),
+      sectors,
+      { count: 40 }
+    );
+
+    const epaisseur = (l) => l.reduce((s, x) => s + x.width, 0) / l.length;
+    expect(epaisseur(marque)).toBeGreaterThan(epaisseur(plat) * 2);
+
+    // La cambrure se lit sur l'écart entre la racine et la pointe : un cil très recourbé
+    // s'écarte davantage de sa direction de départ.
+    const cambrure = (l) => l.reduce((s, x) => s + x.d.length, 0);
+    expect(cambrure(marque)).not.toBe(cambrure(plat));
+
+    // Même nombre total demandé, mais un secteur fourni en reçoit davantage que ses
+    // voisins : c'est ce qui fait qu'un 5D au centre se voit.
+    const degrade = buildExtensionLashes(
+      [
+        { ...base, density: 'Classic' },
+        { ...base, density: 'Mega Volume' },
+        { ...base, density: 'Mega Volume' },
+        { ...base, density: 'Classic' },
+      ],
+      sectors,
+      { count: 40 }
+    );
+    const dansSecteur = (lashes, xMin, xMax) => lashes.filter((l) => rootX(l) >= xMin && rootX(l) < xMax).length;
+    const largeur = 600;
+    const bord = dansSecteur(degrade, 0, largeur / 4);
+    const centre = dansSecteur(degrade, largeur / 4, largeur / 2);
+    expect(centre).toBeGreaterThan(bord);
+  });
+
+  // LE DÉFAUT QUE CE TEST FIGE. Les cils étaient répartis entre secteurs au prorata de leur
+  // densité, mais leur nombre TOTAL était fixe : monter tout l'œil de Classic en Mega Volume
+  // augmentait chaque part dans la même proportion, donc ne changeait rigoureusement rien à
+  // l'écran. Le réglage s'enregistrait, le dessin restait identique — et rien ne le signalait.
+  it('dessine plus de cils quand TOUT l’œil monte en densité', () => {
+    const sectors = buildSectors(8);
+    const eye = (density, style = 'Classique') =>
+      buildExtensionLashes(
+        Array.from({ length: 8 }, () => ({ length: 11, curl: 'C', diameter: '0.07', density, style })),
+        sectors
+      );
+
+    const classic = eye('Classic').length;
+    const cinqD = eye('5D').length;
+    const mega = eye('Mega Volume').length;
+    expect(cinqD).toBeGreaterThan(classic);
+    expect(mega).toBeGreaterThan(cinqD);
+    // Plafonné : un Mega Volume vaut près de quatre fois la pose de référence, mais un
+    // dessin quatre fois plus chargé serait un aplat noir — et mille tracés sur téléphone.
+    expect(mega).toBeLessThan(classic * 2.6);
+  });
+
+  it('accepte encore un simple tableau de longueurs', () => {
+    const sectors = buildSectors(4);
+    const lashes = buildExtensionLashes([8, 10, 12, 14], sectors, { count: 20 });
+    expect(lashes.length).toBeGreaterThan(0);
+    lashes.forEach((l) => expect(Number.isFinite(l.mm)).toBe(true));
   });
 });

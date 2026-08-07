@@ -52,6 +52,17 @@ const LASH_SECTIONS = [
   { id: 'history', label: 'Historique', icon: 'clock' },
 ];
 
+/** Les deux vues du schéma.
+ *
+ *  FERMÉ est la planche de travail : c'est la position de pose, et c'est la seule où les
+ *  secteurs peuvent s'ouvrir en éventail au-dessus de la paupière. OUVERT est un aperçu du
+ *  rendu — ce que la cliente verra en se relevant, qu'un dégradé 9-13 lu à plat ne dit pas.
+ */
+const VIEWS = [
+  { id: 'closed', label: 'Fermé', hint: 'La planche de travail : c’est ici qu’on règle.' },
+  { id: 'open', label: 'Ouvert', hint: 'Aperçu du rendu, yeux ouverts.' },
+];
+
 const STUDIO_TITLES = { lash: 'Lash Studio', brow: 'Brow Lift' };
 const STUDIO_SUBTITLES = { brow: 'Sourcils' };
 
@@ -98,6 +109,11 @@ export default function LashMapPage() {
   // Le module qu'on regardait vient d'être masqué — depuis les Réglages, ou parce qu'on a
   // changé de prestation. On retombe sur le premier disponible plutôt que sur une page vide.
   const activeStudio = studioIds.includes(studio) ? studio : studioIds[0];
+  const [view, setView] = useState('closed');
+  // Une fois ouverte, la vue le reste — montée, simplement rendue transparente. La démonter
+  // à chaque retour sur la planche régénérerait la frange, et le fondu n'aurait alors rien
+  // à croiser.
+  const [openMounted, setOpenMounted] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [comparedId, setComparedId] = useState(null);
@@ -318,19 +334,41 @@ export default function LashMapPage() {
               <h2 className={layout.stageTitle}>
                 <Icon name="eye" size={15} /> Schéma
               </h2>
-              <div className={layout.stageActions} role="tablist" aria-label="Œil affiché">
-                {SIDES.map((value) => (
-                  <button
-                    key={value}
-                    type="button"
-                    role="tab"
-                    aria-selected={side === value}
-                    className={`${layout.chip} ${side === value ? layout.chipActive : ''}`}
-                    onClick={() => { editor.setSide(value); editor.setSelected(null); interactions.closeMenu(); }}
-                  >
-                    {SIDE_LABEL[value]}
-                  </button>
-                ))}
+              <div className={layout.stageActions}>
+                <div className={layout.chipRow} role="tablist" aria-label="Œil affiché">
+                  {SIDES.map((value) => (
+                    <button
+                      key={value}
+                      type="button"
+                      role="tab"
+                      aria-selected={side === value}
+                      className={`${layout.chip} ${side === value ? layout.chipActive : ''}`}
+                      onClick={() => { editor.setSide(value); editor.setSelected(null); interactions.closeMenu(); }}
+                    >
+                      {SIDE_LABEL[value]}
+                    </button>
+                  ))}
+                </div>
+
+                <div className={layout.chipRow} role="tablist" aria-label="Vue du schéma">
+                  {VIEWS.map(({ id: value, label, hint }) => (
+                    <button
+                      key={value}
+                      type="button"
+                      role="tab"
+                      title={hint}
+                      aria-selected={view === value}
+                      className={`${layout.chip} ${view === value ? layout.chipActive : ''}`}
+                      onClick={() => {
+                        if (value === 'open') setOpenMounted(true);
+                        setView(value);
+                        interactions.closeMenu();
+                      }}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
               </div>
             </header>
 
@@ -371,7 +409,24 @@ export default function LashMapPage() {
                 onSectorDrop={interactions.drop}
               />
 
-              {openMenuSector && (
+              {/* La vue ouverte est posée EN SURIMPRESSION, et la planche reste montée
+                  dessous. Deux raisons, et la seconde est la vraie : la bascule se fait en
+                  fondu sans redessiner 240 cils, et surtout c'est la PLANCHE qui garde la
+                  référence d'export — un PDF ou une impression sortent la fiche technique,
+                  jamais l'aperçu, quelle que soit la vue affichée au moment du clic.
+                  Montée à la première ouverture seulement : sur téléphone, doubler le SVG
+                  d'entrée de jeu se paierait au chargement pour une vue qu'on n'ouvrira
+                  peut-être jamais. */}
+              {openMounted && (
+                <div
+                  className={`${styles.openView} ${view === 'open' ? styles.openViewOn : ''}`}
+                  aria-hidden={view !== 'open'}
+                >
+                  <LashMapCanvas map={map} side={side} view="open" />
+                </div>
+              )}
+
+              {openMenuSector && view === 'closed' && (
                 <LashSectorMenu
                   sector={openMenuSector}
                   currentLength={eye.zones[interactions.menuIndex].length}
@@ -380,6 +435,13 @@ export default function LashMapPage() {
                 />
               )}
             </div>
+
+            {view === 'open' && (
+              <p className={layout.stageCaption}>
+                Aperçu du rendu, yeux ouverts. Les réglages continuent de s’appliquer en
+                direct ; le découpage en secteurs, lui, ne se manipule que sur la planche fermée.
+              </p>
+            )}
 
             <LashToolbar editor={editor} onOpenTemplates={() => setTemplatesOpen(true)} onUndo={interactions.undo} />
 

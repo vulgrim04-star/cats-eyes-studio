@@ -1,5 +1,6 @@
 import { forwardRef, useId } from 'react';
 import LashMapEye from './LashMapEye';
+import LashEyeOpen from './LashEyeOpen';
 import LashDefs from './LashDefs';
 import { PALETTE, VIEWBOX } from '../../utils/lashGeometry';
 import { SIDE_LABEL, getEye, lengthRange } from '../../utils/lashModel';
@@ -13,11 +14,15 @@ import styles from './styles/LashMap.module.css';
  * visionneuses.
  */
 const LashMapCanvas = forwardRef(function LashMapCanvas(
-  { map, side, compact = false, readOnly = false, bare = false, ...eyeProps },
+  { map, side, view = 'closed', compact = false, readOnly = false, ...eyeProps },
   ref
 ) {
   const eye = getEye(map, side);
   const mirrored = side === 'left';
+  // La vue ouverte est un APERÇU : elle montre le rendu, elle ne se règle pas. Ses secteurs
+  // n'auraient d'ailleurs nulle part où s'ouvrir, le globe occupant la place que l'éventail
+  // prend sur la planche.
+  const open = view === 'open';
   // Identifiant propre à CETTE planche. Plusieurs schémas cohabitent dans la page — l'œil
   // affiché, le second monté hors écran pour les exports, les vignettes de la liste — et
   // des `id` de dégradés identiques s'écraseraient entre eux. `useId` produit aussi des
@@ -26,7 +31,7 @@ const LashMapCanvas = forwardRef(function LashMapCanvas(
   const prefix = `lm${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
 
   return (
-    <div className={`${styles.plate} ${compact ? styles.plateCompact : ''} ${bare ? styles.plateBare : ''}`}>
+    <div className={`${styles.plate} ${compact ? styles.plateCompact : ''}`}>
       <svg
         ref={ref}
         className={styles.svg}
@@ -35,15 +40,22 @@ const LashMapCanvas = forwardRef(function LashMapCanvas(
         // `role="img"` réduirait tout le sous-arbre à une image : les secteurs, qui sont
         // les commandes du schéma, disparaîtraient des technologies d'assistance. On ne
         // l'emploie donc que sur une planche en lecture seule.
-        role={readOnly ? 'img' : 'group'}
-        aria-label={`${SIDE_LABEL[side]} — ${eye.zones.length} secteurs, ${lengthRange(eye)}`}
+        role={readOnly || open ? 'img' : 'group'}
+        aria-label={
+          open
+            ? `${SIDE_LABEL[side]} — aperçu du rendu, œil ouvert, ${lengthRange(eye)}`
+            : `${SIDE_LABEL[side]} — ${eye.zones.length} secteurs, ${lengthRange(eye)}`
+        }
       >
         <LashDefs prefix={prefix} />
         {/* Le fond papier est indispensable à l'export — un SVG transparent donne un PNG à
-            fond noir chez la moitié des visionneuses — mais il masquerait la photo sous la
-            simulation. C'est le seul cas où on le retire. */}
-        {!bare && <rect x="0" y="0" width={VIEWBOX.width} height={VIEWBOX.height} fill={PALETTE.paper} />}
-        <LashMapEye eye={eye} mirrored={mirrored} readOnly={readOnly} prefix={prefix} {...eyeProps} />
+            fond noir chez la moitié des visionneuses. */}
+        <rect x="0" y="0" width={VIEWBOX.width} height={VIEWBOX.height} fill={PALETTE.paper} />
+        {open ? (
+          <LashEyeOpen eye={eye} mirrored={mirrored} prefix={prefix} />
+        ) : (
+          <LashMapEye eye={eye} mirrored={mirrored} readOnly={readOnly} prefix={prefix} {...eyeProps} />
+        )}
       </svg>
     </div>
   );

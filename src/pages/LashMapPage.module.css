@@ -259,6 +259,26 @@
   position: relative;
 }
 
+/* --- Vue œil ouvert --------------------------------------------------------------- */
+
+/* Posée EN SURIMPRESSION de la planche, qui reste montée dessous. Elle porte son propre
+   fond papier opaque : à pleine opacité elle recouvre entièrement la planche, aucune des
+   deux ne transparaît à travers l'autre. */
+.openView {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  /* Éteinte, elle laisse les secteurs de la planche recevoir les clics ; allumée, elle les
+     intercepte — on ne règle pas un secteur qu'on ne voit plus. */
+  pointer-events: none;
+  transition: opacity var(--transition-panel);
+}
+
+.openViewOn {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 /* --- Étage d'export -------------------------------------------------------------- */
 
 .exportStage {
@@ -270,6 +290,10 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .openView {
+    transition: none;
+  }
+
   .eyeTab {
     transition: none;
   }

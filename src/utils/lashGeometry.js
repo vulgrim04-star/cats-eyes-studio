@@ -17,6 +17,7 @@
  */
 
 import { MM_MAX, MM_MIN, clampMm, interpolateLength, parseMm } from './lashCalculations';
+import { DENSITY_DRAW_CAP, interpolateAt, renderProfile } from './lashRender';
 
 export const VIEWBOX = { width: 600, height: 480 };
 
@@ -62,6 +63,15 @@ export const PALETTE = {
   lashBackTip: '#8A7660',
   browRoot: '#2A1E14',
   browTip: '#7E6549',
+  /** Vue œil ouvert. Un SCHÉMA, pas un portrait : l'iris est graphite et non coloré — il
+   *  n'a pas à prétendre dire la couleur des yeux de la cliente, qu'aucune fiche ne
+   *  renseigne. Ce qu'on vient lire ici, c'est la frange, pas le regard. */
+  sclera: '#FCF8F2',
+  scleraShade: '#DCCDB6',
+  iris: '#5A4B3C',
+  irisRim: '#2E251C',
+  pupil: '#140E09',
+  highlight: '#FFFFFF',
   /** Modelé de la paupière : du creux de l'orbite (haut) au bord ciliaire (bas). */
   lidHigh: '#FBF5EC',
   lidLow: '#EADCC7',
@@ -118,9 +128,11 @@ export function sectorCountForWidth(width) {
 }
 
 /** Longueur dessinée d'un cil d'extension, aux deux bornes métier. Volontairement non
- *  proportionnelle : un 6 mm à l'échelle réelle serait invisible sur le schéma. */
-const LASH_PX_MIN = 38;
-const LASH_PX_MAX = 82;
+ *  proportionnelle : un 6 mm à l'échelle réelle serait invisible sur le schéma.
+ *  Exportées parce que la vue œil ouvert en déduit ses propres bornes de dégradé : les
+ *  cils y remontent, et un dégradé calé sur l'œil fermé les teindrait d'un noir uni. */
+export const LASH_PX_MIN = 38;
+export const LASH_PX_MAX = 82;
 
 /** Densité de la frange.
  *
@@ -137,8 +149,10 @@ const round = (n) => Math.round(n * 100) / 100;
 /** Générateur pseudo-aléatoire à graine (mulberry32).
  *  Indispensable ici : le dessin doit être IDENTIQUE d'un rendu à l'autre, sans quoi
  *  la frange frémirait à chaque frappe et deux exports de la même fiche différeraient.
+ *  Exporté pour la vue œil ouvert, qui doit tirer du MÊME générateur : deux mises en œuvre
+ *  d'un tirage « déterministe » finiraient par diverger, et la garantie n'en serait plus une.
  */
-function seededRandom(seed) {
+export function seededRandom(seed) {
   let a = seed >>> 0;
   return () => {
     a += 0x6d2b79f5;
@@ -304,9 +318,14 @@ export function taperedPath(base, control, tip, width) {
   );
 }
 
-function lashShape(t, length, bend, width, curveRatio = 0.55) {
-  const base = lidPoint(t);
-  const dir = lashDirection(t);
+/** `frame` décrit la LIGNE CILIAIRE sur laquelle on pose : d'où part le cil, et vers où il
+ *  se dirige. C'est ce qui permet au même moteur de dessiner la planche technique — œil
+ *  baissé, cils vers le bas — et la vue œil ouvert, où ils remontent. */
+const CLOSED_FRAME = { point: lidPoint, direction: lashDirection };
+
+function lashShape(t, length, bend, width, curveRatio = 0.55, frame = CLOSED_FRAME) {
+  const base = frame.point(t);
+  const dir = frame.direction(t);
   const perp = { x: -dir.y, y: dir.x };
   const tip = { x: base.x + dir.x * length, y: base.y + dir.y * length };
   const control = {
@@ -357,32 +376,88 @@ export function buildNaturalLashes({ mirrored = false, count = NATURAL_LASH_COUN
  * @param {Array<{tMid:number}>} sectors
  * @param {{mirrored?:boolean, count?:number, seed?:number}} [options]
  */
-export function buildExtensionLashes(lengths, sectors, { mirrored = false, count = EXTENSION_LASH_COUNT, seed = 41 } = {}) {
+export function buildExtensionLashes(zones, sectors, options = {}) {
+  const { mirrored = false, count = EXTENSION_LASH_COUNT, seed = 41, frame = CLOSED_FRAME } = options;
   const random = seededRandom(seed);
   const anchors = sectorAnchors(sectors);
-  // Les ancres sont décroissantes sur un œil retourné : `interpolateLength` attend une
-  // suite croissante, on lui présente donc la version non retournée du repère.
-  const ordered = mirrored ? [...anchors].reverse() : anchors;
-  const orderedLengths = mirrored ? [...lengths].reverse() : lengths;
+  // Les ancres sont décroissantes sur un œil retourné : les interpolations attendent une
+  // suite croissante, on leur présente donc la version non retournée du repère.
+  const flip = (list) => (mirrored ? [...list].reverse() : list);
+  const ordered = flip(anchors);
 
-  return Array.from({ length: count }, (_, i) => {
-    const t = T_MIN + ((T_MAX - T_MIN) * i) / (count - 1) + (random() - 0.5) * 0.006;
-    const mm = interpolateLength(t, ordered, orderedLengths);
-    const length = mmToLashLength(mm) * (0.94 + random() * 0.12);
-    const bend = (0.5 - t) * 2 * (13 + random() * 11);
-    // Même principe que la frange naturelle : une part des extensions passe derrière,
-    // ce qui donne l'épaisseur d'un vrai bouquet plutôt qu'une rangée de traits égaux.
-    const back = random() < 0.32;
-    const width = round(1.5 + random() * 0.9);
-    return {
-      key: i,
-      d: lashShape(t, length * (back ? 0.93 : 1), bend, width, 0.5 + random() * 0.1),
-      width,
-      opacity: round(0.86 + random() * 0.14),
-      back,
-      mm,
-    };
+  const list = normalizeZones(zones);
+  const lengths = list.map((z) => z.length);
+  const profile = renderProfile(list);
+  const orderedLengths = flip(lengths);
+  const orderedBends = flip(profile.bends);
+  const orderedRatios = flip(profile.curveRatios);
+  const orderedWidths = flip(profile.widths);
+
+  // LA DENSITÉ NE S'INTERPOLE PAS : c'est un nombre de cils, il se décide secteur par
+  // secteur. On répartit donc les cils PAR SECTEUR, chacun en recevant d'autant plus qu'il
+  // est fourni — un 5D au centre et un Classic aux coins doivent se voir comme tels.
+  const spans = list.map((zone, index) => {
+    const { t0, t1 } = sectorRange(index, list.length, mirrored);
+    const share = profile.densities[index] * profile.profiles[index].countScale;
+    return { t0: Math.min(t0, t1), t1: Math.max(t0, t1), share, index };
   });
+  const totalShare = spans.reduce((sum, span) => sum + span.share, 0) || 1;
+
+  // LE BUDGET TOTAL SUIT LA DENSITÉ MOYENNE, il n'est pas fixe. Sans cela, passer TOUT
+  // l'œil de Classic en Mega Volume ne ferait que redistribuer les mêmes 240 cils entre des
+  // secteurs tous augmentés dans la même proportion : rigoureusement aucun changement à
+  // l'écran, pour un réglage pourtant enregistré. Le défaut n'est apparu qu'en comptant les
+  // tracés au navigateur — le dessin, lui, s'affichait normalement.
+  const mean = totalShare / (spans.length || 1);
+  const budget = Math.round(count * Math.min(DENSITY_DRAW_CAP, mean));
+
+  const lashes = [];
+  spans.forEach((span) => {
+    const quota = Math.max(3, Math.round((budget * span.share) / totalShare));
+    const technique = profile.profiles[span.index];
+    for (let i = 0; i < quota; i += 1) {
+      // `clump` resserre les cils en bouquets : une pose de volume ne dépose pas des
+      // fibres régulièrement espacées, elle pose des éventails à intervalles.
+      const even = (i + 0.5) / quota;
+      const grouped = technique.clump > 0
+        ? Math.round(even * quota * (1 - technique.clump)) / Math.max(1, quota * (1 - technique.clump))
+        : even;
+      const local = Number.isFinite(grouped) ? grouped : even;
+      const t = span.t0 + (span.t1 - span.t0) * local + (random() - 0.5) * 0.004;
+
+      const mm = interpolateLength(t, ordered, orderedLengths);
+      const spike = technique.spikeEvery > 0 && i % technique.spikeEvery === 0 ? technique.spikeGain : 0;
+      const length = mmToLashLength(mm) * (0.94 + random() * 0.12) * (1 + spike);
+      // La cambrure de la courbure module l'évasement, elle ne le remplace pas : un cil
+      // reste plus évasé vers les coins qu'au centre, quelle que soit sa courbure.
+      const bend = (0.5 - t) * 2 * (13 + random() * 11) * interpolateAt(t, ordered, orderedBends);
+      const curveRatio = interpolateAt(t, ordered, orderedRatios) + (random() - 0.5) * 0.06;
+      const width = round(interpolateAt(t, ordered, orderedWidths) * technique.widthScale * (0.88 + random() * 0.24));
+      const back = random() < 0.32;
+
+      lashes.push({
+        key: lashes.length,
+        d: lashShape(t, length * (back ? 0.93 : 1), bend, width, curveRatio, frame),
+        width,
+        opacity: round(0.86 + random() * 0.14),
+        back,
+        mm,
+      });
+    }
+  });
+  return lashes;
+}
+
+/** Secteurs ramenés à ce dont le dessin a besoin, quelle que soit la forme reçue.
+ *
+ *  L'appelant historique ne passait qu'un tableau de longueurs ; le schéma reçoit
+ *  désormais les secteurs RÉSOLUS — courbure, diamètre, densité, technique comprises. Les
+ *  deux formes sont acceptées pour que les tests de géométrie, qui ne parlent que de
+ *  longueurs, restent valables. */
+function normalizeZones(zones) {
+  return (zones ?? []).map((zone) =>
+    typeof zone === 'object' && zone !== null ? zone : { length: zone }
+  );
 }
 
 // --- Sourcil ---------------------------------------------------------------------

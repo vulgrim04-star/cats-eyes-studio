@@ -6,6 +6,7 @@ import {
   copyEye,
   createEye,
   diffLashMaps,
+  drawableKey,
   effectiveZone,
   eyeLengths,
   getEye,
@@ -20,6 +21,7 @@ import {
   setGlobalField,
   setZoneField,
   setZoneLength,
+  zonesFromKey,
 } from './lashModel';
 import { SECTOR_MAX, SECTOR_MIN } from './lashGeometry';
 import { MM_MAX, MM_MIN } from './lashCalculations';
@@ -284,5 +286,67 @@ describe('carryOverMap', () => {
     const next = carryOverMap({ date: '2026-06-01', curl: 'D', zonesRight: ['9', '11', '13'], zonesLeft: ['9', '11', '13'] }, '2026-08-02');
     expect(next.rightEye.global.curl).toBe('D');
     expect(next.rightEye.zones.length).toBeGreaterThanOrEqual(6);
+  });
+});
+
+describe('signature de dessin', () => {
+  const base = () => normalizeLashMap({ leftEye: createEye(8), rightEye: createEye(8) });
+
+  it('rend les secteurs résolus, réglage global appliqué', () => {
+    let map = base();
+    map = setGlobalField(map, 'right', 'curl', 'D');
+    map = setZoneField(map, 'right', 2, 'curl', 'L');
+    const zones = zonesFromKey(drawableKey(getEye(map, 'right')));
+    expect(zones).toHaveLength(8);
+    expect(zones[0].curl).toBe('D');
+    expect(zones[2].curl).toBe('L');
+  });
+
+  // La raison d'être de la paire : la clé sert de dépendance de mémoïsation, la relecture
+  // rend les secteurs à l'intérieur du calcul. Si elles cessaient de se répondre, le dessin
+  // se figerait sur une valeur périmée sans que rien ne le signale.
+  it('fait l’aller-retour sans perte sur toutes les propriétés dessinées', () => {
+    let map = base();
+    ['curl', 'diameter', 'density', 'style'].forEach((field, i) => {
+      map = setZoneField(map, 'right', i, field, { curl: 'DD', diameter: '0.15', density: '5D', style: 'Kim K' }[field]);
+    });
+    map = setZoneLength(map, 'right', 5, 13.5);
+    const eye = getEye(map, 'right');
+    const zones = zonesFromKey(drawableKey(eye));
+    zones.forEach((zone, i) => {
+      const resolved = effectiveZone(eye, i);
+      expect(zone.length).toBe(resolved.length);
+      ['curl', 'diameter', 'density', 'style'].forEach((f) => expect(zone[f]).toBe(resolved[f]));
+    });
+  });
+
+  it('rend la longueur en nombre, jamais en chaîne', () => {
+    const zones = zonesFromKey(drawableKey(getEye(setZoneLength(base(), 'right', 0, 12), 'right')));
+    zones.forEach((zone) => expect(typeof zone.length).toBe('number'));
+  });
+
+  // Sans cela, la frange — quelque 240 tracés — se régénérerait à chaque frappe dans une
+  // note de secteur, pendant la pose.
+  it('ne bouge pas quand on modifie ce qui ne se dessine pas', () => {
+    const map = base();
+    const avant = drawableKey(getEye(map, 'right'));
+    const apres = setZoneField(setZoneField(map, 'right', 1, 'notes', 'à surveiller'), 'right', 1, 'color', 'Brun');
+    expect(drawableKey(getEye(apres, 'right'))).toBe(avant);
+  });
+
+  it('bouge dès qu’une propriété dessinée change', () => {
+    const map = base();
+    const avant = drawableKey(getEye(map, 'right'));
+    Object.entries({ curl: 'DD', diameter: '0.15', density: '5D', style: 'Wispy' }).forEach(
+      ([field, value]) => {
+        const apres = setZoneField(map, 'right', 3, field, value);
+        expect(drawableKey(getEye(apres, 'right'))).not.toBe(avant);
+      }
+    );
+  });
+
+  it('ne jette pas sur une signature vide', () => {
+    expect(zonesFromKey('')).toEqual([]);
+    expect(zonesFromKey(null)).toEqual([]);
   });
 });

@@ -20,12 +20,10 @@ import { todayISO } from './date';
 
 // --- Référentiels ----------------------------------------------------------------
 
-export const CURLS = ['J', 'B', 'C', 'CC', 'D', 'DD', 'L', 'M'];
-export const DIAMETERS = ['0.03', '0.05', '0.07', '0.10', '0.12', '0.15'];
-export const DENSITIES = ['Classic', '2D', '3D', '4D', '5D', '6D', 'Mega Volume'];
-export const TECHNIQUES = ['Classique', 'Hybride', 'Volume Russe', 'Mega Volume', 'Wispy', 'Kim K', 'Wet Look', 'Anime'];
-export const COLORS = ['Noir', 'Brun', 'Mix', 'Coloré'];
-export const QUICK_LENGTHS = [8, 9, 10, 11, 12, 13, 14, 15];
+/** Réexportés depuis `lashReferentials`, qui ne dépend de rien : le dessin a besoin de les
+ *  lire, et les garder ici formait un cercle d'imports qui vidait un module au chargement.
+ *  Les appelants continuent de les lire là où ils l'ont toujours fait. */
+export { COLORS, CURLS, DENSITIES, DIAMETERS, QUICK_LENGTHS, TECHNIQUES } from './lashReferentials';
 
 /** Propriétés qu'un secteur peut surcharger. La longueur et la note n'y sont pas :
  *  elles n'existent QUE par secteur. */
@@ -193,6 +191,47 @@ export function effectiveZone(eye, index) {
     }
   });
   return result;
+}
+
+/** Les propriétés d'un secteur qui SE DESSINENT, dans l'ordre de leur sérialisation.
+ *
+ *  La couleur n'y est pas : le schéma est une planche à l'encre, teinter la frange en brun
+ *  ferait perdre le contraste sans rien apprendre. La note et l'identifiant non plus — ils
+ *  ne changent pas un trait. */
+const DRAWN = ['length', 'curl', 'diameter', 'density', 'style'];
+
+/**
+ * Signature textuelle des secteurs RÉSOLUS d'un œil, réduite à ce que le dessin consomme.
+ *
+ * POURQUOI UNE CHAÎNE et non un tableau : c'est la clé de mémoïsation de la frange, quelque
+ * 240 tracés régénérés à chaque changement d'identité. Un tableau serait neuf à chaque
+ * rendu — la fiche étant immuable, tout se recrée — et la frange se redessinerait à chaque
+ * frappe dans un champ de texte. Une chaîne se compare par valeur.
+ *
+ * Et elle porte les CINQ propriétés, non la seule longueur : c'était le défaut d'origine du
+ * schéma, qui restait rigoureusement identique quand on passait un secteur de C en DD.
+ */
+export function drawableKey(eye) {
+  return eye.zones
+    .map((_, index) => {
+      const zone = effectiveZone(eye, index);
+      return DRAWN.map((field) => zone[field]).join(':');
+    })
+    .join('|');
+}
+
+/** Relit une signature produite par `drawableKey`. Les deux fonctions vont par paire :
+ *  la clé sert de dépendance, la relecture rend les secteurs à l'intérieur du calcul
+ *  mémoïsé — de sorte que ce calcul ne dépende de rien d'autre que d'elle. */
+export function zonesFromKey(key) {
+  if (!key) return [];
+  return key.split('|').map((part) => {
+    const values = part.split(':');
+    const zone = {};
+    DRAWN.forEach((field, i) => { zone[field] = values[i]; });
+    zone.length = Number(zone.length);
+    return zone;
+  });
 }
 
 /** Un secteur porte-t-il au moins une surcharge ? */
