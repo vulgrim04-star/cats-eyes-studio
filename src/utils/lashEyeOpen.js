@@ -141,41 +141,188 @@ function lensPath(control0, control1, mirrored) {
   );
 }
 
+/** Rédacteur de tracés conscient du retournement : `p(point)` sort « x,y » déjà réfléchi
+ *  si besoin. Les surfaces de peau ne sont pas toutes des lentilles entre les deux coins —
+ *  il leur faut des points libres. */
+function writer(mirrored) {
+  return (point) => {
+    const q = mirrored ? flipPoint(point) : point;
+    return `${round(q.x)},${round(q.y)}`;
+  };
+}
+
+/** Bande entre deux courbes partageant leurs extrémités : le motif de presque toutes les
+ *  surfaces de l'œil — muqueuse, ombre portée, renflement du bord ciliaire, creux. */
+function bandPath(start, end, outerControl, innerControl, mirrored) {
+  const p = writer(mirrored);
+  return (
+    `M${p(start)} Q${p(outerControl)} ${p(end)} Q${p(innerControl)} ${p(start)} Z`
+  );
+}
+
 /**
  * Tous les tracés de la vue, dans l'orientation demandée.
  *
  * @param {boolean} [mirrored]
- * @returns {{aperture:string, upperLid:string, lowerLid:string, upperShade:string,
- *   waterline:string, crease:string, socket:string}}
  */
 export function openEyePaths(mirrored = false) {
+  const p = writer(mirrored);
   return {
-    /** L'ouverture elle-même : le blanc de l'œil, et la découpe qui borne l'iris. */
+    /** L'ouverture elle-même : le blanc de l'œil, et la découpe qui borne tout ce qui
+     *  appartient au globe — iris, ombre de la frange, éclat humide, veinules. */
     aperture: lensPath(OPEN.upper, OPEN.lower, mirrored),
     upperLid: quadPath(OPEN.inner, OPEN.upper, OPEN.outer, mirrored),
     lowerLid: quadPath(OPEN.inner, OPEN.lower, OPEN.outer, mirrored),
-    /** Ombre portée de la paupière sur le globe. C'est ELLE qui donne le modelé : sans
-     *  cette bande, l'œil ouvert est un contour, pas un volume. Découpée par `aperture`. */
-    upperShade: lensPath(OPEN.upper, { x: OPEN.upper.x, y: OPEN.upper.y + 58 }, mirrored),
-    /** Muqueuse du bas, une ligne claire juste au-dessus de la paupière inférieure. */
-    waterline: quadPath(
+
+    /** OMBRE PORTÉE DE LA FRANGE sur le globe. Une frange dense arrête réellement la
+     *  lumière ; sans cette ombre, les cils sont posés SUR l'image au lieu d'y être. Large
+     *  et très fondue — c'est une ombre, pas un trait. */
+    lashShadow: lensPath(OPEN.upper, { x: OPEN.upper.x, y: OPEN.upper.y + 58 }, mirrored),
+
+    /** RENFLEMENT DU BORD CILIAIRE — le « tightline ». La peau y est la plus épaisse et
+     *  c'est de là que sortent réellement les cils : sans ce ressaut, la frange semble
+     *  poussée à même le blanc de l'œil. */
+    ridge: bandPath(
       OPEN.inner,
-      { x: OPEN.lower.x, y: OPEN.lower.y - 12 },
       OPEN.outer,
+      OPEN.upper,
+      { x: OPEN.upper.x, y: OPEN.upper.y + 34 },
       mirrored
     ),
+
+    /** MUQUEUSE du bas, le liseré humide juste au-dessus de la paupière inférieure. */
+    waterline: quadPath(OPEN.inner, { x: OPEN.lower.x, y: OPEN.lower.y - 12 }, OPEN.outer, mirrored),
+
     crease: quadPath(creaseStart(), OPEN.crease, creaseEnd(), mirrored),
-    /** Creux de l'orbite : la peau entre le pli et la ligne ciliaire. */
-    socket: (() => {
-      const [a, b] = [creaseStart(), creaseEnd()].map((p) => (mirrored ? flipPoint(p) : p));
-      const [c0, c1] = [OPEN.crease, OPEN.upper].map((p) => (mirrored ? flipPoint(p) : p));
-      return (
-        `M${round(a.x)},${round(a.y)} ` +
-        `Q${round(c0.x)},${round(c0.y)} ${round(b.x)},${round(b.y)} ` +
-        `Q${round(c1.x)},${round(c1.y)} ${round(a.x)},${round(a.y)} Z`
-      );
-    })(),
+
+    /** Paupière mobile : la peau entre le pli et la ligne ciliaire. */
+    socket: bandPath(creaseStart(), creaseEnd(), OPEN.crease, OPEN.upper, mirrored),
+
+    /** CARONCULE, la petite masse rosée du coin interne. C'est l'un des détails dont
+     *  l'absence trahit le plus un œil dessiné : sans elle, le coin se referme en pointe
+     *  nette, ce qu'aucun œil ne fait. */
+    caruncle:
+      `M${p({ x: OPEN.inner.x + 2, y: OPEN.inner.y - 2 })} ` +
+      `Q${p({ x: OPEN.inner.x + 34, y: OPEN.inner.y - 26 })} ${p({ x: OPEN.inner.x + 42, y: OPEN.inner.y - 2 })} ` +
+      `Q${p({ x: OPEN.inner.x + 32, y: OPEN.inner.y + 24 })} ${p({ x: OPEN.inner.x + 2, y: OPEN.inner.y - 2 })} Z`,
   };
+}
+
+/**
+ * ÉCLAT HUMIDE du globe : la lueur diffuse sur le blanc de l'œil, du côté externe.
+ *
+ * Distincte des reflets de l'iris, qui sont des points nets : celle-ci est large et
+ * fondue. C'est ce qui distingue un œil vivant d'un œil dessiné à plat.
+ */
+export function openGlobeSheen(mirrored = false) {
+  const center = mirrored ? flipPoint({ x: 438, y: 296 }) : { x: 438, y: 296 };
+  return { cx: round(center.x), cy: round(center.y), rx: 48, ry: 17 };
+}
+
+/** Modelé de la peau autour de l'œil.
+ *
+ *  CE QUI MANQUAIT LE PLUS. Un œil détouré sur du papier se lit toujours comme un
+ *  pictogramme, si soigné soit-il : c'est l'arcade, le creux de l'orbite et la pommette
+ *  qui en font un regard. Tout est ici en tons très doux et fondus — la peau doit ASSEOIR
+ *  la frange, jamais lui disputer l'attention.
+ *
+ *  Le champ de peau se dissout dans le papier sur ses bords (dégradé radial côté
+ *  définitions) : pas de rectangle de peau en travers de la planche, pas de cadrage
+ *  photographique. L'œil est installé dans un visage qui s'efface.
+ */
+export function skinPaths(mirrored = false) {
+  const p = writer(mirrored);
+  return {
+    /** Arcade sourcilière : la saillie osseuse sous le sourcil, plus claire car elle prend
+     *  la lumière. Entre la ligne du sourcil et le pli. */
+    browBone: bandPath(creaseStart(), creaseEnd(), { x: 300, y: -88 }, OPEN.crease, mirrored),
+
+    /** Sillon lacrymal, sous la paupière inférieure. Discret : marqué, il donnerait un
+     *  regard fatigué, ce qu'aucune cliente ne veut voir de sa pose. */
+    tearTrough: bandPath(OPEN.inner, OPEN.outer, { x: 300, y: 516 }, OPEN.lower, mirrored),
+
+    /** Racine du nez, côté coin interne : une ombre verticale très douce qui donne au
+     *  visage son relief central. */
+    noseBridge: `M${p({ x: -20, y: 40 })} Q${p({ x: 176, y: 250 })} ${p({ x: -20, y: 476 })} Z`,
+
+    /** Haut de la pommette : une clarté large sous l'œil, qui referme le modelé. */
+    cheek: `M${p({ x: 24, y: 500 })} Q${p({ x: 300, y: 348 })} ${p({ x: 576, y: 500 })} Z`,
+  };
+}
+
+/**
+ * FIBRES DE L'IRIS : les stries radiales entre la pupille et le limbe.
+ *
+ * C'est le détail qui fait passer l'iris de la pastille au tissu. Elles alternent claires
+ * et sombres autour de la teinte de base, et s'arrêtent avant l'anneau limbique — dans un
+ * vrai iris, la trame se referme sous le limbe.
+ *
+ * @param {{mirrored?:boolean, count?:number, seed?:number}} [options]
+ * @returns {Array<{key:number, d:string, width:number, opacity:number, light:boolean}>}
+ */
+export function irisFibres({ mirrored = false, count = 104, seed = 1789 } = {}) {
+  const iris = openEyeIris(false);
+  const random = seededRandom(seed);
+  return Array.from({ length: count }, (_, i) => {
+    const angle = (i / count) * Math.PI * 2 + (random() - 0.5) * 0.06;
+    const from = iris.pupilR + 1 + random() * 7;
+    const to = iris.r - 5 - random() * 18;
+    const at = (radius) => {
+      const point = { x: iris.cx + Math.cos(angle) * radius, y: iris.cy + Math.sin(angle) * radius };
+      return mirrored ? flipPoint(point) : point;
+    };
+    const a = at(from);
+    const b = at(to);
+    return {
+      key: i,
+      d: `M${round(a.x)},${round(a.y)} L${round(b.x)},${round(b.y)}`,
+      width: round(0.8 + random() * 1.4),
+      // Assez pour que le tissu se devine, pas assez pour faire un soleil : des stries
+      // trop marquées se lisent comme un motif imprimé sur l'iris, pas comme sa trame.
+      opacity: round(0.11 + random() * 0.24),
+      light: random() < 0.46,
+    };
+  });
+}
+
+/**
+ * VEINULES du blanc de l'œil, vers les deux coins.
+ *
+ * Volontairement peu nombreuses et très pâles : c'est le détail le plus facile à rater.
+ * Trop appuyées, elles donnent un œil irrité — l'exact contraire de ce qu'une planche de
+ * pose doit montrer. Elles sont découpées par l'ouverture, comme tout ce qui appartient au
+ * globe.
+ *
+ * @param {{mirrored?:boolean, count?:number, seed?:number}} [options]
+ */
+export function globeVeins({ mirrored = false, count = 7, seed = 4211 } = {}) {
+  const random = seededRandom(seed);
+  const center = { x: 300, y: 252 };
+  return Array.from({ length: count }, (_, i) => {
+    // Aux coins seulement : le centre du globe est masqué par l'iris, une veinule y serait
+    // invisible et n'aurait coûté que des octets.
+    const t = i % 2 === 0 ? 0.05 + random() * 0.15 : 0.8 + random() * 0.15;
+    const top = upperLidPoint(t);
+    const bottom = lowerLidPoint(t);
+    const k = 0.3 + random() * 0.45;
+    const start = { x: top.x + (bottom.x - top.x) * k, y: top.y + (bottom.y - top.y) * k };
+    const dir = unit(start, center);
+    const length = 26 + random() * 40;
+    const end = { x: start.x + dir.x * length, y: start.y + dir.y * length };
+    const perp = { x: -dir.y, y: dir.x };
+    const bend = (random() - 0.5) * 26;
+    const control = {
+      x: (start.x + end.x) / 2 + perp.x * bend,
+      y: (start.y + end.y) / 2 + perp.y * bend,
+    };
+    const [a, c, b] = [start, control, end].map((q) => (mirrored ? flipPoint(q) : q));
+    return {
+      key: i,
+      d: `M${round(a.x)},${round(a.y)} Q${round(c.x)},${round(c.y)} ${round(b.x)},${round(b.y)}`,
+      width: round(0.7 + random() * 0.8),
+      opacity: round(0.1 + random() * 0.14),
+    };
+  });
 }
 
 /**
@@ -203,9 +350,12 @@ export function openEyeIris(mirrored = false) {
     // lampe, elle éclaire les deux yeux du même côté. Les faire basculer donnerait deux
     // sources contradictoires — et surtout, elles contrediraient le dégradé de l'iris, dont
     // la lumière, elle, reste en haut à gauche.
+    // Le grand reflet est tenu à l'ÉCART DE LA PUPILLE : à cheval sur son bord, il en
+    // mangeait le haut-gauche et la pupille semblait décentrée — un défaut qu'on impute
+    // au dessin de l'œil alors qu'il vient du reflet.
     highlights: [
-      { ...offset(-34, -34), r: 16, opacity: 0.85 },
-      { ...offset(36, 31), r: 8, opacity: 0.5 },
+      { ...offset(-41, -39), r: 15, opacity: 0.82 },
+      { ...offset(38, 33), r: 8, opacity: 0.48 },
     ],
   };
 }
@@ -230,6 +380,12 @@ export const OPEN_GRADIENT_BOUNDS = {
   lid: {
     y0: OPEN.crease.y + 80,
     y1: Math.max(OPEN.inner.y, OPEN.outer.y) + 4,
+  },
+  /** Ombre portée de la frange sur le globe : dense contre la paupière, éteinte une
+   *  quarantaine d'unités plus bas. Une ombre franche ferait un bandeau. */
+  shadow: {
+    y0: round(upperLidPoint(0.5).y),
+    y1: round(upperLidPoint(0.5).y + 46),
   },
 };
 
@@ -275,10 +431,15 @@ export function buildLowerLashes({ mirrored = false, count = LOWER_LASH_COUNT, s
 export const OPEN_PALETTE = {
   sclera: PALETTE.sclera,
   scleraShade: PALETTE.scleraShade,
-  iris: PALETTE.iris,
   irisRim: PALETTE.irisRim,
+  irisFibreLight: PALETTE.irisFibreLight,
+  irisFibreDark: PALETTE.irisFibreDark,
   pupil: PALETTE.pupil,
   highlight: PALETTE.highlight,
   lidLine: PALETTE.ink,
   crease: PALETTE.creaseLine,
+  skinHigh: PALETTE.skinHigh,
+  skinLow: PALETTE.skinLow,
+  caruncle: PALETTE.caruncle,
+  vein: PALETTE.vein,
 };

@@ -2,6 +2,10 @@ import { describe, expect, it } from 'vitest';
 import {
   OPEN_GRADIENT_BOUNDS,
   buildLowerLashes,
+  globeVeins,
+  irisFibres,
+  openGlobeSheen,
+  skinPaths,
   lowerLashDirection,
   lowerLidPoint,
   openEyeIris,
@@ -54,7 +58,9 @@ describe('contour de l’œil ouvert', () => {
   // droite, et l'ombre de paupière déborderait sur le sourcil.
   it('ferme les tracés qui sont des surfaces', () => {
     const paths = openEyePaths();
-    ['aperture', 'upperShade', 'socket'].forEach((key) => expect(paths[key].endsWith('Z')).toBe(true));
+    ['aperture', 'lashShadow', 'ridge', 'socket', 'caruncle'].forEach((key) =>
+      expect(paths[key].endsWith('Z')).toBe(true)
+    );
     ['upperLid', 'lowerLid', 'crease', 'waterline'].forEach((key) =>
       expect(paths[key].endsWith('Z')).toBe(false)
     );
@@ -228,5 +234,113 @@ describe('cils du bas', () => {
       const [rootY, tipY] = pointsOf(lash.d);
       expect(tipY).toBeGreaterThan(rootY);
     });
+  });
+});
+
+describe('peau', () => {
+  // Un œil détouré sur du papier se lit toujours comme un pictogramme, si soigné soit-il :
+  // c'est l'arcade, le creux de l'orbite et la pommette qui en font un regard.
+  it('rend quatre surfaces de modelé, fermées et exploitables', () => {
+    [false, true].forEach((mirrored) => {
+      const skin = skinPaths(mirrored);
+      expect(Object.keys(skin).sort()).toEqual(['browBone', 'cheek', 'noseBridge', 'tearTrough']);
+      Object.values(skin).forEach((d) => {
+        expect(d.startsWith('M')).toBe(true);
+        expect(d.endsWith('Z')).toBe(true);
+        expect(d).not.toMatch(/NaN|undefined/);
+      });
+    });
+  });
+
+  // La racine du nez est du côté du coin INTERNE, qui change de bord avec l'œil. Placée à
+  // l'envers, elle ombrerait la tempe — et le visage se lirait de travers.
+  it('place la racine du nez du côté du coin interne, des deux côtés', () => {
+    const x = (d) => Number(d.match(/-?\d+(?:\.\d+)?/g)[0]);
+    expect(x(skinPaths(false).noseBridge)).toBeLessThan(VIEWBOX.width / 2);
+    expect(x(skinPaths(true).noseBridge)).toBeGreaterThan(VIEWBOX.width / 2);
+  });
+});
+
+describe('caroncule', () => {
+  const start = (d) => {
+    const n = d.match(/-?\d+(?:\.\d+)?/g).map(Number);
+    return { x: n[0], y: n[1] };
+  };
+
+  it('se pose au coin interne, et le suit quand l’œil se retourne', () => {
+    const droit = start(openEyePaths(false).caruncle);
+    const gauche = start(openEyePaths(true).caruncle);
+    expect(Math.hypot(droit.x - upperLidPoint(0).x, droit.y - upperLidPoint(0).y)).toBeLessThan(12);
+    expect(gauche.x).toBeCloseTo(VIEWBOX.width - droit.x, 6);
+  });
+});
+
+describe('fibres de l’iris', () => {
+  it('reste entre la pupille et le limbe', () => {
+    [false, true].forEach((mirrored) => {
+      const iris = openEyeIris(mirrored);
+      irisFibres({ mirrored }).forEach((fibre) => {
+        const n = fibre.d.match(/-?\d+(?:\.\d+)?/g).map(Number);
+        [[n[0], n[1]], [n[2], n[3]]].forEach(([x, y]) => {
+          const r = Math.hypot(x - iris.cx, y - iris.cy);
+          expect(r).toBeGreaterThanOrEqual(iris.pupilR);
+          expect(r).toBeLessThan(iris.r);
+        });
+      });
+    });
+  });
+
+  it('rend le même tissu à graine égale', () => {
+    expect(irisFibres()).toEqual(irisFibres());
+  });
+
+  it('mélange stries claires et sombres', () => {
+    const fibres = irisFibres({ count: 60 });
+    const claires = fibres.filter((f) => f.light).length;
+    expect(claires).toBeGreaterThan(5);
+    expect(claires).toBeLessThan(55);
+  });
+});
+
+describe('veinules', () => {
+  // Le détail le plus facile à rater : trop appuyées, elles donnent un œil irrité — le
+  // contraire exact de ce qu'une planche de pose doit montrer.
+  it('reste presque invisible', () => {
+    globeVeins().forEach((vein) => {
+      expect(vein.opacity).toBeLessThan(0.25);
+      expect(vein.width).toBeLessThan(2);
+    });
+  });
+
+  it('se tient aux coins, où le globe est découvert', () => {
+    const centre = VIEWBOX.width / 2;
+    globeVeins({ count: 12 }).forEach((vein) => {
+      const x = Number(vein.d.match(/-?\d+(?:\.\d+)?/g)[0]);
+      expect(Math.abs(x - centre)).toBeGreaterThan(70);
+    });
+  });
+
+  it('rend le même dessin à graine égale', () => {
+    expect(globeVeins()).toEqual(globeVeins());
+  });
+});
+
+describe('éclat du globe', () => {
+  it('se pose sur le blanc de l’œil et se retourne avec lui', () => {
+    const droit = openGlobeSheen(false);
+    const gauche = openGlobeSheen(true);
+    expect(gauche.cx).toBeCloseTo(VIEWBOX.width - droit.cx, 6);
+    // Hors de l'iris : posé dessus, ce serait un second reflet de plus, pas une lueur.
+    expect(Math.abs(droit.cx - openEyeIris().cx)).toBeGreaterThan(openEyeIris().r);
+  });
+});
+
+describe('bornes de l’ombre portée', () => {
+  it('part de la ligne ciliaire et descend sur le globe', () => {
+    expect(OPEN_GRADIENT_BOUNDS.shadow.y0).toBeCloseTo(upperLidPoint(0.5).y, 1);
+    expect(OPEN_GRADIENT_BOUNDS.shadow.y1).toBeGreaterThan(OPEN_GRADIENT_BOUNDS.shadow.y0);
+    // Éteinte avant le bas de l'ouverture : une ombre qui traverserait tout le globe ne
+    // serait plus une ombre de frange, mais un assombrissement général.
+    expect(OPEN_GRADIENT_BOUNDS.shadow.y1).toBeLessThan(lowerLidPoint(0.5).y);
   });
 });

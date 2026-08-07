@@ -47,7 +47,7 @@ const LashMapCanvas = forwardRef(function LashMapCanvas(
             : `${SIDE_LABEL[side]} — ${eye.zones.length} secteurs, ${lengthRange(eye)}`
         }
       >
-        <LashDefs prefix={prefix} />
+        <LashDefs prefix={prefix} open={open} />
         {/* Le fond papier est indispensable à l'export — un SVG transparent donne un PNG à
             fond noir chez la moitié des visionneuses. */}
         <rect x="0" y="0" width={VIEWBOX.width} height={VIEWBOX.height} fill={PALETTE.paper} />

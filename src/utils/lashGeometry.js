@@ -63,15 +63,30 @@ export const PALETTE = {
   lashBackTip: '#8A7660',
   browRoot: '#2A1E14',
   browTip: '#7E6549',
-  /** Vue œil ouvert. Un SCHÉMA, pas un portrait : l'iris est graphite et non coloré — il
-   *  n'a pas à prétendre dire la couleur des yeux de la cliente, qu'aucune fiche ne
-   *  renseigne. Ce qu'on vient lire ici, c'est la frange, pas le regard. */
+  /** Vue œil ouvert.
+   *
+   *  UNE SEULE TEINTE D'IRIS pour toutes les clientes, et c'est un choix, pas un oubli :
+   *  aucune fiche ne renseigne la couleur des yeux, et un iris bleu sur une cliente aux
+   *  yeux bruns décrédibiliserait tout l'aperçu. Ce noisette est assez neutre pour ne
+   *  démentir personne, et assez vivant pour que le regard existe. Ce qu'on vient lire ici
+   *  reste la frange. */
   sclera: '#FCF8F2',
-  scleraShade: '#DCCDB6',
-  iris: '#5A4B3C',
-  irisRim: '#2E251C',
-  pupil: '#140E09',
+  scleraShade: '#D9C7AB',
+  irisLight: '#B4884C',
+  iris: '#7A5630',
+  irisDeep: '#4C331B',
+  irisRim: '#221710',
+  irisFibreLight: '#D8AC6A',
+  irisFibreDark: '#3A2614',
+  pupil: '#0D0805',
   highlight: '#FFFFFF',
+  /** Peau. Trois valeurs seulement — clair, moyen, creux — parce que le modelé se fait par
+   *  fondus et non par aplats : au-delà, on dessine un maquillage, pas un visage. */
+  skinHigh: '#F6E7D5',
+  skinMid: '#EEDBC4',
+  skinLow: '#D9BC9A',
+  caruncle: '#E7BCA9',
+  vein: '#B87F79',
   /** Modelé de la paupière : du creux de l'orbite (haut) au bord ciliaire (bas). */
   lidHigh: '#FBF5EC',
   lidLow: '#EADCC7',
